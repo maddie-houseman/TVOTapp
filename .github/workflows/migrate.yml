@@ -1,4 +1,5 @@
 name: prisma-migrate
+
 on:
   workflow_dispatch:
   push:
@@ -6,6 +7,7 @@ on:
     paths:
       - "server/prisma/**"
       - "server/package.json"
+      - "server/package-lock.json"
       - ".github/workflows/migrate.yml"
 
 jobs:
@@ -14,21 +16,53 @@ jobs:
     defaults:
       run:
         working-directory: server
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
           cache-dependency-path: server/package-lock.json
-      - run: npm ci
-      - run: npx prisma generate
+
+      # Show what's in /server so we can confirm paths
+      - name: Debug ls
+        run: |
+          pwd
+          ls -la
+          echo "--- prisma dir ---"
+          ls -la prisma || true
+          echo "--- package.json ---"
+          cat package.json
+
+      # Install deps (works whether you committed a lockfile or not)
+      - name: Install deps
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Prisma version & validate
+        run: |
+          npx prisma --version
+          npx prisma validate --schema prisma/schema.prisma
+
+      - name: Generate Prisma client
+        run: npx prisma generate --schema prisma/schema.prisma
+
       - name: Apply migrations
-        run: npx prisma migrate deploy --schema prisma/schema.prisma
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
-      - name: Seed database (optional)
-        run: npx prisma db seed
+        run: npx prisma migrate deploy --schema prisma/schema.prisma
+
+      # Optional; if it causes failure we can disable it later
+      - name: Seed database
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npm run seed
