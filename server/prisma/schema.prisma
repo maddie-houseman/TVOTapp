@@ -1,0 +1,143 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
+}
+
+
+enum Role {
+  EMPLOYEE
+  ADMIN
+}
+
+enum Department {
+  ENGINEERING
+  SALES
+  MARKETING
+  FINANCE
+  HR
+  OPERATIONS
+  OTHER
+}
+
+enum TbmTower {
+  APP_DEV
+  SERVICE_DESK
+  DATA_CENTER
+  NETWORK
+  END_USER
+  SECURITY
+  CLOUD
+  OTHER
+}
+
+enum BenefitCategory {
+  REVENUE_UPLIFT
+  PRODUCTIVITY
+  RISK_AVOIDANCE
+  COST_AVOIDANCE
+  OTHER
+}
+
+model Company {
+  id        String               @id @default(cuid())
+  name      String               @unique
+  domain    String?              @unique
+  users     User[]
+  l1Inputs  L1OperationalInput[]
+  l2Weights L2AllocationWeight[]
+  l3Weights L3BenefitWeight[]
+  l4Snaps   L4RoiSnapshot[]
+  createdAt DateTime             @default(now())
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         Role     @default(EMPLOYEE)
+  companyId    String?
+  company      Company? @relation(fields: [companyId], references: [id])
+  createdAt    DateTime @default(now())
+
+  // Back-relations for createdBy on other models
+  l1OperationalInputs L1OperationalInput[] @relation("UserCreatedL1OperationalInput")
+  l2AllocationWeights L2AllocationWeight[] @relation("UserCreatedL2AllocationWeight")
+  l3BenefitWeights    L3BenefitWeight[]    @relation("UserCreatedL3BenefitWeight")
+  l4RoiSnapshots      L4RoiSnapshot[]      @relation("UserCreatedL4RoiSnapshot")
+}
+
+
+model L1OperationalInput {
+  id          String     @id @default(cuid())
+  companyId   String
+  company     Company    @relation(fields: [companyId], references: [id])
+  period      DateTime
+  department  Department
+  employees   Int
+  budget      Decimal    @db.Decimal(18, 2)
+  baselineKpi Decimal?   @db.Decimal(18, 4)
+
+  createdById String?
+  createdBy   User?    @relation("UserCreatedL1OperationalInput", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@unique([companyId, period, department])
+  @@index([companyId, period])
+}
+
+model L2AllocationWeight {
+  id         String     @id @default(cuid())
+  companyId  String
+  company    Company    @relation(fields: [companyId], references: [id])
+  period     DateTime
+  department Department
+  tower      TbmTower
+  weightPct  Decimal    @db.Decimal(7, 4) // 0..1
+
+  createdById String?
+  createdBy   User?    @relation("UserCreatedL2AllocationWeight", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@unique([companyId, period, department, tower])
+  @@index([companyId, period])
+}
+
+model L3BenefitWeight {
+  id        String          @id @default(cuid())
+  companyId String
+  company   Company         @relation(fields: [companyId], references: [id])
+  period    DateTime
+  category  BenefitCategory
+  weightPct Decimal         @db.Decimal(7, 4) // 0..1
+
+  createdById String?
+  createdBy   User?    @relation("UserCreatedL3BenefitWeight", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@unique([companyId, period, category])
+  @@index([companyId, period])
+}
+
+model L4RoiSnapshot {
+  id           String   @id @default(cuid())
+  companyId    String
+  company      Company  @relation(fields: [companyId], references: [id])
+  period       DateTime
+  totalCost    Decimal  @db.Decimal(18, 2)
+  totalBenefit Decimal  @db.Decimal(18, 2)
+  roiPct       Decimal  @db.Decimal(9, 4)
+  assumptions  String?
+
+  createdById String?
+  createdBy   User?    @relation("UserCreatedL4RoiSnapshot", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@unique([companyId, period])
+  @@index([companyId, period])
+}
