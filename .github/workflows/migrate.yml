@@ -28,17 +28,16 @@ jobs:
           cache: npm
           cache-dependency-path: server/package-lock.json
 
-      # Show what's in /server so we can confirm paths
-      - name: Debug ls
+      - name: Show repo layout (debug)
         run: |
-          pwd
+          echo "PWD=$(pwd)"
+          echo "--- server dir ---"
           ls -la
           echo "--- prisma dir ---"
           ls -la prisma || true
           echo "--- package.json ---"
           cat package.json
 
-      # Install deps (works whether you committed a lockfile or not)
       - name: Install deps
         run: |
           if [ -f package-lock.json ]; then
@@ -47,10 +46,34 @@ jobs:
             npm install
           fi
 
+      - name: Check secrets exist (values not printed)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
+        run: |
+          test -n "${DATABASE_URL:-}" && echo "DATABASE_URL present" || (echo "ERROR: DATABASE_URL missing"; exit 1)
+          # DIRECT_DATABASE_URL is optional; note if missing
+          test -n "${DIRECT_DATABASE_URL:-}" && echo "DIRECT_DATABASE_URL present" || echo "DIRECT_DATABASE_URL missing (ok)"
+
+      - name: Show datasource from schema (debug)
+        run: |
+          echo "First 40 lines of prisma/schema.prisma:"
+          sed -n '1,40p' prisma/schema.prisma || true
+
       - name: Prisma version & validate
+        env:
+          PRISMA_LOG_LEVEL: debug
         run: |
           npx prisma --version
           npx prisma validate --schema prisma/schema.prisma
+
+      - name: Test DB connectivity (db pull)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
+          PRISMA_LOG_LEVEL: debug
+        run: |
+          npx prisma db pull --schema prisma/schema.prisma
 
       - name: Generate Prisma client
         run: npx prisma generate --schema prisma/schema.prisma
@@ -59,10 +82,15 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
+          PRISMA_LOG_LEVEL: debug
         run: npx prisma migrate deploy --schema prisma/schema.prisma
 
-      # Optional; if it causes failure we can disable it later
-      - name: Seed database
+      # Seed only if the file exists
+      - name: Seed database (if prisma/seed.js exists)
+        if: ${{ hashFiles('server/prisma/seed.js') != '' }}
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: npm run seed
+        run: |
+          echo "Running seed.js..."
+          node prisma/seed.js
+
