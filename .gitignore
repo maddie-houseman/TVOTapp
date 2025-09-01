@@ -1,13 +1,28 @@
+# Node / package managers
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# Builds (applies to client/ and server/)
 dist/
+build/
+coverage/
+
+# Vite cache (sometimes appears inside node_modules/.vite too)
+.vite/
+
+# Env files anywhere
 .env
 .env.*
+**/.env
+**/.env.*
 
-prisma/.env
-
+# OS / editor
 .DS_Store
+Thumbs.db
 .vscode/
+
+# If you ever put Prisma env separately
+prisma/.env
