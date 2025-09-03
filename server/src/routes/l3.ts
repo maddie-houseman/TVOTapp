@@ -72,7 +72,6 @@ r.post("/", auth(), async (req, res) => {
         },
         update: {
             weightPct: body.weightPct,
-            updatedById: userId,
     },
     });
 
