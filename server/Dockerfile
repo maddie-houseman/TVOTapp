@@ -7,8 +7,8 @@ WORKDIR /app
 # Copy package files first for better caching
 COPY package*.json ./
 
-# Install all dependencies (dev needed for build) and clear cache
-RUN npm ci && npm cache clean --force
+# Install dependencies without running lifecycle scripts (avoids prisma generate during install)
+RUN npm ci --ignore-scripts
 
 # Copy source code
 COPY . .
