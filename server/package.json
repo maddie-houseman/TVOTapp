@@ -5,7 +5,15 @@
     "scripts": {
         "dev": "tsx watch src/index.ts",
         "build": "tsc -p tsconfig.json",
-        "start": "node dist/index.js"
+        "start": "node dist/index.js",
+        "seed": "node prisma/seed.js",
+        "postinstall": "prisma generate && prisma migrate deploy",
+        "prebuild": "rm -rf node_modules/.cache || true",
+        "migrate": "prisma migrate deploy",
+        "deploy": "npm run migrate && npm run seed"
+    },
+    "prisma": {
+    "seed": "node prisma/seed.js"
     },
     "dependencies": {
         "@prisma/client": "6.15.0",
