@@ -7,7 +7,7 @@
         "build": "tsc -p tsconfig.json",
         "start": "node dist/index.js",
         "seed": "node prisma/seed.js",
-        "postinstall": "prisma generate && prisma migrate deploy",
+        "postinstall": "prisma generate",
         "prebuild": "rm -rf node_modules/.cache || true",
         "migrate": "prisma migrate deploy",
         "deploy": "npm run migrate && npm run seed"
