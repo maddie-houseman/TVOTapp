@@ -1,8 +1,8 @@
 // server/src/routes/l3.ts
 import { Router } from "express";
 import { z } from "zod";
-import { prisma } from "../prisma";
-import { auth } from "../middleware/auth";
+import { prisma } from "../prisma.js";
+import { auth } from "../middleware/auth.js";
 
 const r = Router();
 

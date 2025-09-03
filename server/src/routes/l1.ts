@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { prisma } from '../prisma';
-import { auth } from '../middleware/auth';
-import { restrictToCompany } from '../middleware/rbac';
-import { l1Schema } from '../utils/validators';
+import { prisma } from '../prisma.js';
+import { auth } from '../middleware/auth.js';
+import { restrictToCompany } from '../middleware/rbac.js';
+import { l1Schema } from '../utils/validators.js';
 import { Prisma } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 
