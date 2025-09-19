@@ -7,8 +7,9 @@ WORKDIR /app
 # Copy package files first for better caching
 COPY package*.json ./
 
-# Install dependencies without running lifecycle scripts (avoids prisma generate during install)
-RUN npm ci --ignore-scripts
+# Install dependencies (bypass peer conflicts on CI)
+ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
+RUN npm install --legacy-peer-deps --ignore-scripts
 
 # Copy source code
 COPY . .

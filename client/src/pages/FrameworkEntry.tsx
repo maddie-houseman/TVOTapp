@@ -9,26 +9,26 @@ export default function FrameworkEntry() {
   // period YYYY-MM (we send YYYY-MM-01 to the server)
   const [period, setPeriod] = useState<string>(new Date().toISOString().slice(0, 7));
 
-  // --- L1 (operational inputs) ---
+  // --- L1 - inputs
   const [dept, setDept] = useState<Department>('ENGINEERING');
   const [employees, setEmployees] = useState<number>(10);
   const [budget, setBudget] = useState<number>(200000);
 
-  // --- L2 (tower weights; must sum to ~1.0) ---
+  // --- L2 - tower weights; must sum to 1
   const [appDev, setAppDev] = useState<number>(0.7);
   const [cloud, setCloud] = useState<number>(0.3);
   const [endUser, setEndUser] = useState<number>(0);
 
-  // --- L3 (benefit weights; must sum to ~1.0) ---
+  // --- L3 - benefit weights; must sum to 1
   const [prod, setProd] = useState<number>(0.6);
   const [rev, setRev] = useState<number>(0.4);
 
-  // --- L4 (assumptions for snapshot / ROI) ---
+  // --- L4 - assumptions for snapshot / ROI
   const [uplift, setUplift] = useState<number>(100000);
   const [hours, setHours] = useState<number>(400);
   const [rate, setRate] = useState<number>(50);
 
-  // load current user
+  // loading current user
   useEffect(() => {
     api.me().then(setMe).catch(() => setMe(null));
   }, []);
@@ -245,9 +245,9 @@ export default function FrameworkEntry() {
         </div>
       </div>
 
-      {/* L4 assumptions + compute */}
+      {/*  L4 assumptions + compute */}
       <div>
-        <h3 className="font-semibold mb-2">Assumptions (for ROI snapshot)</h3>
+        <h3 className="font-semibold mb-2">FAKE DATA FOR DEMO</h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <label className="block">
             <div className="text-sm mb-1">Revenue uplift</div>

@@ -1,4 +1,7 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+// DemoContext.tsx
+import { createContext, useContext } from 'react';
+import type { ReactNode } from 'react'; // ✅ type-only
+// (removed useState)
 
 export interface DemoUser {
   id: string;
@@ -28,25 +31,22 @@ const defaultDemoData: DemoData = {
     name: 'Demo Admin',
     role: 'ADMIN',
     companyId: 'demo-company-1',
-    companyName: 'Demo Corp'
+    companyName: 'Demo Corp',
   },
   company: {
     id: 'demo-company-1',
-    name: 'Demo Corp',
-    domain: 'demo.com'
+    name: 'Demo Company',
+    domain: 'demo.com',
   },
-  isDemoMode: true
+  isDemoMode: true,
 };
 
 const DemoContext = createContext<DemoData>(defaultDemoData);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useDemo = () => useContext(DemoContext);
 
 export const DemoProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  return (
-    <DemoContext.Provider value={defaultDemoData}>
-      {children}
-    </DemoContext.Provider>
-  );
+  return <DemoContext.Provider value={defaultDemoData}>{children}</DemoContext.Provider>;
 };
 

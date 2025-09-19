@@ -9,7 +9,7 @@ export default function Login() {
     const navigate = useNavigate();
     const { isDemoMode } = useDemo();
 
-    // In demo mode, redirect to home since auth is bypassed
+    // In demo mode, redirecting to home since auth byh login is being ignored
     useEffect(() => {
         if (isDemoMode) {
             navigate('/');
@@ -32,10 +32,10 @@ export default function Login() {
                 <div className="max-w-md w-full space-y-8">
                     <div className="text-center">
                         <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-                            Demo Mode Active
+                            DEMO MODE
                         </h2>
                         <p className="mt-2 text-sm text-gray-600">
-                            Authentication is currently bypassed. You can access all features without logging in.
+                            Authentication by login is currently bypassed. You can access all features without logging in.
                         </p>
                         <div className="mt-4">
                             <button

@@ -15,7 +15,7 @@ If you are developing a production application, we recommend updating the config
 export default tseslint.config([
   globalIgnores(['dist']),
   {
-    files: ['**/*.{ts,tsx}'],
+    files: ['**/*.{ts,tsx}']
     extends: [
       // Other configs...
 

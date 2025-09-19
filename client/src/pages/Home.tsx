@@ -114,8 +114,8 @@ export default function Home() {
               </div>
               <div className="ml-3">
                 <p className="text-sm text-yellow-700">
-                  <strong>Demo Mode Active:</strong> You're currently viewing the application with sample data. 
-                  Database connection will be restored once TLS inspection is resolved.
+                      <strong>IN DEMO MODE:</strong>  
+                      ACTUAL ACCOUNT DETAILS TO GO HERE ONCE HOSTED.
                 </p>
               </div>
             </div>

@@ -10,22 +10,23 @@ import l3Router from "./routes/l3.js";
 import l4Router from "./routes/l4.js";
 import companyRouter from "./routes/company.js";
 import aiRouter from "./routes/ai.js";
-import dbTestRouter from "./routes/db-test.js";
 
 const app = express();
 
 // --- Middleware order matters ---
-app.use(
-    cors({
-        origin: process.env.CORS_ORIGIN ?? "http://localhost:5173",
-        credentials: true,
-    })
-);
+app.set("trust proxy", 1); // behind Railway/Render/NGINX
+
+// CORS uses env
+app.use(cors({ origin: process.env.CORS_ORIGIN, credentials: true }));
 // If running behind a proxy (Railway/Render/Fly/Heroku), trust it for accurate protocol
-app.set("trust proxy", true);
+// app.set("trust proxy", true);
+
+
+
 app.use(cookieParser());
 app.use(express.json()); // JSON body parser
 app.use(express.urlencoded({ extended: true })); // form posts (optional)
+
 
 // Debug: log body keys for login
 if (process.env.NODE_ENV !== "production") {
@@ -36,7 +37,6 @@ if (process.env.NODE_ENV !== "production") {
         next();
     });
 }
-
 // --- Routes ---
 app.use("/api", authRouter);
 app.use("/api", l1Router);
@@ -45,7 +45,6 @@ app.use("/api", l3Router);
 app.use("/api", l4Router);
 app.use("/api", companyRouter);
 app.use("/api", aiRouter);
-app.use("/api", dbTestRouter);
 
 // Health check
 app.get("/api/health", (_req: Request, res: Response) => {

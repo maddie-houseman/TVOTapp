@@ -245,8 +245,8 @@ export default function Dashboard() {
               </div>
               <div className="ml-3">
                 <p className="text-sm text-yellow-700">
-                  <strong>Demo Data:</strong> This dashboard is currently showing sample data. 
-                  Once database connectivity is restored, you'll see your actual TBM framework data here.
+                  <strong>Demo Data:</strong> SAMPLE DATA. 
+                  Once database connected actual TBM framework data will be here
                 </p>
               </div>
             </div>

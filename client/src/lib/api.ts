@@ -1,6 +1,4 @@
-// src/lib/api.ts
 
-// ---------- Domain Types ----------
 type Role = "ADMIN" | "EMPLOYEE";
 
 export type Me = { id: string; role: Role; companyId: string | null };
@@ -59,9 +57,7 @@ export type L4Snapshot = {
     updatedAt?: string;
 };
 
-// ---------- Base URL ----------
-// Keep BASE='' in dev so Vite proxies "/api" to your backend.
-// For prod, set VITE_API_BASE (e.g., https://api.example.com).
+
 const BASE = import.meta.env.DEV ? "" : (import.meta.env.VITE_API_BASE ?? "");
 
 // ---------- Helpers ----------
@@ -111,7 +107,7 @@ async function jsonFetch<T>(
     return (text ? (JSON.parse(text) as T) : (undefined as unknown as T));
 }
 
-// Type guard for nicely handling 401s without using `any`
+// Type guard
 function isHttpStatus(e: unknown, code: number): e is Error {
     return e instanceof Error && new RegExp(`^HTTP\\s+${code}\\b`).test(e.message);
 }
@@ -139,7 +135,7 @@ export const api = {
         await jsonFetch<void>("/api/auth/logout", { method: "POST" });
     },
 
-    // ---- L1 ----
+    //  L1 
     async l1Upsert(v: L1Input): Promise<L1Input> {
         return jsonFetch<L1Input>("/api/l1", { method: "POST", json: v });
     },
@@ -148,7 +144,7 @@ export const api = {
         return jsonFetch<L1Input[]>(`/api/l1/${companyId}/${period}`);
     },
 
-    // ---- L2 ----
+    // ---- L2
     async l2Upsert(v: L2Input): Promise<L2Input> {
         return jsonFetch<L2Input>("/api/l2", { method: "POST", json: v });
     },
@@ -157,7 +153,7 @@ export const api = {
         return jsonFetch<L2Input[]>(`/api/l2/${companyId}/${period}`);
     },
 
-    // ---- L3 ----
+    // ---- L3
     async l3Upsert(v: L3Input): Promise<L3Input> {
         return jsonFetch<L3Input>("/api/l3", { method: "POST", json: v });
     },
@@ -166,7 +162,7 @@ export const api = {
         return jsonFetch<L3Input[]>(`/api/l3/${companyId}/${period}`);
     },
 
-  // ---- L4 ----
+  // ---- L4 
     async snapshot(
         companyId: string,
         period: string,
