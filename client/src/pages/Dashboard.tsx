@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useDemo } from '../contexts/DemoContext';
 
 export default function Dashboard() {

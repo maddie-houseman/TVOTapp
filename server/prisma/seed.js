@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -21,11 +21,13 @@ async function main() {
     });
 
     console.log(`Seeded ${email} / ${password}`);
-}
+    }
 
 main()
     .catch((e) => {
         console.error(e);
         process.exit(1);
     })
-    .finally(async () => prisma.$disconnect());
+    .finally(async () => {
+        await prisma.$disconnect();
+    });

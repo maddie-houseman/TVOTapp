@@ -1,113 +1,141 @@
 // server/src/routes/l4.ts
-import { Router } from "express";
-import { z } from "zod";
-import { prisma } from "../prisma.js";
-import { auth } from "../middleware/auth.js";
+import { Router, type RequestHandler, type Response } from 'express';
+import { z } from 'zod';
+import { prisma } from '../prisma.js';
+import { auth } from '../middleware/auth.js';
+import type { JwtPayload } from 'jsonwebtoken';
 
 const r = Router();
 
-/** ===== Schema & helpers ===== */
-const snapshotSchema = z.object({
-    companyId: z.string().min(1),
-  // Accept YYYY-MM or YYYY-MM-01
-    period: z.string().regex(/^\d{4}-\d{2}(-\d{2})?$/, "Use YYYY-MM or YYYY-MM-01"),
-    assumptions: z.object({
-        revenueUplift: z.number().nonnegative().default(0),
-        productivityGainHours: z.number().nonnegative().default(0),
-        avgLoadedRate: z.number().nonnegative().default(0),
-    }),
-    });
+/** What auth middleware puts on req.user (per your project: it has userId, not id) */
+type AuthUser = JwtPayload & {
+  userId: string;
+  role: 'ADMIN' | 'EMPLOYEE' | 'USER' | string;
+  companyId?: string;
+};
 
-function toPeriodDate(p: string) {
-    const iso = /^\d{4}-\d{2}$/.test(p) ? `${p}-01` : p;
-    return new Date(iso + "T00:00:00.000Z");
+/** ===== Zod schema & helpers ===== */
+const snapshotSchema = z.object({
+  companyId: z.string().min(1),
+  // YYYY-MM or YYYY-MM-DD
+  period: z
+    .string()
+    .regex(/^\d{4}(-\d{2}(-\d{2})?)?$/, "Use 'YYYY-MM' or 'YYYY-MM-DD'"),
+  assumptions: z
+    .object({
+      revenueUplift: z.number().nonnegative().default(0),
+      productivityGainHours: z.number().nonnegative().default(0),
+      avgLoadedRate: z.number().nonnegative().default(0),
+    })
+    .passthrough(), // allow extra keys
+});
+type SnapshotBody = z.infer<typeof snapshotSchema>;
+
+function toPeriod(bodyPeriod: string) {
+  // normalize to first day of month if day not provided
+  if (/^\d{4}-\d{2}$/.test(bodyPeriod)) return `${bodyPeriod}-01`;
+  return bodyPeriod;
 }
 
 /** ===== POST /api/l4/snapshot =====
- * Computes cost/benefit/ROI and upserts a snapshot for (companyId, period)
+ *  Computes cost/benefit and upserts a snapshot for (companyId, period)
  */
-r.post("/snapshot", auth(), async (req, res) => {
-  // ✅ parse and **define body**
-    const body = snapshotSchema.parse(req.body);
+const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (
+  req,
+  res
+) => {
+  const parsed = snapshotSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: parsed.error.flatten() });
+  }
+  const body = parsed.data;
 
-  // RBAC: employees can only act on their own company
-    if (req.user?.role !== "ADMIN" && req.user?.companyId !== body.companyId) {
-        return res.status(403).json({ error: "Forbidden" });
-    }
+  // RBAC: employees may only act on their own company
+  const u = req.user as AuthUser | undefined;
+  if (u?.role !== 'ADMIN' && u?.companyId !== body.companyId) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
 
-    const period = toPeriodDate(body.period);
-    const userId = (req.user as any)?.id ?? (req.user as any)?.userId ?? undefined;
+  const period = toPeriod(body.period);
+  const userId = u?.userId ?? undefined;
 
-  // Fetch inputs for this period (typed, no implicit any)
-    const l1 = await prisma.l1OperationalInput.findMany({
-        where: { companyId: body.companyId, period },
-    });
-    type L1Row = typeof l1[number];
+  const l1 = await prisma.l1OperationalInput.findMany({
+    where: { companyId: body.companyId, period },
+  });
+  type L1Row = (typeof l1)[number];
 
-    const l2 = await prisma.l2AllocationWeight.findMany({
-        where: { companyId: body.companyId, period },
-    });
-
-    const l3 = await prisma.l3BenefitWeight.findMany({
-        where: { companyId: body.companyId, period },
-    });
+  // kept for future distribution logic (prefixed to avoid noUnusedLocals)
+  const _l2 = await prisma.l2AllocationWeight.findMany({
+    where: { companyId: body.companyId, period },
+  });
+  const _l3 = await prisma.l3BenefitWeight.findMany({
+    where: { companyId: body.companyId, period },
+  });
 
   // --- Minimal, transparent math ---
-  // Cost: sum of L1 budgets (you can refine with L2 if desired)
-    const totalCost = l1.reduce((acc: number, row: L1Row) => acc + Number(row.budget), 0);
+  const totalCost = l1.reduce(
+    (acc: number, row: L1Row) => acc + Number(row.budget ?? 0),
+    0
+  );
 
-  // Benefit: Revenue uplift + productivity value
-    const productivityValue =
-        body.assumptions.productivityGainHours * body.assumptions.avgLoadedRate;
+  // Benefit = Revenue uplift + productivity value
+  const productivityValue =
+    (body.assumptions.productivityGainHours ?? 0) *
+    (body.assumptions.avgLoadedRate ?? 0);
 
-  // (Optional) you could apply L3 weights here if you want distribution.
-    const totalBenefit = body.assumptions.revenueUplift + productivityValue;
+  const totalBenefit =
+    (body.assumptions.revenueUplift ?? 0) + productivityValue;
 
-    const net = totalBenefit - totalCost;
-    const roiPct = totalCost > 0 ? net / totalCost : 0;
+  // Derived (not persisted as top-level fields in Prisma model)
+  const net = totalBenefit - totalCost;
+  const roiPct = totalCost > 0 ? net / totalCost : 0;
 
-  // Upsert snapshot
-    const snap = await prisma.l4RoiSnapshot.upsert({
-        where: {
-            companyId_period: { companyId: body.companyId, period },
-        },
+  // Upsert snapshot (only known fields)
+  const snap = await prisma.l4RoiSnapshot.upsert({
+    where: {
+      companyId_period: { companyId: body.companyId, period },
+    },
     create: {
-        companyId: body.companyId,
-        period,
-        totalCost,
-        totalBenefit,
-        net,
-        roiPct,
-        assumptions: body.assumptions as any,
-        createdById: userId,
+      companyId: body.companyId,
+      period,
+      totalCost,
+      totalBenefit,
+      // keep any extra assumption keys, plus derived inside a nested blob
+      assumptions: { ...body.assumptions, _derived: { net, roiPct } } as any,
+      createdById: userId,
     },
     update: {
-        totalCost,
-        totalBenefit,
-        net,
-        roiPct,
-        assumptions: body.assumptions as any,
-        updatedById: userId,
-        },
-    });
+      totalCost,
+      totalBenefit,
+      assumptions: { ...body.assumptions, _derived: { net, roiPct } } as any,
+      updatedById: userId,
+    },
+  });
 
-    res.json(snap);
-});
+  res.json(snap);
+};
+
+r.post('/snapshot', auth, postSnapshot);
 
 /** ===== GET /api/l4/snapshots/:companyId ===== */
-r.get("/snapshots/:companyId", auth(), async (req, res) => {
-    const { companyId } = req.params;
+type SnapParams = { companyId: string };
 
-    if (req.user?.role !== "ADMIN" && req.user?.companyId !== companyId) {
-        return res.status(403).json({ error: "Forbidden" });
-    }
+const getSnapshots: RequestHandler<SnapParams> = async (req, res: Response) => {
+  const { companyId } = req.params;
 
-    const snaps = await prisma.l4RoiSnapshot.findMany({
-        where: { companyId },
-        orderBy: { period: "asc" },
-    });
+  const u = req.user as AuthUser | undefined;
+  if (u?.role !== 'ADMIN' && u?.companyId !== companyId) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
 
-    res.json(snaps);
-    });
+  const snaps = await prisma.l4RoiSnapshot.findMany({
+    where: { companyId },
+    orderBy: { period: 'asc' },
+  });
 
-    export default r;
+  res.json(snaps);
+};
+
+r.get('/snapshots/:companyId', auth, getSnapshots);
+
+export default r;
