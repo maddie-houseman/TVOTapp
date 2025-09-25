@@ -1,8 +1,7 @@
-// server/src/routes/l4.ts
 import { Router, type RequestHandler, type Response } from 'express';
 import { z } from 'zod';
 import { prisma } from '../prisma.js';
-import { auth } from '../middleware/auth.js';          // ⬅️ named import
+import { auth } from '../middleware/auth.js'; // named import (auth is a function)
 import type { JwtPayload } from 'jsonwebtoken';
 
 const r = Router();
@@ -14,8 +13,6 @@ type AuthUser = JwtPayload & {
   companyId?: string;
 };
 
-
-//hello
 /** ===== Zod schema & helpers ===== */
 const snapshotSchema = z.object({
   companyId: z.string().min(1),
@@ -40,7 +37,7 @@ function toPeriod(bodyPeriod: string) {
 }
 
 /** ===== POST /api/l4/snapshot =====
- *  Computes cost/benefit and upserts a snapshot for (companyId, period)
+ * Computes cost/benefit and upserts a snapshot for (companyId, period)
  */
 const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (
   req,
@@ -62,7 +59,6 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (
   const userId = u?.userId ?? undefined;
 
   // --- Inputs you already store ---
-
   const l1 = await prisma.l1OperationalInput.findMany({
     where: { companyId: body.companyId, period },
   });
@@ -86,11 +82,10 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (
   const productivityValue =
     (body.assumptions.productivityGainHours ?? 0) *
     (body.assumptions.avgLoadedRate ?? 0);
-
   const totalBenefit =
     (body.assumptions.revenueUplift ?? 0) + productivityValue;
 
-  // Derived (not persisted as top-level fields in Prisma model)
+  // Derived fields (not persisted as top-level in Prisma model)
   const net = totalBenefit - totalCost;
   const roiPct = totalCost > 0 ? (net / totalCost) * 100 : 0;
 
@@ -104,13 +99,14 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (
       period,
       totalCost,
       totalBenefit,
-      // keep any extra assumption keys, plus derived inside a nested blob
+      roiPct, // <-- added so it matches Prisma model
       assumptions: { ...body.assumptions, _derived: { net, roiPct } } as any,
       createdById: userId,
     },
     update: {
       totalCost,
       totalBenefit,
+      roiPct, // <-- added for updates too
       assumptions: { ...body.assumptions, _derived: { net, roiPct } } as any,
       updatedById: userId,
     },
