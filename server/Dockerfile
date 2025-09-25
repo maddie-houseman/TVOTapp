@@ -1,31 +1,46 @@
-# Use Node.js 18 Alpine for smaller image size
-FROM node:18-alpine
+# syntax=docker/dockerfile:1.7
 
-# Set working directory
-WORKDIR /app
+# ---- base image ----
+# Use Node 20 on Alpine (matches your earlier intent and satisfies Vite/Router engines if you use this pattern elsewhere)
+FROM node:20-alpine AS base
+WORKDIR /app/server
 
-# Copy package files first for better caching
-COPY package*.json ./
+# prisma runtime needs openssl; libc6-compat avoids some musl issues
+RUN apk add --no-cache openssl libc6-compat
 
-# Install dependencies (bypass peer conflicts on CI)
-ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
-RUN npm install --legacy-peer-deps --ignore-scripts
+# ---- deps + build (keeps dev deps so prisma CLI is available later for migrations) ----
+FROM base AS build
 
-# Copy source code
-COPY . .
+# Install only from lockfiles first for better layer caching
+COPY server/package*.json ./
+RUN npm ci --legacy-peer-deps
 
-# Generate Prisma client
-RUN npx prisma generate
+# Copy the rest of the server source and build
+COPY server ./
 
-# Build the application
-RUN npm run build
+# Generate Prisma client and build TypeScript to dist/
+RUN npx prisma generate && npm run build
 
-# Expose port
+# ---- runtime ----
+# We keep node_modules from build so that `npm run migrate` has the prisma CLI available.
+# (This matches your original "migrate on start" behaviour.)
+FROM base AS runtime
+ENV NODE_ENV=production
+WORKDIR /app/server
+
+# Copy runtime assets
+# - node_modules (includes dev deps so prisma CLI works for migrate)
+# - compiled JS
+# - prisma folder (migrations/schema)
+# - package.json files (for npm scripts)
+COPY --from=build /app/server/node_modules ./node_modules
+COPY --from=build /app/server/dist ./dist
+COPY --from=build /app/server/prisma ./prisma
+COPY server/package*.json ./
+
+# Expose your API port
 EXPOSE 8080
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:8080/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
-
-# Start the application
-CMD ["npm", "run", "start"]
+# Keep your original behaviour: run migrations, then start the server
+# (expects you have "migrate" and "start" scripts in server/package.json)
+CMD ["sh", "-lc", "npm run migrate && npm run start"]

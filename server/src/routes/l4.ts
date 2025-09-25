@@ -2,7 +2,7 @@
 import { Router, type RequestHandler, type Response } from 'express';
 import { z } from 'zod';
 import { prisma } from '../prisma.js';
-import { auth } from '../middleware/auth.js';
+import { auth } from '../middleware/auth.js';          // ⬅️ named import
 import type { JwtPayload } from 'jsonwebtoken';
 
 const r = Router();
@@ -42,7 +42,7 @@ function toPeriod(bodyPeriod: string) {
  */
 const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (
   req,
-  res
+  res: Response
 ) => {
   const parsed = snapshotSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -58,6 +58,8 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (
 
   const period = toPeriod(body.period);
   const userId = u?.userId ?? undefined;
+
+  // --- Inputs you already store ---
 
   const l1 = await prisma.l1OperationalInput.findMany({
     where: { companyId: body.companyId, period },
@@ -88,7 +90,7 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (
 
   // Derived (not persisted as top-level fields in Prisma model)
   const net = totalBenefit - totalCost;
-  const roiPct = totalCost > 0 ? net / totalCost : 0;
+  const roiPct = totalCost > 0 ? (net / totalCost) * 100 : 0;
 
   // Upsert snapshot (only known fields)
   const snap = await prisma.l4RoiSnapshot.upsert({
