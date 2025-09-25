@@ -2,40 +2,42 @@
 
 # ---- base image ----
 FROM node:20-alpine AS base
-WORKDIR /app
+# work inside /app/server so relative paths are stable
+WORKDIR /app/server
 # prisma runtime needs openssl; libc6-compat avoids some musl issues
 RUN apk add --no-cache openssl libc6-compat
 
-# ---- deps (lockfile install for better cache) ----
-FROM base AS deps
-COPY package*.json ./
-RUN npm ci --legacy-peer-deps
+# ---- deps (lockfile step) ----
+# copy only package files to leverage caching
+COPY server/package*.json ./
+# IMPORTANT: don't run postinstall (which would call `prisma generate`)
+# before schema exists; we’ll generate later
+RUN npm ci --legacy-peer-deps --ignore-scripts
 
-# ---- build (copy source and build) ----
-FROM base AS build
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-# Generate Prisma client and build TypeScript → dist/
-RUN npx prisma generate && npm run build
+# ---- build ----
+# now copy the rest of the source including prisma/
+COPY server ./
+# generate Prisma client now that schema is present
+RUN npx prisma generate --schema=prisma/schema.prisma
+# build your TypeScript
+RUN npm run build
 
 # ---- runtime ----
-FROM base AS runtime
-WORKDIR /app
+# We keep node_modules so that `npm run migrate` can find the prisma CLI
+FROM node:20-alpine AS runtime
+WORKDIR /app/server
 ENV NODE_ENV=production
 
-# keep node_modules so `npm run migrate` has prisma CLI available
-COPY --from=build /app/node_modules ./node_modules
-# compiled JS
-COPY --from=build /app/dist ./dist
-# prisma folder (migrations/schema)
-COPY --from=build /app/prisma ./prisma
-# package files for npm scripts
-COPY package*.json ./
+# bring in everything we need from build
+# - built JS
+# - node_modules (contains prisma CLI because we didn’t omit dev deps)
+# - prisma folder (migrations/schema)
+# - package files (for npm scripts)
+COPY --from=base /app/server/node_modules ./node_modules
+COPY --from=base /app/server/prisma       ./prisma
+COPY --from=base /app/server/package*.json ./
+COPY --from=base /app/server/dist         ./dist
 
-# expose your API port
 EXPOSE 8080
-
-# keep original behavior: run migrations, then start server
-# expects you have "migrate" and "start" scripts in server/package.json
-CMD ["sh", "-lc", "npm run migrate && npm run start"]
+# Keep your original behavior: run migrations on start, then start server
+CMD ["sh","-lc","npm run migrate && npm run start"]
