@@ -14,6 +14,8 @@ type AuthUser = JwtPayload & {
   companyId?: string;
 };
 
+
+//hello
 /** ===== Zod schema & helpers ===== */
 const snapshotSchema = z.object({
   companyId: z.string().min(1),
