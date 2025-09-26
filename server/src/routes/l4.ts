@@ -13,7 +13,7 @@ type AuthUser = JwtPayload & {
   companyId?: string;
 };
 
-/** ===== Zod schema & helpers ===== */
+/* ===== Zod schema & helpers ===== */
 const snapshotSchema = z.object({
   companyId: z.string().min(1),
   // YYYY-MM or YYYY-MM-DD
@@ -37,7 +37,7 @@ function toPeriod(bodyPeriod: string) {
 }
 
 /** ===== POST /api/l4/snapshot =====
- * Computes cost/benefit and upserts a snapshot for (companyId, period)
+ *  Computes cost/benefit and upserts a snapshot for (companyId, period)
  */
 const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (
   req,
@@ -56,7 +56,7 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (
   }
 
   const period = toPeriod(body.period);
-  const userId = u?.userId ?? undefined;
+  // const userId = u?.userId ?? undefined; // kept if you later add createdById/updatedById to the model
 
   // --- Inputs you already store ---
   const l1 = await prisma.l1OperationalInput.findMany({
@@ -82,10 +82,11 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (
   const productivityValue =
     (body.assumptions.productivityGainHours ?? 0) *
     (body.assumptions.avgLoadedRate ?? 0);
+
   const totalBenefit =
     (body.assumptions.revenueUplift ?? 0) + productivityValue;
 
-  // Derived fields (not persisted as top-level in Prisma model)
+  // Derived (not persisted as top-level fields in Prisma model)
   const net = totalBenefit - totalCost;
   const roiPct = totalCost > 0 ? (net / totalCost) * 100 : 0;
 
@@ -99,25 +100,24 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (
       period,
       totalCost,
       totalBenefit,
-      roiPct, // <-- added so it matches Prisma model
+      roiPct, // you said this exists in your model and should be stored
       assumptions: { ...body.assumptions, _derived: { net, roiPct } } as any,
-      createdById: userId,
+      // createdById: userId, // <- ONLY add if you later add this column to your Prisma model
     },
     update: {
       totalCost,
       totalBenefit,
-      roiPct, // <-- added for updates too
+      roiPct,
       assumptions: { ...body.assumptions, _derived: { net, roiPct } } as any,
-      updatedById: userId,
+      // updatedById: userId, // <- ONLY add if you later add this column to your Prisma model
     },
   });
 
   res.json(snap);
 };
 
-r.post('/snapshot', auth, postSnapshot);
+// ---- GET /api/l4/snapshots/:companyId ----
 
-/** ===== GET /api/l4/snapshots/:companyId ===== */
 type SnapParams = { companyId: string };
 
 const getSnapshots: RequestHandler<SnapParams> = async (req, res: Response) => {
@@ -136,6 +136,7 @@ const getSnapshots: RequestHandler<SnapParams> = async (req, res: Response) => {
   res.json(snaps);
 };
 
+r.post('/snapshot', auth, postSnapshot);
 r.get('/snapshots/:companyId', auth, getSnapshots);
 
 export default r;
