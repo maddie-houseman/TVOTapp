@@ -46,10 +46,41 @@ app.use("/api", l4Router);
 app.use("/api", companyRouter);
 app.use("/api", aiRouter);
 
-// Health check
-app.get("/api/health", (_req: Request, res: Response) => {
+
+
+// … imports …
+import { prisma } from './prisma.js';
+
+
+// … middleware & routes …
+
+    app.get('/api/health', (_req, res: Response) => {
     res.json({ ok: true });
-});
+    });
+
+    // --- Prisma connect (add this) ---
+    (async () => {
+    try {
+        await prisma.$connect();
+        console.log('✅ Prisma connected');
+    } catch (err) {
+        console.error('❌ Prisma connect failed:', err);
+    }
+    })();
+
+    // --- Start server (replace old app.listen) ---
+    const port = Number(process.env.PORT) || 8080;
+    app.listen(port, '0.0.0.0', () => {
+    console.log(`🚀 API listening on http://0.0.0.0:${port}`);
+    });
+
+
+
+// Health check
+// --- Health check (you already have this) ---
+app.get('/api/health', (_req, res) => res.status(200).json({ ok: true }));
+
+
 
 // Global error guard
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
@@ -57,8 +88,5 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
     res.status(500).json({ error: "Server error" });
 });
 
-const port = Number(process.env.PORT ?? 8080);
-app.listen(port, () => {
-    console.log(`API on http://localhost:${port}`);
-});
+
 
