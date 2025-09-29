@@ -30,5 +30,4 @@ COPY --from=base /app/server/package*.json ./
 COPY --from=base /app/server/dist         ./dist
 
 EXPOSE 8080
-# Same behaviour you had: run migrations, then start
 CMD ["sh","-lc","npm run migrate && npm run start"]
