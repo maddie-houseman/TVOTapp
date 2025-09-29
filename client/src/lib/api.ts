@@ -1,9 +1,16 @@
+    // client/src/lib/api.ts
 
-type Role = "ADMIN" | "EMPLOYEE";
+    /* --------------------------------- Types ---------------------------------- */
 
-export type Me = { id: string; role: Role; companyId: string | null };
+    export type Role = "ADMIN" | "EMPLOYEE";
 
-export type Department =
+    export type Me = {
+    id: string;
+    role: Role;
+    companyId: string | null;
+    };
+
+    export type Department =
     | "ENGINEERING"
     | "SALES"
     | "FINANCE"
@@ -11,40 +18,40 @@ export type Department =
     | "MARKETING"
     | "OPERATIONS";
 
-export type Tower = "APP_DEV" | "CLOUD" | "END_USER";
+    export type Tower = "APP_DEV" | "CLOUD" | "END_USER";
 
-export type L3Category = "PRODUCTIVITY" | "REVENUE_UPLIFT";
+    export type L3Category = "PRODUCTIVITY" | "REVENUE_UPLIFT";
 
-export type L1Input = {
+    export type L1Input = {
     companyId: string;
     period: string; // YYYY-MM-DD
     department: Department;
     employees: number;
     budget: number;
-};
+    };
 
-export type L2Input = {
+    export type L2Input = {
     companyId: string;
     period: string;
     department: Department;
     tower: Tower;
     weightPct: number; // 0..1
-};
+    };
 
-export type L3Input = {
+    export type L3Input = {
     companyId: string;
     period: string;
     category: L3Category;
     weightPct: number; // 0..1
-};
+    };
 
-export type SnapshotAssumptions = {
+    export type SnapshotAssumptions = {
     revenueUplift: number;
     productivityGainHours: number;
     avgLoadedRate: number;
-};
+    };
 
-export type L4Snapshot = {
+    export type L4Snapshot = {
     id: string;
     companyId: string;
     period: string;
@@ -55,78 +62,83 @@ export type L4Snapshot = {
     assumptions: SnapshotAssumptions;
     createdAt?: string;
     updatedAt?: string;
-};
+    };
 
+    /* ------------------------------ Configuration ----------------------------- */
 
-const BASE = import.meta.env.DEV ? "" : (import.meta.env.VITE_API_BASE ?? "");
+    const BASE =
+    import.meta.env.DEV ? "" : (import.meta.env.VITE_API_BASE as string | undefined) ?? "";
 
-// ---------- Helpers ----------
-function withBase(path: string) {
-    return path.startsWith("http") ? path : `${BASE}${path}`;
-}
+    const API_KEY = (import.meta.env.VITE_API_KEY as string | undefined) ?? undefined;
 
-async function toApiError(res: Response): Promise<Error> {
-  // Read once as text; try JSON parse for better messages.
-    const raw = await res.text();
-    let msg = `HTTP ${res.status}`;
-    if (raw) {
-        try {
-        const data = JSON.parse(raw);
-        if (typeof data === "string") msg = data;
-        else if (data && typeof data === "object" && "error" in data) {
-            msg = data.error ?? msg;
-        } else {
-            msg = raw;
-        }
-        } catch {
-        msg = raw; // not JSON
-        }
+    /* --------------------------------- Helpers -------------------------------- */
+
+    function withBase(path: string): string {
+    return /^https?:\/\//i.test(path) ? path : `${BASE}${path}`;
     }
-    return new Error(msg);
-}
 
-async function jsonFetch<T>(
+    async function toApiError(res: Response): Promise<Error> {
+    const text = await res.text();
+    let message = `HTTP ${res.status}`;
+
+    try {
+        const data = text ? JSON.parse(text) : undefined;
+        if (typeof data === "string") message = data;
+        else if (data && typeof data === "object" && "error" in data) {
+        message = String((data as Record<string, unknown>).error);
+        } else if (text) {
+        message = text;
+        }
+    } catch {
+        if (text) message = text;
+    }
+
+    return new Error(message);
+    }
+
+    function isHttpStatus(e: unknown, code: number): e is Error {
+    return e instanceof Error && new RegExp(`^HTTP\\s+${code}\\b`).test(e.message);
+    }
+
+    async function jsonFetch<T>(
     path: string,
     init?: RequestInit & { json?: unknown }
-): Promise<T> {
+    ): Promise<T> {
     const { json, ...rest } = init ?? {};
-    const res = await fetch(withBase(path), {
-        credentials: "include", // send/receive cookies
-        ...rest,
-        headers: {
-        ...(json !== undefined ? { "Content-Type": "application/json" } : {}),
+    const headers: HeadersInit = {
         ...(rest.headers ?? {}),
-        },
-        body: json !== undefined ? JSON.stringify(json) : (rest as RequestInit).body,
+        ...(json !== undefined ? { "Content-Type": "application/json" } : {}),
+        ...(API_KEY ? { "x-api-key": API_KEY } : {}),
+    };
+
+    const res = await fetch(withBase(path), {
+        credentials: "include",
+        ...rest,
+        headers,
+        body: json !== undefined ? JSON.stringify(json) : rest.body,
     });
 
     if (!res.ok) throw await toApiError(res);
-    if (res.status === 204) return undefined as unknown as T;
-
     const text = await res.text();
     return (text ? (JSON.parse(text) as T) : (undefined as unknown as T));
-}
+    }
 
-// Type guard
-function isHttpStatus(e: unknown, code: number): e is Error {
-    return e instanceof Error && new RegExp(`^HTTP\\s+${code}\\b`).test(e.message);
-}
+    /* ---------------------------------- API ----------------------------------- */
 
-// ---------- Public API ----------
-export const api = {
-  // ---- Auth ----
+    export const api = {
+    // ---- Auth ----
     async login(email: string, password: string): Promise<{ ok: boolean }> {
         return jsonFetch<{ ok: boolean }>("/api/auth/login", {
-            method: "POST",
-            json: { email, password },
+        method: "POST",
+        json: { email, password },
         });
     },
 
     async me(): Promise<Me | null> {
         try {
         return await jsonFetch<Me>("/api/auth/me");
-        } catch (e: unknown) {
-        if (isHttpStatus(e, 401)) return null; // not logged in
+        } catch (e) {
+        if (isHttpStatus(e, 401)) return null;
         throw e instanceof Error ? e : new Error(String(e));
         }
     },
@@ -135,7 +147,7 @@ export const api = {
         await jsonFetch<void>("/api/auth/logout", { method: "POST" });
     },
 
-    //  L1 
+    // ---- L1 ----
     async l1Upsert(v: L1Input): Promise<L1Input> {
         return jsonFetch<L1Input>("/api/l1", { method: "POST", json: v });
     },
@@ -144,7 +156,7 @@ export const api = {
         return jsonFetch<L1Input[]>(`/api/l1/${companyId}/${period}`);
     },
 
-    // ---- L2
+    // ---- L2 ----
     async l2Upsert(v: L2Input): Promise<L2Input> {
         return jsonFetch<L2Input>("/api/l2", { method: "POST", json: v });
     },
@@ -153,7 +165,7 @@ export const api = {
         return jsonFetch<L2Input[]>(`/api/l2/${companyId}/${period}`);
     },
 
-    // ---- L3
+    // ---- L3 ----
     async l3Upsert(v: L3Input): Promise<L3Input> {
         return jsonFetch<L3Input>("/api/l3", { method: "POST", json: v });
     },
@@ -162,12 +174,13 @@ export const api = {
         return jsonFetch<L3Input[]>(`/api/l3/${companyId}/${period}`);
     },
 
-  // ---- L4 
-    async snapshot(
-        companyId: string,
-        period: string,
-        assumptions: SnapshotAssumptions
-    ): Promise<L4Snapshot> {
+    // ---- L4 (Snapshots) ----
+    async snapshot(params: {
+        companyId: string;
+        period: string;
+        assumptions: SnapshotAssumptions;
+    }): Promise<L4Snapshot> {
+        const { companyId, period, assumptions } = params;
         return jsonFetch<L4Snapshot>("/api/l4/snapshot", {
         method: "POST",
         json: { companyId, period, assumptions },
@@ -179,4 +192,4 @@ export const api = {
     },
     };
 
-export default api;
+    export default api;
