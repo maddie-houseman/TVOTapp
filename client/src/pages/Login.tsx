@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDemo } from '../contexts/DemoContext';
+import api from '../lib/api';
 
 export default function Login() {
     const [email, setEmail] = useState('admin@example.com');
@@ -9,47 +10,18 @@ export default function Login() {
     const navigate = useNavigate();
     const { isDemoMode } = useDemo();
 
-    // In demo mode, redirecting to home since auth byh login is being ignored
-    useEffect(() => {
-        if (isDemoMode) {
-            navigate('/');
-        }
-    }, [isDemoMode, navigate]);
-
     async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
+        setErr('');
         try {
-            // TODO: Implement actual login when database is available
-            setErr('Database connection required for authentication. Currently in demo mode.');
+            await api.login(email, password);
+            navigate('/');
         } catch (e: unknown) {
             setErr(e instanceof Error ? e.message : 'Login failed');
         }
     }
 
-    if (isDemoMode) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="max-w-md w-full space-y-8">
-                    <div className="text-center">
-                        <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-                            DEMO MODE
-                        </h2>
-                        <p className="mt-2 text-sm text-gray-600">
-                            Authentication by login is currently bypassed. You can access all features without logging in.
-                        </p>
-                        <div className="mt-4">
-                            <button
-                                onClick={() => navigate('/')}
-                                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                            >
-                                Go to Home
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+    // When not in demo mode, show normal login form
 
     return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">

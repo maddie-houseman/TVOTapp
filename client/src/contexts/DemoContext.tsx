@@ -38,7 +38,7 @@ const defaultDemoData: DemoData = {
     name: 'Demo Company',
     domain: 'demo.com',
   },
-  isDemoMode: true,
+  isDemoMode: false,
 };
 
 const DemoContext = createContext<DemoData>(defaultDemoData);
