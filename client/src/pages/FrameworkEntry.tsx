@@ -74,12 +74,18 @@ export default function FrameworkEntry() {
   async function computeAndSave() {
     if (!companyId) return alert('No company in context');
 
-    await api.snapshot(companyId, full, {
-      revenueUplift: uplift,
-      productivityGainHours: hours,
-      avgLoadedRate: rate,
-    });
-    alert('Snapshot computed & saved');
+    await api.snapshot({
+  companyId,
+  period: full, // <-- this must be a string period, e.g. "2025-09-01"
+  assumptions: {
+    revenueUplift: uplift,
+    productivityGainHours: hours,
+    avgLoadedRate: rate,
+  },
+});
+
+alert("Snapshot computed & saved");
+;
   }
 
   // helpers for numeric inputs

@@ -1,14 +1,9 @@
     // client/src/lib/api.ts
 
-    /* --------------------------------- Types ---------------------------------- */
-
+    // -------- Types --------
     export type Role = "ADMIN" | "EMPLOYEE";
 
-    export type Me = {
-    id: string;
-    role: Role;
-    companyId: string | null;
-    };
+    export type Me = { id: string; role: Role; companyId: string | null };
 
     export type Department =
     | "ENGINEERING"
@@ -64,40 +59,39 @@
     updatedAt?: string;
     };
 
-    /* ------------------------------ Configuration ----------------------------- */
+    // -------- Base URL --------
+    const BASE = import.meta.env.DEV ? "" : (import.meta.env.VITE_API_BASE ?? "");
 
-    const BASE =
-    import.meta.env.DEV ? "" : (import.meta.env.VITE_API_BASE as string | undefined) ?? "";
-
-    const API_KEY = (import.meta.env.VITE_API_KEY as string | undefined) ?? undefined;
-
-    /* --------------------------------- Helpers -------------------------------- */
-
-    function withBase(path: string): string {
-    return /^https?:\/\//i.test(path) ? path : `${BASE}${path}`;
+    // -------- Helpers --------
+    function withBase(path: string) {
+    return path.startsWith("http") ? path : `${BASE}${path}`;
     }
 
     async function toApiError(res: Response): Promise<Error> {
-    const text = await res.text();
-    let message = `HTTP ${res.status}`;
+    const raw = await res.text();
+    let msg = `HTTP ${res.status}`;
 
     try {
-        const data = text ? JSON.parse(text) : undefined;
-        if (typeof data === "string") message = data;
-        else if (data && typeof data === "object" && "error" in data) {
-        message = String((data as Record<string, unknown>).error);
-        } else if (text) {
-        message = text;
+    const data: unknown = JSON.parse(raw);
+
+    if (typeof data === "string") {
+        msg = data;
+    } else if (data && typeof data === "object" && "error" in data) {
+        const maybe = data as { error?: unknown };
+        if (typeof maybe.error === "string") {
+        msg = maybe.error;
+        } else {
+        msg = raw;
         }
+    } else {
+        msg = raw;
+    }
     } catch {
-        if (text) message = text;
+    msg = raw; // not JSON
     }
 
-    return new Error(message);
-    }
+    throw new Error(msg);
 
-    function isHttpStatus(e: unknown, code: number): e is Error {
-    return e instanceof Error && new RegExp(`^HTTP\\s+${code}\\b`).test(e.message);
     }
 
     async function jsonFetch<T>(
@@ -105,26 +99,28 @@
     init?: RequestInit & { json?: unknown }
     ): Promise<T> {
     const { json, ...rest } = init ?? {};
-    const headers: HeadersInit = {
-        ...(rest.headers ?? {}),
-        ...(json !== undefined ? { "Content-Type": "application/json" } : {}),
-        ...(API_KEY ? { "x-api-key": API_KEY } : {}),
-    };
-
     const res = await fetch(withBase(path), {
-        credentials: "include",
+        credentials: "include", // send/receive cookies
         ...rest,
-        headers,
-        body: json !== undefined ? JSON.stringify(json) : rest.body,
+        headers: {
+        ...(json !== undefined ? { "Content-Type": "application/json" } : {}),
+        ...(rest.headers ?? {}),
+        },
+        body: json !== undefined ? JSON.stringify(json) : (rest as RequestInit).body,
     });
 
     if (!res.ok) throw await toApiError(res);
+    if (res.status === 204) return undefined as unknown as T;
+
     const text = await res.text();
-    return (text ? (JSON.parse(text) as T) : (undefined as unknown as T));
+    return (text ? JSON.parse(text) : undefined) as T;
     }
 
-    /* ---------------------------------- API ----------------------------------- */
+    function isHttpStatus(e: unknown, code: number): e is Error {
+    return e instanceof Error && new RegExp(`^HTTP\\s+${code}\\b`).test(e.message);
+    }
 
+    // -------- Public API --------
     export const api = {
     // ---- Auth ----
     async login(email: string, password: string): Promise<{ ok: boolean }> {
@@ -137,8 +133,8 @@
     async me(): Promise<Me | null> {
         try {
         return await jsonFetch<Me>("/api/auth/me");
-        } catch (e) {
-        if (isHttpStatus(e, 401)) return null;
+        } catch (e: unknown) {
+        if (isHttpStatus(e, 401)) return null; // not logged in
         throw e instanceof Error ? e : new Error(String(e));
         }
     },
@@ -174,16 +170,15 @@
         return jsonFetch<L3Input[]>(`/api/l3/${companyId}/${period}`);
     },
 
-    // ---- L4 (Snapshots) ----
+    // ---- L4 ----
     async snapshot(params: {
         companyId: string;
         period: string;
         assumptions: SnapshotAssumptions;
     }): Promise<L4Snapshot> {
-        const { companyId, period, assumptions } = params;
-        return jsonFetch<L4Snapshot>("/api/l4/snapshot", {
+        return jsonFetch<L4Snapshot>(`/api/l4/snapshot`, {
         method: "POST",
-        json: { companyId, period, assumptions },
+        json: params,
         });
     },
 
@@ -192,4 +187,4 @@
     },
     };
 
-    export default api;
+export default api;
