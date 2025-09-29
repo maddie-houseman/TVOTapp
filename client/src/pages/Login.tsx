@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDemo } from '../contexts/DemoContext';
+// import { useDemo } from '../contexts/DemoContext';
 import api from '../lib/api';
 
 export default function Login() {
@@ -8,7 +8,7 @@ export default function Login() {
     const [password, setPassword] = useState('AdminPass123!');
     const [err, setErr] = useState('');
     const navigate = useNavigate();
-    const { isDemoMode } = useDemo();
+    // const { isDemoMode } = useDemo();
 
     async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
