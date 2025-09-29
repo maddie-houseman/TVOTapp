@@ -8,7 +8,6 @@
         "start": "node dist/index.js",
         "seed": "node prisma/seed.js",
         "postinstall": "prisma generate",
-        
         "migrate": "prisma migrate deploy",
         "deploy": "npm run migrate && npm run seed"
     },
@@ -22,9 +21,10 @@
         "cors": "^2.8.5",
         "dotenv": "^16.4.5",
         "express": "^4.19.2",
+        "express-rate-limit": "^8.1.0",
         "jsonwebtoken": "^9.0.2",
-        "zod": "^3.25.76",
-        "openai": "^4.55.0"
+        "openai": "^4.55.0",
+        "zod": "^3.25.76"
     },
     "devDependencies": {
         "@types/bcryptjs": "^2.4.6",

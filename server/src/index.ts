@@ -1,5 +1,7 @@
 import express from "express";
 import cookieParser from "cookie-parser";
+import rateLimit from "express-rate-limit";
+
 
 const app = express();
 
@@ -9,6 +11,34 @@ app.use(express.json());
 
 // --- Healthcheck FIRST (so Railway sees container as healthy) ---
 app.get("/api/health", (_req, res) => res.status(200).send("ok"));
+
+app.use((req, res, next) => {
+    const required = process.env.API_KEY;
+    if (!required) return next();                     // no key set → allow (dev)
+    const key = req.header("x-api-key");
+    if (key !== required) return res.status(401).json({ error: "invalid api key" });
+    next();
+    });
+
+
+
+import cors from "cors";
+
+// OPEN CORS (any site can call you)
+app.use(cors({
+    origin: true,                    // reflect the Origin header
+    methods: ["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
+    allowedHeaders: ["Content-Type","Authorization","x-api-key"],
+    credentials: false               // set true only if you plan cookie-based auth
+}));
+
+
+app.use(rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 1000,                         // tune per your needs
+    standardHeaders: true,
+    legacyHeaders: false
+}));
 
 // --- Start server ---
 const port = Number(process.env.PORT) || 8080;
