@@ -8,6 +8,8 @@ const app = express();
 // --- Middleware ---
 app.use(cookieParser());
 app.use(express.json());
+// Behind Railway/other proxies, trust the first proxy so req.secure and forwarded proto are honored
+app.set('trust proxy', 1);
 
 // --- Healthcheck FIRST (so Railway sees container as healthy) ---
 app.get("/api/health", (_req, res) => res.status(200).send("ok"));
@@ -24,12 +26,13 @@ app.use((req, res, next) => {
 
 import cors from "cors";
 
-// OPEN CORS (any site can call you)
+// CORS: allow credentials for cookie-based auth. In production, set ALLOWED_ORIGIN to your client URL.
+const allowedOrigin = process.env.ALLOWED_ORIGIN || true; // true = reflect request Origin (dev)
 app.use(cors({
-    origin: true,                    // reflect the Origin header
+    origin: allowedOrigin,
     methods: ["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
     allowedHeaders: ["Content-Type","Authorization","x-api-key"],
-    credentials: false               // set true only if you plan cookie-based auth
+    credentials: true
 }));
 
 
