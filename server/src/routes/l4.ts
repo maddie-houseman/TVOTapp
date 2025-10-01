@@ -58,13 +58,13 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (
   const period = toPeriod(body.period);
   // const userId = u?.userId ?? undefined; // kept if you later add createdById/updatedById to the model
 
-  // --- Inputs you already store ---
+  
   const l1 = await prisma.l1OperationalInput.findMany({
     where: { companyId: body.companyId, period },
   });
   type L1Row = (typeof l1)[number];
 
-  // kept for future distribution logic (prefixed to avoid noUnusedLocals)
+  // kept for future distribution logic 
   const _l2 = await prisma.l2AllocationWeight.findMany({
     where: { companyId: body.companyId, period },
   });
@@ -72,7 +72,7 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (
     where: { companyId: body.companyId, period },
   });
 
-  // --- Minimal, transparent math ---
+
   const totalCost = l1.reduce(
     (acc: number, row: L1Row) => acc + Number(row.budget ?? 0),
     0

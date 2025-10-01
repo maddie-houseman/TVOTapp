@@ -8,10 +8,8 @@ const app = express();
 // --- Middleware ---
 app.use(cookieParser());
 app.use(express.json());
-// Behind Railway/other proxies, trust the first proxy so req.secure and forwarded proto are honored
-app.set('trust proxy', 1);
 
-// --- Healthcheck FIRST (so Railway sees container as healthy) ---
+
 app.get("/api/health", (_req, res) => res.status(200).send("ok"));
 
 app.use((req, res, next) => {
@@ -26,13 +24,12 @@ app.use((req, res, next) => {
 
 import cors from "cors";
 
-// CORS: allow credentials for cookie-based auth. In production, set ALLOWED_ORIGIN to your client URL.
-const allowedOrigin = process.env.ALLOWED_ORIGIN || true; // true = reflect request Origin (dev)
+// OPEN CORS (any site can call you)
 app.use(cors({
-    origin: allowedOrigin,
+    origin: true,                    // reflect the Origin header
     methods: ["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
     allowedHeaders: ["Content-Type","Authorization","x-api-key"],
-    credentials: true
+    credentials: false               // set true only if you plan cookie-based auth
 }));
 
 
@@ -46,7 +43,7 @@ app.use(rateLimit({
 // --- Start server ---
 const port = Number(process.env.PORT) || 8080;
 app.listen(port, "0.0.0.0", () => {
-    console.log(`🚀 API listening on http://0.0.0.0:${port}`);
+    console.log(` API listening on http://0.0.0.0:${port}`);
     });
 
     // --- Async bootstrap: Prisma + Routers ---
@@ -55,9 +52,9 @@ app.listen(port, "0.0.0.0", () => {
         // Prisma
         const { prisma } = await import("./prisma.js");
         await prisma.$connect();
-        console.log("✅ Prisma connected");
+        console.log(" Prisma connected");
     } catch (e) {
-        console.error("❌ Prisma connect failed:", e);
+        console.error(" Prisma connect failed:", e);
     }
 
     try {
@@ -78,8 +75,8 @@ app.listen(port, "0.0.0.0", () => {
         app.use("/api", companyRouter);
         app.use("/api", aiRouter);
 
-        console.log("✅ Routers mounted");
+        console.log("Routers mounted");
     } catch (e) {
-        console.error("❌ Router load failed:", e);
+        console.error("Router load failed:", e);
     }
     })();

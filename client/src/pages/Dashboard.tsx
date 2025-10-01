@@ -1,9 +1,32 @@
 import { useState } from 'react';
+import { exportElementToPdf } from '../utils/exportPdf';
+
+// Local, stable merge sort (no external file)
+function mergeSort<T>(arr: T[], compare: (a: T, b: T) => number): T[] {
+  if (arr.length <= 1) return arr.slice();
+  const mid = Math.floor(arr.length / 2);
+  const left = mergeSort(arr.slice(0, mid), compare);
+  const right = mergeSort(arr.slice(mid), compare);
+  return merge(left, right, compare);
+}
+
+function merge<T>(left: T[], right: T[], compare: (a: T, b: T) => number): T[] {
+  const out: T[] = [];
+  let i = 0, j = 0;
+  while (i < left.length && j < right.length) {
+    if (compare(left[i], right[j]) <= 0) out.push(left[i++]); else out.push(right[j++]);
+  }
+  while (i < left.length) out.push(left[i++]);
+  while (j < right.length) out.push(right[j++]);
+  return out;
+}
 import { useDemo } from '../contexts/DemoContext';
 
 export default function Dashboard() {
   const { isDemoMode, company } = useDemo();
-  const [selectedPeriod, setSelectedPeriod] = useState('2024-01');
+  const [selectedYear, setSelectedYear] = useState('2024');
+  const [selectedMonth, setSelectedMonth] = useState('01');
+  const selectedPeriod = `${selectedYear}-${selectedMonth}`;
 
   // Mock data for demo mode
   const mockData = {
@@ -53,7 +76,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div id="dashboard-root" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">TBM Dashboard</h1>
@@ -63,16 +86,65 @@ export default function Dashboard() {
           
           {/* Period Selector */}
           <div className="mt-4 flex items-center space-x-4">
-            <label className="text-sm font-medium text-gray-700">Period:</label>
+            <label className="text-sm font-medium text-gray-700">Year:</label>
             <select
-              value={selectedPeriod}
-              onChange={(e) => setSelectedPeriod(e.target.value)}
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
               className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="2024-01">January 2024</option>
-              <option value="2024-02">February 2024</option>
-              <option value="2024-03">March 2024</option>
+              {Array.from({ length: 10 }, (_, i) => {
+                const year = new Date().getFullYear() - 5 + i;
+                return (
+                  <option key={year} value={year.toString()}>
+                    {year}
+                  </option>
+                );
+              })}
             </select>
+            
+            <label className="text-sm font-medium text-gray-700">Month:</label>
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="01">January</option>
+              <option value="02">February</option>
+              <option value="03">March</option>
+              <option value="04">April</option>
+              <option value="05">May</option>
+              <option value="06">June</option>
+              <option value="07">July</option>
+              <option value="08">August</option>
+              <option value="09">September</option>
+              <option value="10">October</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
+            </select>
+
+            {/* Export PDF Button */}
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  const el = document.getElementById('dashboard-root');
+                  if (!el) {
+                    alert('Dashboard element not found. Please refresh the page and try again.');
+                    return;
+                  }
+                  
+                  console.log('Starting PDF export...');
+                  await exportElementToPdf(el, `dashboard-${selectedPeriod}.pdf`);
+                  console.log('PDF export completed successfully');
+                } catch (error) {
+                  console.error('PDF export failed:', error);
+                  alert(`PDF export failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please check the console for details.`);
+                }
+              }}
+              className="ml-auto inline-flex items-center px-3 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Export PDF
+            </button>
           </div>
         </div>
 
@@ -145,11 +217,11 @@ export default function Dashboard() {
 
         {/* Charts and Visualizations */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* L1 - Department Budget Distribution */}
+          {/* L1 - Department Budget Distribution (sorted by budget desc using merge sort) */}
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">L1 - Department Budget Distribution</h3>
             <div className="space-y-4">
-              {mockData.l1Data.map((dept, index) => (
+              {mergeSort([...mockData.l1Data], (a, b) => b.budget - a.budget).map((dept, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-600">{dept.department}</span>
                   <div className="flex items-center space-x-4">
