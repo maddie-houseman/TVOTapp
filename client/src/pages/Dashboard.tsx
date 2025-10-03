@@ -20,10 +20,11 @@ function merge<T>(left: T[], right: T[], compare: (a: T, b: T) => number): T[] {
   while (j < right.length) out.push(right[j++]);
   return out;
 }
-import { useDemo } from '../contexts/DemoContext';
+import { useAuth } from '../contexts/useAuth';
+// import api from '../lib/api';
 
 export default function Dashboard() {
-  const { isDemoMode, company } = useDemo();
+  const { isAuthenticated, company } = useAuth();
   const [selectedYear, setSelectedYear] = useState('2024');
   const [selectedMonth, setSelectedMonth] = useState('01');
   const selectedPeriod = `${selectedYear}-${selectedMonth}`;
@@ -81,7 +82,7 @@ export default function Dashboard() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">TBM Dashboard</h1>
           <p className="mt-2 text-gray-600">
-            Technology Business Management insights for {company.name}
+            Technology Business Management insights for {company?.name || 'your company'}
           </p>
           
           {/* Period Selector */}
@@ -308,17 +309,16 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Demo Mode Notice */}
-        {isDemoMode && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        {/* Authentication Notice */}
+        {!isAuthenticated && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div className="flex">
               <div className="flex-shrink-0">
-                <span className="text-yellow-400">💡</span>
+                <span className="text-blue-400">ℹ️</span>
               </div>
               <div className="ml-3">
-                <p className="text-sm text-yellow-700">
-                  <strong>Demo Data:</strong> SAMPLE DATA. 
-                  Once database connected actual TBM framework data will be here
+                <p className="text-sm text-blue-700">
+                  <strong>Authentication Required:</strong> Please log in to view your TBM framework data.
                 </p>
               </div>
             </div>

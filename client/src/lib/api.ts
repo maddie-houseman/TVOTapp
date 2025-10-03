@@ -3,7 +3,7 @@
     // -------- Types --------
     export type Role = "ADMIN" | "EMPLOYEE";
 
-    export type Me = { id: string; role: Role; companyId: string | null };
+    export type Me = { id: string; email: string; name: string; role: Role; companyId: string | null };
 
     export type Department =
     | "ENGINEERING"

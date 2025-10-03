@@ -1,9 +1,9 @@
 // import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useDemo } from '../contexts/DemoContext';
+import { useAuth } from '../contexts/useAuth';
 
 export default function Home() {
-  const { isDemoMode, company } = useDemo();
+  const { isAuthenticated, company } = useAuth();
 
   const frameworkLayers = [
     {
@@ -104,18 +104,18 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Demo Mode Notice */}
-      {isDemoMode && (
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+      {/* Authentication Notice */}
+      {!isAuthenticated && (
+        <div className="bg-blue-50 border-l-4 border-blue-400 p-4">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex">
               <div className="flex-shrink-0">
-                <span className="text-yellow-400">⚠️</span>
+                <span className="text-blue-400">ℹ️</span>
               </div>
               <div className="ml-3">
-                <p className="text-sm text-yellow-700">
-                      <strong>IN DEMO MODE:</strong>  
-                      ACTUAL ACCOUNT DETAILS TO GO HERE ONCE HOSTED.
+                <p className="text-sm text-blue-700">
+                      <strong>Authentication Required:</strong>  
+                      Please log in to access your TBM framework data.
                 </p>
               </div>
             </div>
@@ -128,16 +128,28 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Current Company</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Company Name</p>
-                <p className="text-lg text-gray-900">{company.name}</p>
+            {company ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Company Name</p>
+                  <p className="text-lg text-gray-900">{company.name}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Domain</p>
+                  <p className="text-lg text-gray-900">{company.domain}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500">Domain</p>
-                <p className="text-lg text-gray-900">{company.domain}</p>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500">Please log in to view company information</p>
+                <Link
+                  to="/login"
+                  className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                >
+                  Go to Login
+                </Link>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

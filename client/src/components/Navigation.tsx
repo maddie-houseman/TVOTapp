@@ -1,10 +1,10 @@
 
 import { Link, useLocation } from 'react-router-dom';
-import { useDemo } from '../contexts/DemoContext';
+import { useAuth } from '../contexts/useAuth';
 
 export default function Navigation() {
   const location = useLocation();
-  const { isDemoMode, company } = useDemo();
+  const { isAuthenticated, company, user, logout } = useAuth();
 
   const navItems = [
     { path: '/', label: 'Home', icon: '🏠' },
@@ -20,9 +20,9 @@ export default function Navigation() {
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center">
               <h1 className="text-xl font-bold text-gray-900">TVOT Framework</h1>
-              {isDemoMode && (
-                <span className="ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                  Demo Mode
+              {!isAuthenticated && (
+                <span className="ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                  Not Authenticated
                 </span>
               )}
             </div>
@@ -45,10 +45,23 @@ export default function Navigation() {
             ))}
           </div>
 
-          <div className="flex items-center">
-            <div className="text-sm text-gray-600">
-              <span className="font-medium">{company.name}</span>
-            </div>
+          <div className="flex items-center space-x-4">
+            {isAuthenticated && company && (
+              <div className="text-sm text-gray-600">
+                <span className="font-medium">{company.name}</span>
+              </div>
+            )}
+            {isAuthenticated && user && (
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">{user.name}</span>
+                <button
+                  onClick={logout}
+                  className="text-sm text-blue-600 hover:text-blue-800"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

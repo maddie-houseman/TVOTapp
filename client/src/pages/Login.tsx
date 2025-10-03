@@ -1,27 +1,24 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-// import { useDemo } from '../contexts/DemoContext';
-import api from '../lib/api';
+import { useAuth } from '../contexts/useAuth';
 
 export default function Login() {
     const [email, setEmail] = useState('admin@example.com');
     const [password, setPassword] = useState('AdminPass123!');
     const [err, setErr] = useState('');
     const navigate = useNavigate();
-    // const { isDemoMode } = useDemo();
+    const { login } = useAuth();
 
     async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         setErr('');
         try {
-            await api.login(email, password);
+            await login(email, password);
             navigate('/');
         } catch (e: unknown) {
             setErr(e instanceof Error ? e.message : 'Login failed');
         }
     }
-
-    // When not in demo mode, show normal login form
 
     return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -32,7 +29,7 @@ export default function Login() {
                     </h2>
                     <p className="mt-2 text-center text-sm text-gray-600">
                         Database connection required for authentication
-                    </p>
+                    </p>s
                 </div>
                 <form className="mt-8 space-y-6" onSubmit={onSubmit}>
                     <div className="rounded-md shadow-sm -space-y-px">

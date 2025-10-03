@@ -87,7 +87,7 @@ router.get("/auth/me", async (req: Request, res: Response) => {
     const payload = jwt.verify(token, JWT_SECRET) as { sub: string };
     const me = await prisma.user.findUnique({
         where: { id: payload.sub },
-        select: { id: true, role: true, companyId: true },
+        select: { id: true, email: true, name: true, role: true, companyId: true },
     });
         if (!me) return res.status(401).json({ error: "Unauthorized" });
         return res.json(me);

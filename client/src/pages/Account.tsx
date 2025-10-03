@@ -1,9 +1,8 @@
-// import { useState } from 'react';
-import { useDemo } from '../contexts/DemoContext';
+import { useAuth } from '../contexts/useAuth';
+
 
 export default function Account() {
-  const { user, company, isDemoMode } = useDemo();
-
+const { user, company } = useAuth(); 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -24,7 +23,7 @@ export default function Account() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
                   <input
                     type="text"
-                    value={user.name}
+                    value={user?.name || ''}
                     disabled
                     className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50 text-gray-900"
                   />
@@ -34,7 +33,7 @@ export default function Account() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
                   <input
                     type="email"
-                    value={user.email}
+                    value={user?.email || ''}
                     disabled
                     className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50 text-gray-900"
                   />
@@ -44,7 +43,7 @@ export default function Account() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
                   <input
                     type="text"
-                    value={user.role}
+                    value={user?.role || ''}
                     disabled
                     className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50 text-gray-900"
                   />
@@ -54,7 +53,7 @@ export default function Account() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">User ID</label>
                   <input
                     type="text"
-                    value={user.id}
+                    value={user?.id || ''}
                     disabled
                     className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50 text-gray-900"
                   />
@@ -70,7 +69,7 @@ export default function Account() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
                   <input
                     type="text"
-                    value={company.name}
+                    value={company?.name || ''}
                     disabled
                     className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50 text-gray-900"
                   />
@@ -80,7 +79,7 @@ export default function Account() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Domain</label>
                   <input
                     type="text"
-                    value={company.domain}
+                    value={company?.domain || ''}
                     disabled
                     className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50 text-gray-900"
                   />
@@ -90,7 +89,7 @@ export default function Account() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Company ID</label>
                   <input
                     type="text"
-                    value={company.id}
+                    value={company?.id || ''}
                     disabled
                     className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50 text-gray-900"
                   />
@@ -98,7 +97,7 @@ export default function Account() {
               </div>
             </div>
 
-            {/* Demo Mode Notice */}
+            {/* Demo Mode Notice
             {isDemoMode && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <div className="flex">
@@ -113,7 +112,7 @@ export default function Account() {
                   </div>
                 </div>
               </div>
-            )}
+            )} */}
 
             {/* Actions */}
             <div className="flex justify-end space-x-4">

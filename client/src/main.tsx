@@ -9,14 +9,15 @@ import Login from './pages/Login';
 import FrameworkEntry from './pages/FrameworkEntry';
 import Dashboard from './pages/Dashboard';
 import Account from './pages/Account';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const router = createBrowserRouter([
   { path: '/', element: <App />, children: [
     { index: true, element: <Home /> },
     { path: 'login', element: <Login /> },
-    { path: 'framework', element: <FrameworkEntry /> },
-    { path: 'dashboard', element: <Dashboard /> },
-    { path: 'account', element: <Account /> },
+    { path: 'framework', element: <ProtectedRoute><FrameworkEntry /></ProtectedRoute> },
+    { path: 'dashboard', element: <ProtectedRoute><Dashboard /></ProtectedRoute> },
+    { path: 'account', element: <ProtectedRoute><Account /></ProtectedRoute> },
   ]},
 ]);
 
