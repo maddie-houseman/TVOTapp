@@ -129,9 +129,9 @@ model L4RoiSnapshot {
   companyId    String
   company      Company  @relation(fields: [companyId], references: [id])
   period       DateTime
-  totalCost    Decimal  @db.Decimal(18, 2)
-  totalBenefit Decimal  @db.Decimal(18, 2)
-  roiPct       Decimal  @db.Decimal(9, 4)
+  totalCost    Float
+  totalBenefit Float
+  roiPct       Float
   assumptions  String?
 
   createdById String?

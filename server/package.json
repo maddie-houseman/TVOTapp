@@ -9,7 +9,7 @@
         "seed": "node prisma/seed.js",
         "postinstall": "prisma generate",
         "migrate": "prisma migrate deploy",
-        "deploy": "npm run migrate && npm run seed"
+        "deploy": "prisma db push && npm run seed"
     },
     "prisma": {
         "seed": "node prisma/seed.js"
