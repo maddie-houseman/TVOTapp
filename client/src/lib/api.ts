@@ -146,6 +146,15 @@
         }
     },
 
+    async getCompany(): Promise<{ id: string; name: string; domain: string } | null> {
+        try {
+        return await jsonFetch<{ id: string; name: string; domain: string }>("/api/auth/company");
+        } catch (e: unknown) {
+        if (isHttpStatus(e, 401) || isHttpStatus(e, 404)) return null;
+        throw e instanceof Error ? e : new Error(String(e));
+        }
+    },
+
     async logout(): Promise<void> {
         await jsonFetch<void>("/api/auth/logout", { method: "POST" });
     },

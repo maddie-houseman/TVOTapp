@@ -54,12 +54,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           role: me.role,
           companyId: me.companyId,
         });
-        // TODO: Fetch company details if needed
-        setCompany({
-          id: me.companyId || '',
-          name: 'Your Company', // TODO: Fetch from API
-          domain: 'yourcompany.com', // TODO: Fetch from API
-        });
+        
+        // Fetch company details if user has a company
+        if (me.companyId) {
+          try {
+            const companyData = await api.getCompany();
+            if (companyData) {
+              setCompany(companyData);
+            } else {
+              setCompany(null);
+            }
+          } catch {
+            setCompany(null);
+          }
+        } else {
+          setCompany(null);
+        }
       }
     } catch {
       console.log('Not authenticated');
