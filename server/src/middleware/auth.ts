@@ -21,10 +21,8 @@ export type JwtPayload = {
         // Never block preflight
         if (req.method === 'OPTIONS') return next();
 
-        // Try cookie first (your app uses 'session')
+        // Prefer cookie (matches auth route), fallback to Bearer
         const tokenFromCookie = req.cookies?.session as string | undefined;
-
-        // Fallback: Bearer token
         const tokenFromHeader = req.headers.authorization?.startsWith('Bearer ')
         ? req.headers.authorization.slice(7)
         : undefined;

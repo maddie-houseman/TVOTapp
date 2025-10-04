@@ -10,34 +10,28 @@ const router = Router();
 /* ---------------- Env + helpers ---------------- */
 
 type SameSite = 'lax' | 'none' | 'strict';
-
-/** Centralize JWT secret with fallback only for dev. */
 const JWT_SECRET = ENV.JWT_SECRET || 'dev-secret-change-me';
-
-/** SameSite policy: default to 'none' for cross-site */
 const COOKIE_SAMESITE: SameSite = ENV.COOKIE_SAMESITE ?? 'none';
 
-/** Decide if cookie `secure` should be set */
 function resolveSecureFlag(req: Request): boolean {
-  // Honor explicit ENV override first
+  // Explicit ENV wins
     if (ENV.COOKIE_SECURE === true) return true;
     if (ENV.COOKIE_SECURE === false) return false;
 
-    // Fallback: infer via proxy header or req.secure
+    // Infer via proxy header / req.secure
     const xfProto = req.header('x-forwarded-proto')?.split(',')[0]?.trim();
     return req.secure || xfProto === 'https';
     }
 
-    /** Create a signed JWT and set it as an httpOnly cookie. */
     function setSessionCookie(req: Request, res: Response, userId: string): string {
     const token = jwt.sign({ sub: userId }, JWT_SECRET, { expiresIn: '7d' });
 
     res.cookie('session', token, {
         httpOnly: true,
-        secure: resolveSecureFlag(req), // true in cloud if HTTPS
-        sameSite: COOKIE_SAMESITE,     // 'none' for cross-site (required)
+        secure: resolveSecureFlag(req), // true behind HTTPS
+        sameSite: COOKIE_SAMESITE,      // 'none' for cross-site
         path: '/',
-        maxAge: 7 * 24 * 3600 * 1000,  // 7 days
+        maxAge: 7 * 24 * 3600 * 1000,
     });
 
     return token;

@@ -6,58 +6,77 @@ import { ENV } from './env.js';
 
 const app = express();
 
-/* -------------------- CORS FIRST -------------------- */
-app.use(cors({
-  // echo request origin (safe for credentials as long as it's not '*')
-    origin: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key'],
-    credentials: true, // <-- allow cookies
-    }));
+/* -------------------- CORS (first) -------------------- */
+app.use(
+    cors({
+        // reflect the request Origin header
+        origin: true,
+        methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key'],
+        credentials: true, // allow cookies
+    })
+);
 
-    // Let preflight pass through quickly
-    app.options('*', cors({
-    origin: true,
-    credentials: true,
-    }));
+// 🔒 Hard preflight handler to avoid proxy timeouts (502 on OPTIONS)
+app.use((req, res, next) => {
+    if (req.method !== 'OPTIONS') return next();
 
-    /* -------------------- Parsers -------------------- */
-    app.use(express.json());
-    app.use(cookieParser());
+    const origin = (req.headers.origin as string | undefined) ?? '*';
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-api-key');
+    return res.sendStatus(204);
+});
 
-    // When behind a proxy (Railway), this helps the cookie 'secure' detection in routes/auth.ts
-    app.set('trust proxy', 1);
+/* -------------------- Parsers / proxy -------------------- */
+app.use(express.json());
+app.use(cookieParser());
+// Behind Railway proxy so req.secure works correctly
+app.set('trust proxy', 1);
 
-    /* -------------------- API key guard -------------------- */
-    // Keep your existing x-api-key middleware, but do NOT block OPTIONS.
-    app.use((req, res, next) => {
-    if (req.method === 'OPTIONS') return next(); // never auth preflights
+/* -------------------- API key guard -------------------- */
+/**
+ * Keep your x-api-key requirement for non-auth endpoints, but:
+ *  - never gate preflights
+ *  - allow /api/auth/* without an API key
+ */
+app.use((req, res, next) => {
+    if (req.method === 'OPTIONS') return next();
+    if (req.path.startsWith('/api/auth/')) return next();
 
-    const required = process.env.API_KEY;
-    if (!required) return next(); // no key set => allow (dev)
+    const requiredKey = process.env.API_KEY;
+    if (!requiredKey) return next();
 
     const key = req.header('x-api-key');
-    if (key !== required) return res.status(401).json({ error: 'invalid api key' });
-    next();
-    });
+    if (key !== requiredKey) return res.status(401).json({ error: 'invalid api key' });
 
-    /* -------------------- Rate limit -------------------- */
-    app.use(rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 1000,
-    standardHeaders: true,
-    legacyHeaders: false,
-    }));
+    return next();
+});
 
-    /* -------------------- Boot + Routes -------------------- */
-    const port = Number(process.env.PORT) || 8080;
-    app.listen(port, '0.0.0.0', () => {
+/* -------------------- Rate limit -------------------- */
+app.use(
+    rateLimit({
+        windowMs: 15 * 60 * 1000,
+        max: 1000,
+        standardHeaders: true,
+        legacyHeaders: false,
+    })
+);
+
+/* -------------------- Health -------------------- */
+app.get('/api/health', (_req, res) => res.status(200).json({ ok: true }));
+
+/* -------------------- Start server -------------------- */
+const port = Number(process.env.PORT) || 8080;
+app.listen(port, '0.0.0.0', () => {
     console.log(`API listening on http://0.0.0.0:${port}`);
-    });
+});
 
-    (async () => {
+/* -------------------- Bootstrap: Prisma + Routers -------------------- */
+(async () => {
     try {
-        // Prisma
         const { prisma } = await import('./prisma.js');
         await prisma.$connect();
         console.log('Prisma connected');
@@ -66,7 +85,6 @@ app.use(cors({
     }
 
     try {
-        // Routers (keep your existing structure)
         const { default: authRouter } = await import('./routes/auth.js');
         const { default: l1Router } = await import('./routes/l1.js');
         const { default: l2Router } = await import('./routes/l2.js');
@@ -75,7 +93,7 @@ app.use(cors({
         const { default: companyRouter } = await import('./routes/company.js');
         const { default: aiRouter } = await import('./routes/ai.js');
 
-        // Mount routes (auth remains public)
+        // auth routes are public; others may use your own auth middleware where needed
         app.use('/api', authRouter);
         app.use('/api', l1Router);
         app.use('/api', l2Router);
