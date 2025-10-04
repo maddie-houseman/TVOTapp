@@ -155,21 +155,10 @@ export default function FrameworkEntry() {
   const num = (v: string) => Number(v);
 
   // Step navigation
-  const nextStep = () => {
-    if (currentStep < totalSteps) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
   const prevStep = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
-  };
-
-  const resetMessages = () => {
-    setSuccessMessage('');
-    setErrorMessage('');
   };
 
   return (
