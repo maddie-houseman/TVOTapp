@@ -11,7 +11,7 @@ export default function FrameworkEntry() {
 
   // Current step in the framework entry process
   const [currentStep, setCurrentStep] = useState<number>(1);
-  const totalSteps = 4;
+  // const totalSteps = 4;
 
   // --- L1 - inputs
   const [dept, setDept] = useState<Department>('ENGINEERING');
