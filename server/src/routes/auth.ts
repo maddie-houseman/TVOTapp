@@ -143,4 +143,95 @@ function resolveSecureFlag(req: Request): boolean {
     return res.json({ ok: true });
     });
 
+    // PUT /api/auth/profile
+    router.put('/auth/profile', async (req: Request, res: Response) => {
+    try {
+        const token = req.cookies?.session as string | undefined;
+        if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+        const payload = jwt.verify(token, JWT_SECRET) as { sub: string };
+        const { name, email } = (req.body ?? {}) as { name?: string; email?: string };
+        
+        if (!name && !email) {
+        return res.status(400).json({ error: 'No fields to update' });
+        }
+
+        const updateData: any = {};
+        if (name) updateData.name = name;
+        if (email) {
+        // Check if email is already taken by another user
+        const existingUser = await prisma.user.findFirst({
+            where: { email, id: { not: payload.sub } }
+        });
+        if (existingUser) {
+            return res.status(400).json({ error: 'Email already in use' });
+        }
+        updateData.email = email;
+        }
+
+        const updatedUser = await prisma.user.update({
+        where: { id: payload.sub },
+        data: updateData,
+        select: { id: true, email: true, name: true, role: true, companyId: true }
+        });
+
+        return res.json(updatedUser);
+    } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        console.error('PROFILE UPDATE ERROR:', e);
+        return res.status(500).json({ error: `Server error during profile update: ${msg}` });
+    }
+    });
+
+    // PUT /api/auth/password
+    router.put('/auth/password', async (req: Request, res: Response) => {
+    try {
+        const token = req.cookies?.session as string | undefined;
+        if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+        const payload = jwt.verify(token, JWT_SECRET) as { sub: string };
+        const { currentPassword, newPassword } = (req.body ?? {}) as { 
+        currentPassword?: string; 
+        newPassword?: string; 
+    };
+        
+        if (!currentPassword || !newPassword) {
+        return res.status(400).json({ error: 'Current password and new password are required' });
+        }
+
+        if (newPassword.length < 6) {
+        return res.status(400).json({ error: 'New password must be at least 6 characters' });
+        }
+
+        // Get current user with password hash
+        const user = await prisma.user.findUnique({ 
+        where: { id: payload.sub },
+        select: { passwordHash: true }
+        });
+        
+        if (!user) return res.status(401).json({ error: 'User not found' });
+
+        // Verify current password
+        const isValidPassword = await bcrypt.compare(currentPassword, user.passwordHash);
+        if (!isValidPassword) {
+        return res.status(400).json({ error: 'Current password is incorrect' });
+        }
+
+        // Hash new password
+        const newPasswordHash = await bcrypt.hash(newPassword, 10);
+
+        // Update password
+        await prisma.user.update({
+        where: { id: payload.sub },
+        data: { passwordHash: newPasswordHash }
+        });
+
+        return res.json({ ok: true });
+    } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        console.error('PASSWORD CHANGE ERROR:', e);
+        return res.status(500).json({ error: `Server error during password change: ${msg}` });
+    }
+    });
+
 export default router;

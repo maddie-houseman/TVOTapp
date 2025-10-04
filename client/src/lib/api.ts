@@ -150,6 +150,20 @@
         await jsonFetch<void>("/api/auth/logout", { method: "POST" });
     },
 
+    async updateProfile(name?: string, email?: string): Promise<Me> {
+        return jsonFetch<Me>("/api/auth/profile", {
+        method: "PUT",
+        json: { name, email },
+        });
+    },
+
+    async changePassword(currentPassword: string, newPassword: string): Promise<{ ok: boolean }> {
+        return jsonFetch<{ ok: boolean }>("/api/auth/password", {
+        method: "PUT",
+        json: { currentPassword, newPassword },
+        });
+    },
+
     // ---- L1 ----
     async l1Upsert(v: L1Input): Promise<L1Input> {
         return jsonFetch<L1Input>("/api/l1", { method: "POST", json: v });
