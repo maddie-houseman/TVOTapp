@@ -10,7 +10,7 @@ const schema = z.object({
     });
 
     r.post('/reflect', auth(), async (req, res) => {
-    if (!process.env.OPENAI_API_KEY) return res.status(400).json({ error: 'OPENAI_API_KEY not configured' });
+    if (!process.env.OPENAI_API_KEY) return res.status(400).json({ error: 'AI features not available - OPENAI_API_KEY not configured' });
     const { snapshot, question } = schema.parse(req.body);
 
     const { default: OpenAI } = await import('openai');
