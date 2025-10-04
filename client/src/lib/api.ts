@@ -123,6 +123,13 @@
     // -------- Public API --------
     export const api = {
     // ---- Auth ----
+    async signup(email: string, password: string, name: string, companyName?: string, companyDomain?: string): Promise<{ ok: boolean; user?: Me }> {
+        return jsonFetch<{ ok: boolean; user?: Me }>("/api/auth/signup", {
+        method: "POST",
+        json: { email, password, name, companyName, companyDomain },
+        });
+    },
+
     async login(email: string, password: string): Promise<{ ok: boolean }> {
         return jsonFetch<{ ok: boolean }>("/api/auth/login", {
         method: "POST",

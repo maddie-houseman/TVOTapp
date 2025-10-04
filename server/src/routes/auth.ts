@@ -39,6 +39,62 @@ function resolveSecureFlag(req: Request): boolean {
 
     /* ---------------- Routes ---------------- */
 
+    // POST /api/auth/signup
+    router.post('/auth/signup', async (req: Request, res: Response) => {
+    try {
+        const { email, password, name, companyName, companyDomain } = (req.body ?? {}) as { 
+        email?: string; 
+        password?: string; 
+        name?: string;
+        companyName?: string;
+        companyDomain?: string;
+    };
+        
+        if (!email || !password || !name) {
+        return res.status(400).json({ error: 'Missing required fields: email, password, name' });
+        }
+
+        // Check if user already exists
+        const existingUser = await prisma.user.findUnique({ where: { email } });
+        if (existingUser) {
+        return res.status(400).json({ error: 'User with this email already exists' });
+        }
+
+        // Hash password
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        // Create company if provided
+        let companyId: string | null = null;
+        if (companyName) {
+        const company = await prisma.company.create({
+            data: {
+            name: companyName,
+            domain: companyDomain || null,
+            },
+        });
+        companyId = company.id;
+        }
+
+        // Create user
+        const user = await prisma.user.create({
+        data: {
+            email,
+            passwordHash,
+            name,
+            role: 'ADMIN', // First user in a company is admin
+            companyId,
+        },
+        });
+
+        setSessionCookie(req, res, user.id);
+        return res.json({ ok: true, user: { id: user.id, email: user.email, name: user.name, role: user.role, companyId: user.companyId } });
+    } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        console.error('SIGNUP ERROR:', e);
+        return res.status(500).json({ error: `Server error during signup: ${msg}` });
+    }
+    });
+
     // POST /api/auth/login
     router.post('/auth/login', async (req: Request, res: Response) => {
     try {

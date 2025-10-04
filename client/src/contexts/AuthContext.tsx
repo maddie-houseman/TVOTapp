@@ -22,6 +22,7 @@ export interface AuthData {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  signup: (email: string, password: string, name: string, companyName?: string, companyDomain?: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -31,6 +32,7 @@ const AuthContext = createContext<AuthData>({
   isAuthenticated: false,
   isLoading: true,
   login: async () => {},
+  signup: async () => {},
   logout: async () => {},
 });
 
@@ -75,6 +77,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     await checkAuth();
   };
 
+  const signup = async (email: string, password: string, name: string, companyName?: string, companyDomain?: string) => {
+    await api.signup(email, password, name, companyName, companyDomain);
+    await checkAuth();
+  };
+
   const logout = async () => {
     await api.logout();
     setUser(null);
@@ -88,6 +95,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       isAuthenticated: !!user,
       isLoading,
       login,
+      signup,
       logout,
     }}>
       {children}
