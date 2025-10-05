@@ -52,29 +52,9 @@ export default function FrameworkEntry() {
 
   if (!user) return <div className="text-sm">Please login.</div>;
   
-  // Debug logging
-  console.log('User object:', user);
-  console.log('User role:', user.role);
-  console.log('User companyId:', user.companyId);
-  console.log('Selected companyId:', selectedCompanyId);
-
   // For admin users, use selected company; for regular users, use their own company
   const companyId = user.role === 'ADMIN' ? selectedCompanyId : user.companyId;
   const full = `${period}-01`; // server expects YYYY-MM-DD
-
-  console.log('Final companyId:', companyId);
-
-  // Only show company selection for admin users
-  if (user.role === 'ADMIN' && !selectedCompanyId) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Select a Company</h1>
-          <p className="text-gray-600">Please select a company to enter framework data for.</p>
-        </div>
-      </div>
-    );
-  }
 
   // For non-admin users, check if they have a company
   if (user.role !== 'ADMIN' && !user.companyId) {
