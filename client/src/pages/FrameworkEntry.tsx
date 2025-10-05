@@ -53,7 +53,7 @@ export default function FrameworkEntry() {
   if (!user) return <div className="text-sm">Please login.</div>;
   
   // For admin users, use selected company; for regular users, use their own company
-  const companyId = user.role === 'ADMIN' && selectedCompanyId ? selectedCompanyId : (user?.companyId ?? '');
+  const companyId = user.role === 'ADMIN' ? selectedCompanyId : user.companyId;
   const full = `${period}-01`; // server expects YYYY-MM-DD
 
   // Validation: Admin users must select a company, regular users must have a company
