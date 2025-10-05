@@ -46,33 +46,39 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const checkAuth = async () => {
     try {
       const me = await api.me();
+      console.log('API me() response:', me);
       if (me) {
-        setUser({
+        const userData = {
           id: me.id,
           email: me.email || '',
           name: me.name || '',
           role: me.role,
           companyId: me.companyId,
-        });
+        };
+        console.log('Setting user data:', userData);
+        setUser(userData);
         
         // Fetch company details if user has a company
         if (me.companyId) {
           try {
             const companyData = await api.getCompany();
+            console.log('Company data:', companyData);
             if (companyData) {
               setCompany(companyData);
             } else {
               setCompany(null);
             }
-          } catch {
+          } catch (error) {
+            console.log('Error fetching company:', error);
             setCompany(null);
           }
         } else {
+          console.log('No companyId for user');
           setCompany(null);
         }
       }
-    } catch {
-      console.log('Not authenticated');
+    } catch (error) {
+      console.log('Not authenticated:', error);
     } finally {
       setIsLoading(false);
     }

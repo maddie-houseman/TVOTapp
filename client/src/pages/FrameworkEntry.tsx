@@ -52,17 +52,19 @@ export default function FrameworkEntry() {
 
   if (!user) return <div className="text-sm">Please login.</div>;
   
+  // Debug logging
+  console.log('User object:', user);
+  console.log('User role:', user.role);
+  console.log('User companyId:', user.companyId);
+  console.log('Selected companyId:', selectedCompanyId);
+
   // For admin users, use selected company; for regular users, use their own company
   const companyId = user.role === 'ADMIN' ? selectedCompanyId : user.companyId;
   const full = `${period}-01`; // server expects YYYY-MM-DD
 
-  // Debug logging
-  console.log('User role:', user.role);
-  console.log('User companyId:', user.companyId);
-  console.log('Selected companyId:', selectedCompanyId);
   console.log('Final companyId:', companyId);
 
-  // Validation: Admin users must select a company, regular users must have a company
+  // Only show company selection for admin users
   if (user.role === 'ADMIN' && !selectedCompanyId) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -74,24 +76,13 @@ export default function FrameworkEntry() {
     );
   }
 
+  // For non-admin users, check if they have a company
   if (user.role !== 'ADMIN' && !user.companyId) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">No Company Assigned</h1>
           <p className="text-gray-600">You are not assigned to any company. Please contact your administrator.</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Additional check: if no companyId is available, show error
-  if (!companyId) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">No Company Available</h1>
-          <p className="text-gray-600">Unable to determine company context. Please contact support.</p>
         </div>
       </div>
     );
