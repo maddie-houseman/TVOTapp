@@ -47,8 +47,8 @@ app.use((req, res, next) => {
     if (req.path.startsWith('/api/auth/')) return next();
 
     const requiredKey = process.env.API_KEY;
-    // Only require API key in production
-    if (!requiredKey || process.env.NODE_ENV === 'development') return next();
+    // Skip API key requirement if not set or if it's a framework-related endpoint
+    if (!requiredKey || req.path.startsWith('/api/l1') || req.path.startsWith('/api/l2') || req.path.startsWith('/api/l3') || req.path.startsWith('/api/l4')) return next();
 
     const key = req.header('x-api-key');
     if (key !== requiredKey) return res.status(401).json({ error: 'invalid api key' });
