@@ -28,6 +28,7 @@ r.post('/', auth(), async (req, res) => {
 
 // Also handle the route without trailing slash
 r.post('', auth(), async (req, res) => {
+    console.log('L1 POST route hit:', req.path, req.method);
     const body = l1Schema.parse(req.body);
     if (req.user!.role !== 'ADMIN' && req.user!.companyId !== body.companyId) return res.status(403).json({ error: 'Forbidden' });
     const created = await prisma.l1OperationalInput.upsert({

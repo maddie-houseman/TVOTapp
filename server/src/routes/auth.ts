@@ -146,7 +146,7 @@ function resolveSecureFlag(req: Request): boolean {
         const payload = jwt.verify(token, JWT_SECRET) as { sub: string };
         const user = await prisma.user.findUnique({
         where: { id: payload.sub },
-        select: { companyId: true },
+        select: { companyId: true, role: true },
         });
 
         if (!user || !user.companyId) return res.status(404).json({ error: 'No company found' });
@@ -158,6 +158,31 @@ function resolveSecureFlag(req: Request): boolean {
 
         if (!company) return res.status(404).json({ error: 'Company not found' });
         return res.json(company);
+    } catch {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    });
+
+    // GET /api/auth/companies (admin only)
+    router.get('/auth/companies', async (req: Request, res: Response) => {
+    try {
+        const token = req.cookies?.session as string | undefined;
+        if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+        const payload = jwt.verify(token, JWT_SECRET) as { sub: string };
+        const user = await prisma.user.findUnique({
+        where: { id: payload.sub },
+        select: { role: true },
+        });
+
+        if (!user || user.role !== 'ADMIN') return res.status(403).json({ error: 'Admin access required' });
+
+        const companies = await prisma.company.findMany({
+        select: { id: true, name: true, domain: true },
+        orderBy: { name: 'asc' }
+        });
+
+        return res.json(companies);
     } catch {
         return res.status(401).json({ error: 'Unauthorized' });
     }

@@ -155,6 +155,10 @@
         }
     },
 
+    async getCompanies(): Promise<{ id: string; name: string; domain: string }[]> {
+        return jsonFetch<{ id: string; name: string; domain: string }[]>("/api/auth/companies");
+    },
+
     async logout(): Promise<void> {
         await jsonFetch<void>("/api/auth/logout", { method: "POST" });
     },

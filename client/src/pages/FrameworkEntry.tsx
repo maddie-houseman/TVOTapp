@@ -13,6 +13,10 @@ export default function FrameworkEntry() {
   const [currentStep, setCurrentStep] = useState<number>(1);
   // const totalSteps = 4;
 
+  // Admin company selection
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>('');
+  const [availableCompanies, setAvailableCompanies] = useState<{ id: string; name: string; domain: string }[]>([]);
+
   // --- L1 - inputs
   const [dept, setDept] = useState<Department>('ENGINEERING');
   const [employees, setEmployees] = useState<number>(10);
@@ -37,13 +41,21 @@ export default function FrameworkEntry() {
   const [successMessage, setSuccessMessage] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
 
-  // loading current user
+  // loading current user and companies
   useEffect(() => {
-    api.me().then(setMe).catch(() => setMe(null));
+    api.me().then((user) => {
+      setMe(user);
+      if (user?.role === 'ADMIN') {
+        // Load all companies for admin users
+        api.getCompanies().then(setAvailableCompanies).catch(() => setAvailableCompanies([]));
+      }
+    }).catch(() => setMe(null));
   }, []);
 
   if (!me) return <div className="text-sm">Please login.</div>;
-  const companyId = me?.companyId ?? '';
+  
+  // For admin users, use selected company; for regular users, use their own company
+  const companyId = me.role === 'ADMIN' && selectedCompanyId ? selectedCompanyId : (me?.companyId ?? '');
   const full = `${period}-01`; // server expects YYYY-MM-DD
 
   // ----- Actions -----
@@ -215,6 +227,31 @@ export default function FrameworkEntry() {
             />
           </div>
         </div>
+
+        {/* Company Selection for Admin Users */}
+        {me.role === 'ADMIN' && (
+          <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Company Selection</h3>
+            <p className="text-sm text-gray-600 mb-4">As an admin, you can enter data for any company.</p>
+            <div className="max-w-md">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select Company
+              </label>
+              <select
+                value={selectedCompanyId}
+                onChange={(e) => setSelectedCompanyId(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select a company...</option>
+                {availableCompanies.map((company) => (
+                  <option key={company.id} value={company.id}>
+                    {company.name} {company.domain && `(${company.domain})`}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
 
         {/* Step Content */}
         <div className="bg-white rounded-lg shadow">

@@ -24,10 +24,14 @@ function merge<T>(left: T[], right: T[], compare: (a: T, b: T) => number): T[] {
 }
 
 export default function Dashboard() {
-  const { isAuthenticated, company } = useAuth();
+  const { isAuthenticated, company, user } = useAuth();
   const [selectedYear, setSelectedYear] = useState('2024');
   const [selectedMonth, setSelectedMonth] = useState('01');
   const selectedPeriod = `${selectedYear}-${selectedMonth}`;
+
+  // Admin company filtering
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>('');
+  const [availableCompanies, setAvailableCompanies] = useState<{ id: string; name: string; domain: string }[]>([]);
 
   // Real data state
   const [l1Data, setL1Data] = useState<L1Input[]>([]);
@@ -36,10 +40,20 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [hasData, setHasData] = useState(false);
 
+  // Load companies for admin users
+  useEffect(() => {
+    if (user?.role === 'ADMIN') {
+      api.getCompanies().then(setAvailableCompanies).catch(() => setAvailableCompanies([]));
+    }
+  }, [user?.role]);
+
   // Load data when period or company changes
   useEffect(() => {
     const loadData = async () => {
-      if (!company?.id || !isAuthenticated) {
+      // For admin users, use selected company; for regular users, use their own company
+      const targetCompanyId = user?.role === 'ADMIN' && selectedCompanyId ? selectedCompanyId : company?.id;
+      
+      if (!targetCompanyId || !isAuthenticated) {
         setIsLoading(false);
         return;
       }
@@ -47,9 +61,9 @@ export default function Dashboard() {
       setIsLoading(true);
       try {
         const [l1, l2, l4] = await Promise.all([
-          api.l1Get(company.id, selectedPeriod),
-          api.l2Get(company.id, selectedPeriod),
-          api.snapshots(company.id)
+          api.l1Get(targetCompanyId, selectedPeriod),
+          api.l2Get(targetCompanyId, selectedPeriod),
+          api.snapshots(targetCompanyId)
         ]);
 
         setL1Data(l1);
@@ -65,7 +79,7 @@ export default function Dashboard() {
     };
 
     loadData();
-  }, [company?.id, selectedPeriod, isAuthenticated]);
+  }, [company?.id, selectedCompanyId, selectedPeriod, isAuthenticated, user?.role]);
 
   // Get the latest snapshot for the selected period
   const currentSnapshot = l4Data.find(snapshot => 
@@ -176,6 +190,25 @@ export default function Dashboard() {
               <option value="11">November</option>
               <option value="12">December</option>
             </select>
+
+            {/* Company Selector for Admin Users */}
+            {user?.role === 'ADMIN' && (
+              <>
+                <label className="text-sm font-medium text-gray-700">Company:</label>
+                <select
+                  value={selectedCompanyId}
+                  onChange={(e) => setSelectedCompanyId(e.target.value)}
+                  className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">All Companies</option>
+                  {availableCompanies.map((company) => (
+                    <option key={company.id} value={company.id}>
+                      {company.name}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
 
             {/* Export PDF Button */}
             <button
