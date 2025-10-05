@@ -1,10 +1,11 @@
 // client/src/pages/FrameworkEntry.tsx
 import { useEffect, useState } from 'react';
-import { api, type Me, type Department, } from '../lib/api';
+import { useAuth } from '../contexts/useAuth';
+import { api, type Department, } from '../lib/api';
 
 export default function FrameworkEntry() {
   // auth / context
-  const [me, setMe] = useState<Me | null>(null);
+  const { user, company } = useAuth();
 
   // period YYYY-MM (we send YYYY-MM-01 to the server)
   const [period, setPeriod] = useState<string>(new Date().toISOString().slice(0, 7));
@@ -41,22 +42,42 @@ export default function FrameworkEntry() {
   const [successMessage, setSuccessMessage] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
 
-  // loading current user and companies
+  // loading companies for admin users
   useEffect(() => {
-    api.me().then((user) => {
-      setMe(user);
-      if (user?.role === 'ADMIN') {
-        // Load all companies for admin users
-        api.getCompanies().then(setAvailableCompanies).catch(() => setAvailableCompanies([]));
-      }
-    }).catch(() => setMe(null));
-  }, []);
+    if (user?.role === 'ADMIN') {
+      // Load all companies for admin users
+      api.getCompanies().then(setAvailableCompanies).catch(() => setAvailableCompanies([]));
+    }
+  }, [user?.role]);
 
-  if (!me) return <div className="text-sm">Please login.</div>;
+  if (!user) return <div className="text-sm">Please login.</div>;
   
   // For admin users, use selected company; for regular users, use their own company
-  const companyId = me.role === 'ADMIN' && selectedCompanyId ? selectedCompanyId : (me?.companyId ?? '');
+  const companyId = user.role === 'ADMIN' && selectedCompanyId ? selectedCompanyId : (user?.companyId ?? '');
   const full = `${period}-01`; // server expects YYYY-MM-DD
+
+  // Validation: Admin users must select a company, regular users must have a company
+  if (user.role === 'ADMIN' && !selectedCompanyId) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Select a Company</h1>
+          <p className="text-gray-600">Please select a company to enter framework data for.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (user.role !== 'ADMIN' && !user.companyId) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">No Company Assigned</h1>
+          <p className="text-gray-600">You are not assigned to any company. Please contact your administrator.</p>
+        </div>
+      </div>
+    );
+  }
 
   // ----- Actions -----
   async function saveL1() {
@@ -228,8 +249,8 @@ export default function FrameworkEntry() {
           </div>
         </div>
 
-        {/* Company Selection for Admin Users */}
-        {me.role === 'ADMIN' && (
+        {/* Company Selection for Admin Users Only */}
+        {user.role === 'ADMIN' && (
           <div className="bg-white rounded-lg shadow p-6 mb-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Company Selection</h3>
             <p className="text-sm text-gray-600 mb-4">As an admin, you can enter data for any company.</p>
@@ -249,6 +270,18 @@ export default function FrameworkEntry() {
                   </option>
                 ))}
               </select>
+            </div>
+          </div>
+        )}
+
+        {/* Company Info for Regular Users */}
+        {user.role !== 'ADMIN' && company && (
+          <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Company Information</h3>
+            <p className="text-sm text-gray-600 mb-2">You are entering data for:</p>
+            <div className="bg-gray-50 rounded-md p-3">
+              <p className="font-medium text-gray-900">{company.name}</p>
+              {company.domain && <p className="text-sm text-gray-600">{company.domain}</p>}
             </div>
           </div>
         )}
