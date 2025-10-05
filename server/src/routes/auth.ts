@@ -42,12 +42,13 @@ function resolveSecureFlag(req: Request): boolean {
     // POST /api/auth/signup
     router.post('/auth/signup', async (req: Request, res: Response) => {
     try {
-        const { email, password, name, companyName, companyDomain } = (req.body ?? {}) as { 
+        const { email, password, name, companyName, companyDomain, role } = (req.body ?? {}) as { 
         email?: string; 
         password?: string; 
         name?: string;
         companyName?: string;
         companyDomain?: string;
+        role?: 'ADMIN' | 'EMPLOYEE';
     };
         
         if (!email || !password || !name) {
@@ -75,13 +76,16 @@ function resolveSecureFlag(req: Request): boolean {
         companyId = company.id;
         }
 
+        // Determine user role: if creating a company, user is admin; otherwise, use provided role or default to EMPLOYEE
+        const userRole = companyName ? 'ADMIN' : (role || 'EMPLOYEE');
+
         // Create user
         const user = await prisma.user.create({
         data: {
             email,
             passwordHash,
             name,
-            role: 'ADMIN', // First user in a company is admin
+            role: userRole,
             companyId,
         },
         });

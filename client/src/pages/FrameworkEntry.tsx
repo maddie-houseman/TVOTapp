@@ -52,9 +52,6 @@ export default function FrameworkEntry() {
 
   if (!user) return <div className="text-sm">Please login.</div>;
   
-  // Debug: Log user role to see what's being detected
-  console.log('User role detected:', user.role);
-  console.log('Is admin?', user.role === 'ADMIN');
   
   // For admin users, use selected company; for regular users, use their own company
   const companyId = user.role === 'ADMIN' ? selectedCompanyId : user.companyId;
@@ -267,12 +264,6 @@ export default function FrameworkEntry() {
           </div>
         )}
 
-        {/* Debug: Show current user info */}
-        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-6">
-          <p className="text-sm text-yellow-800">
-            <strong>Debug Info:</strong> Role: {user.role} | Company ID: {user.companyId} | Selected: {selectedCompanyId}
-          </p>
-        </div>
 
         {/* Company Info for Regular Users */}
         {user.role !== 'ADMIN' && company && (

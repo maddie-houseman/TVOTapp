@@ -22,7 +22,7 @@ export interface AuthData {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, name: string, companyName?: string, companyDomain?: string) => Promise<void>;
+  signup: (email: string, password: string, name: string, companyName?: string, companyDomain?: string, role?: 'ADMIN' | 'EMPLOYEE') => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -46,39 +46,33 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const checkAuth = async () => {
     try {
       const me = await api.me();
-      console.log('API me() response:', me);
       if (me) {
-        const userData = {
+        setUser({
           id: me.id,
           email: me.email || '',
           name: me.name || '',
           role: me.role,
           companyId: me.companyId,
-        };
-        console.log('Setting user data:', userData);
-        setUser(userData);
+        });
         
         // Fetch company details if user has a company
         if (me.companyId) {
           try {
             const companyData = await api.getCompany();
-            console.log('Company data:', companyData);
             if (companyData) {
               setCompany(companyData);
             } else {
               setCompany(null);
             }
-          } catch (error) {
-            console.log('Error fetching company:', error);
+          } catch {
             setCompany(null);
           }
         } else {
-          console.log('No companyId for user');
           setCompany(null);
         }
       }
-    } catch (error) {
-      console.log('Not authenticated:', error);
+    } catch {
+      console.log('Not authenticated');
     } finally {
       setIsLoading(false);
     }
@@ -93,8 +87,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     await checkAuth();
   };
 
-  const signup = async (email: string, password: string, name: string, companyName?: string, companyDomain?: string) => {
-    await api.signup(email, password, name, companyName, companyDomain);
+  const signup = async (email: string, password: string, name: string, companyName?: string, companyDomain?: string, role?: 'ADMIN' | 'EMPLOYEE') => {
+    await api.signup(email, password, name, companyName, companyDomain, role);
     await checkAuth();
   };
 
