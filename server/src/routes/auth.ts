@@ -64,15 +64,23 @@ function resolveSecureFlag(req: Request): boolean {
         // Hash password
         const passwordHash = await bcrypt.hash(password, 10);
 
-        // Create company if provided
+        // Find or create company if provided
         let companyId: string | null = null;
         if (companyName) {
-        const company = await prisma.company.create({
-            data: {
-            name: companyName,
-            domain: companyDomain || null,
-            },
+        // Try to find existing company first
+        let company = await prisma.company.findUnique({
+            where: { name: companyName }
         });
+        
+        // If company doesn't exist, create it
+        if (!company) {
+            company = await prisma.company.create({
+                data: {
+                name: companyName,
+                domain: companyDomain || null,
+                },
+            });
+        }
         companyId = company.id;
         }
 
