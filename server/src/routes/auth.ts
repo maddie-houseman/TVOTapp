@@ -76,8 +76,8 @@ function resolveSecureFlag(req: Request): boolean {
         companyId = company.id;
         }
 
-        // Determine user role: if creating a company, user is admin; otherwise, use provided role or default to EMPLOYEE
-        const userRole = companyName ? 'ADMIN' : (role || 'EMPLOYEE');
+        // Determine user role: use provided role or default to EMPLOYEE
+        const userRole = role || 'EMPLOYEE';
 
         // Create user
         const user = await prisma.user.create({
