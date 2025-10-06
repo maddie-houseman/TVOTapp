@@ -39,7 +39,7 @@ function resolveSecureFlag(req: Request): boolean {
 
     /* ---------------- Routes ---------------- */
 
-    // POST /api/auth/signup
+    // /api/auth/signup
     router.post('/auth/signup', async (req: Request, res: Response) => {
     try {
         const { email, password, name, companyName, companyDomain, role } = (req.body ?? {}) as { 
@@ -64,28 +64,20 @@ function resolveSecureFlag(req: Request): boolean {
         // Hash password
         const passwordHash = await bcrypt.hash(password, 10);
 
-        // Find or create company if provided
+        // Create company if provided
         let companyId: string | null = null;
         if (companyName) {
-        // Try to find existing company first
-        let company = await prisma.company.findUnique({
-            where: { name: companyName }
+        const company = await prisma.company.create({
+            data: {
+            name: companyName,
+            domain: companyDomain || null,
+            },
         });
-        
-        // If company doesn't exist, create it
-        if (!company) {
-            company = await prisma.company.create({
-                data: {
-                name: companyName,
-                domain: companyDomain || null,
-                },
-            });
-        }
         companyId = company.id;
         }
 
-        // Determine user role: use provided role or default to EMPLOYEE
-        const userRole = role || 'EMPLOYEE';
+        // Determine user role: if creating a company, user is admin; otherwise, use provided role or default to EMPLOYEE
+        const userRole = companyName ? 'ADMIN' : (role || 'EMPLOYEE');
 
         // Create user
         const user = await prisma.user.create({

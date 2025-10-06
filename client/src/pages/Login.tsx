@@ -18,7 +18,7 @@ export default function Login() {
         setErr('');
         try {
             if (isSignup) {
-                await signup(email, password, name, companyName || undefined, companyDomain || undefined, 'EMPLOYEE');
+                await signup(email, password, name, companyName || undefined, companyDomain || undefined);
             } else {
                 await login(email, password);
             }
