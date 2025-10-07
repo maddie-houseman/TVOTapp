@@ -69,23 +69,10 @@ app.use(
 /* -------------------- Health -------------------- */
 app.get('/api/health', (_req, res) => res.status(200).json({ ok: true }));
 
-/* -------------------- Bootstrap: Prisma + Routers -------------------- */
+/* -------------------- Bootstrap: Routers Only -------------------- */
 (async () => {
-    // Try to connect to database but don't block server startup
-    const dbConnectionPromise = (async () => {
-        try {
-            const { prisma } = await import('./prisma.js');
-            await prisma.$connect();
-            console.log('Prisma connected');
-            return true;
-        } catch (e) {
-            console.error('Prisma connect failed:', e);
-            console.log('Server will continue without database connection');
-            return false;
-        }
-    })();
-
     try {
+        console.log('Loading routes...');
         const { default: authRouter } = await import('./routes/auth.js');
         const { default: l1Router } = await import('./routes/l1.js');
         const { default: l2Router } = await import('./routes/l2.js');
@@ -105,14 +92,27 @@ app.get('/api/health', (_req, res) => res.status(200).json({ ok: true }));
 
         console.log('Routers mounted');
         
-        // Start server immediately, don't wait for database
+        // Start server immediately
         const port = Number(process.env.PORT) || 8080;
         app.listen(port, '0.0.0.0', () => {
             console.log(`API listening on http://0.0.0.0:${port}`);
-            console.log('Database connection status will be logged separately');
+            console.log('Server started successfully - database connection will be attempted in background');
         });
     } catch (e) {
         console.error('Router load failed:', e);
         process.exit(1);
     }
 })();
+
+// Try database connection in background (non-blocking)
+setTimeout(async () => {
+    try {
+        console.log('Attempting database connection...');
+        const { prisma } = await import('./prisma.js');
+        await prisma.$connect();
+        console.log('Prisma connected successfully');
+    } catch (e) {
+        console.error('Prisma connect failed (non-blocking):', e);
+        console.log('Server continues to run with mock data fallbacks');
+    }
+}, 1000);
