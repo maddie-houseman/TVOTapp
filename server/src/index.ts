@@ -71,13 +71,19 @@ app.get('/api/health', (_req, res) => res.status(200).json({ ok: true }));
 
 /* -------------------- Bootstrap: Prisma + Routers -------------------- */
 (async () => {
-    try {
-        const { prisma } = await import('./prisma.js');
-        await prisma.$connect();
-        console.log('Prisma connected');
-    } catch (e) {
-        console.error('Prisma connect failed:', e);
-    }
+    // Try to connect to database but don't block server startup
+    const dbConnectionPromise = (async () => {
+        try {
+            const { prisma } = await import('./prisma.js');
+            await prisma.$connect();
+            console.log('Prisma connected');
+            return true;
+        } catch (e) {
+            console.error('Prisma connect failed:', e);
+            console.log('Server will continue without database connection');
+            return false;
+        }
+    })();
 
     try {
         const { default: authRouter } = await import('./routes/auth.js');
@@ -99,10 +105,11 @@ app.get('/api/health', (_req, res) => res.status(200).json({ ok: true }));
 
         console.log('Routers mounted');
         
-        // Start server after routes are mounted
+        // Start server immediately, don't wait for database
         const port = Number(process.env.PORT) || 8080;
         app.listen(port, '0.0.0.0', () => {
             console.log(`API listening on http://0.0.0.0:${port}`);
+            console.log('Database connection status will be logged separately');
         });
     } catch (e) {
         console.error('Router load failed:', e);

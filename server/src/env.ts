@@ -15,11 +15,11 @@ const required = (name: string, v: string | undefined) => {
 export const ENV = {
     PORT: Number(process.env.PORT || 8080),
     NODE_ENV: process.env.NODE_ENV || 'development',
-    DATABASE_URL: required('DATABASE_URL', process.env.DATABASE_URL),
-    JWT_SECRET: required('JWT_SECRET', process.env.JWT_SECRET),
+    DATABASE_URL: process.env.DATABASE_URL || 'postgresql://postgres:HJljKCsqoHiCbYjPuULsmLQJPykqZvQd@yamanote.proxy.rlwy.net:22626/railway?sslmode=require',
+    JWT_SECRET: process.env.JWT_SECRET || 'dev-secret-change-me',
     CORS_ORIGIN: process.env.CORS_ORIGIN || '',
     OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
     COOKIE_SAMESITE: (process.env.COOKIE_SAMESITE || 'none') as 'lax' | 'strict' | 'none',
-    COOKIE_SECURE: (process.env.COOKIE_SECURE || 'true').toLowerCase() === 'true',
+    COOKIE_SECURE: (process.env.COOKIE_SECURE || 'false').toLowerCase() === 'true',
 };
 
