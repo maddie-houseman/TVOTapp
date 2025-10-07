@@ -28,7 +28,7 @@ r.post('/', auth(), async (req, res) => {
     }
     
     // For admin users, if no companyId is provided, use their own company
-    if (req.user!.role === 'ADMIN' && !body.companyId) {
+    if (req.user!.role === 'ADMIN' && !body.companyId && req.user!.companyId) {
         body.companyId = req.user!.companyId;
     }
     const created = await prisma.l1OperationalInput.upsert({
