@@ -69,12 +69,6 @@ app.use(
 /* -------------------- Health -------------------- */
 app.get('/api/health', (_req, res) => res.status(200).json({ ok: true }));
 
-/* -------------------- Start server -------------------- */
-const port = Number(process.env.PORT) || 8080;
-app.listen(port, '0.0.0.0', () => {
-    console.log(`API listening on http://0.0.0.0:${port}`);
-});
-
 /* -------------------- Bootstrap: Prisma + Routers -------------------- */
 (async () => {
     try {
@@ -104,7 +98,14 @@ app.listen(port, '0.0.0.0', () => {
         app.use('/api', aiRouter);
 
         console.log('Routers mounted');
+        
+        // Start server after routes are mounted
+        const port = Number(process.env.PORT) || 8080;
+        app.listen(port, '0.0.0.0', () => {
+            console.log(`API listening on http://0.0.0.0:${port}`);
+        });
     } catch (e) {
         console.error('Router load failed:', e);
+        process.exit(1);
     }
 })();
