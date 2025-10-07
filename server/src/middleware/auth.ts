@@ -34,8 +34,12 @@ export type JwtPayload = {
         }
 
         try {
-        const payload = jwt.verify(token, ENV.JWT_SECRET) as JwtPayload;
-        req.user = payload;
+        const payload = jwt.verify(token, ENV.JWT_SECRET) as { sub: string; role: string; companyId?: string | null };
+        req.user = {
+            userId: payload.sub,
+            role: payload.role as 'EMPLOYEE' | 'ADMIN',
+            companyId: payload.companyId
+        };
         next();
         } catch {
         return res.status(401).json({ error: 'Invalid token' });

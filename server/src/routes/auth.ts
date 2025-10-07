@@ -23,8 +23,8 @@ function resolveSecureFlag(req: Request): boolean {
     return req.secure || xfProto === 'https';
     }
 
-    function setSessionCookie(req: Request, res: Response, userId: string): string {
-    const token = jwt.sign({ sub: userId }, JWT_SECRET, { expiresIn: '7d' });
+    function setSessionCookie(req: Request, res: Response, userId: string, role: string, companyId: string | null): string {
+    const token = jwt.sign({ sub: userId, role, companyId }, JWT_SECRET, { expiresIn: '7d' });
 
     res.cookie('session', token, {
         httpOnly: true,
@@ -90,7 +90,7 @@ function resolveSecureFlag(req: Request): boolean {
         },
         });
 
-        setSessionCookie(req, res, user.id);
+        setSessionCookie(req, res, user.id, user.role, user.companyId);
         return res.json({ ok: true, user: { id: user.id, email: user.email, name: user.name, role: user.role, companyId: user.companyId } });
     } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
@@ -113,7 +113,7 @@ function resolveSecureFlag(req: Request): boolean {
         const ok = await bcrypt.compare(password, (user as any).passwordHash);
         if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
 
-        setSessionCookie(req, res, user.id);
+        setSessionCookie(req, res, user.id, user.role, user.companyId);
         return res.json({ ok: true });
     } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
