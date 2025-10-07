@@ -90,10 +90,10 @@ app.get('/api/health', (_req, res) => res.status(200).json({ ok: true }));
 
         // auth routes are public; others may use your own auth middleware where needed
         app.use('/api', authRouter);
-        app.use('/api', l1Router);
-        app.use('/api', l2Router);
-        app.use('/api', l3Router);
-        app.use('/api', l4Router);
+        app.use('/api/l1', l1Router);
+        app.use('/api/l2', l2Router);
+        app.use('/api/l3', l3Router);
+        app.use('/api/l4', l4Router);
         app.use('/api', companyRouter);
         app.use('/api', aiRouter);
 
