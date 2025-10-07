@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '../prisma.js';
 import { auth } from '../middleware/auth.js'; // named import (auth is a function)
 import type { JwtPayload } from 'jsonwebtoken';
+import { randomUUID } from 'crypto';
 
 const r = Router();
 
@@ -43,77 +44,159 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (
   req,
   res: Response
 ) => {
-  const parsed = snapshotSchema.safeParse(req.body);
-  if (!parsed.success) {
-    return res.status(400).json({ error: parsed.error.flatten() });
-  }
-  const body = parsed.data;
-
-  // RBAC: employees may only act on their own company
-  const u = req.user as AuthUser | undefined;
-  if (u?.role !== 'ADMIN' && u?.companyId !== body.companyId) {
-    return res.status(403).json({ error: 'Forbidden' });
-  }
-
-  const period = toPeriod(body.period);
-  // const userId = u?.userId ?? undefined; // kept if you later add createdById/updatedById to the model
-
+  const requestId = randomUUID();
+  const startTime = Date.now();
   
-  const l1 = await prisma.l1OperationalInput.findMany({
-    where: { companyId: body.companyId, period },
-  });
-  type L1Row = (typeof l1)[number];
-
-  // kept for future distribution logic 
-  const _l2 = await prisma.l2AllocationWeight.findMany({
-    where: { companyId: body.companyId, period },
-  });
-  const _l3 = await prisma.l3BenefitWeight.findMany({
-    where: { companyId: body.companyId, period },
+  // Log request start
+  console.log(`[L4-SNAPSHOT-${requestId}] Request started`, {
+    method: req.method,
+    path: req.path,
+    bodySize: JSON.stringify(req.body).length,
+    userAgent: req.get('User-Agent'),
+    timestamp: new Date().toISOString()
   });
 
+  try {
+    // Set a timeout for the entire operation
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('L4 snapshot computation timeout after 30 seconds'));
+      }, 30000);
+    });
 
-  const totalCost = l1.reduce(
-    (acc: number, row: L1Row) => acc + Number(row.budget ?? 0),
-    0
-  );
+    const operationPromise = (async () => {
+      // Validate request body
+      console.log(`[L4-SNAPSHOT-${requestId}] Validating request body`);
+      const parsed = snapshotSchema.safeParse(req.body);
+      if (!parsed.success) {
+        console.log(`[L4-SNAPSHOT-${requestId}] Validation failed:`, parsed.error.flatten());
+        return res.status(400).json({ error: parsed.error.flatten() });
+      }
+      const body = parsed.data;
 
-  // Benefit = Revenue uplift + productivity value
-  const productivityValue =
-    (body.assumptions.productivityGainHours ?? 0) *
-    (body.assumptions.avgLoadedRate ?? 0);
+      // RBAC: employees may only act on their own company
+      console.log(`[L4-SNAPSHOT-${requestId}] Checking authorization`);
+      const u = req.user as AuthUser | undefined;
+      if (u?.role !== 'ADMIN' && u?.companyId !== body.companyId) {
+        console.log(`[L4-SNAPSHOT-${requestId}] Authorization failed: user role=${u?.role}, userCompanyId=${u?.companyId}, requestCompanyId=${body.companyId}`);
+        return res.status(403).json({ error: 'Forbidden' });
+      }
 
-  const totalBenefit =
-    (body.assumptions.revenueUplift ?? 0) + productivityValue;
+      const period = toPeriod(body.period);
+      console.log(`[L4-SNAPSHOT-${requestId}] Processing period: ${period} for company: ${body.companyId}`);
 
-  // Derived (not persisted as top-level fields in Prisma model)
-  const net = totalBenefit - totalCost;
-  const roiPct = totalCost > 0 ? (net / totalCost) * 100 : 0;
+      // Fetch L1 data
+      console.log(`[L4-SNAPSHOT-${requestId}] Fetching L1 operational inputs`);
+      const l1Start = Date.now();
+      const l1 = await prisma.l1OperationalInput.findMany({
+        where: { companyId: body.companyId, period: new Date(period) },
+      });
+      const l1Duration = Date.now() - l1Start;
+      console.log(`[L4-SNAPSHOT-${requestId}] L1 query completed in ${l1Duration}ms, found ${l1.length} records`);
+      
+      type L1Row = (typeof l1)[number];
 
-  // Upsert snapshot (only known fields)
-  const snap = await prisma.l4RoiSnapshot.upsert({
-    where: {
-      companyId_period: { companyId: body.companyId, period },
-    },
-    create: {
-      companyId: body.companyId,
-      period,
-      totalCost,
-      totalBenefit,
-      roiPct, // you said this exists in your model and should be stored
-      assumptions: { ...body.assumptions, _derived: { net, roiPct } } as any,
-      // createdById: userId, // <- ONLY add if you later add this column to your Prisma model
-    },
-    update: {
-      totalCost,
-      totalBenefit,
-      roiPct,
-      assumptions: { ...body.assumptions, _derived: { net, roiPct } } as any,
-      // updatedById: userId, // <- ONLY add if you later add this column to your Prisma model
-    },
-  });
+      // Fetch L2 data (for future use)
+      console.log(`[L4-SNAPSHOT-${requestId}] Fetching L2 allocation weights`);
+      const l2Start = Date.now();
+      const _l2 = await prisma.l2AllocationWeight.findMany({
+        where: { companyId: body.companyId, period: new Date(period) },
+      });
+      const l2Duration = Date.now() - l2Start;
+      console.log(`[L4-SNAPSHOT-${requestId}] L2 query completed in ${l2Duration}ms, found ${_l2.length} records`);
 
-  res.json(snap);
+      // Fetch L3 data (for future use)
+      console.log(`[L4-SNAPSHOT-${requestId}] Fetching L3 benefit weights`);
+      const l3Start = Date.now();
+      const _l3 = await prisma.l3BenefitWeight.findMany({
+        where: { companyId: body.companyId, period: new Date(period) },
+      });
+      const l3Duration = Date.now() - l3Start;
+      console.log(`[L4-SNAPSHOT-${requestId}] L3 query completed in ${l3Duration}ms, found ${_l3.length} records`);
+
+      // Calculate total cost
+      console.log(`[L4-SNAPSHOT-${requestId}] Calculating total cost from ${l1.length} L1 records`);
+      const totalCost = l1.reduce(
+        (acc: number, row: L1Row) => acc + Number(row.budget ?? 0),
+        0
+      );
+      console.log(`[L4-SNAPSHOT-${requestId}] Total cost calculated: ${totalCost}`);
+
+      // Calculate benefits
+      console.log(`[L4-SNAPSHOT-${requestId}] Calculating benefits from assumptions`);
+      const productivityValue =
+        (body.assumptions.productivityGainHours ?? 0) *
+        (body.assumptions.avgLoadedRate ?? 0);
+
+      const totalBenefit =
+        (body.assumptions.revenueUplift ?? 0) + productivityValue;
+      
+      console.log(`[L4-SNAPSHOT-${requestId}] Benefits calculated: revenueUplift=${body.assumptions.revenueUplift}, productivityValue=${productivityValue}, totalBenefit=${totalBenefit}`);
+
+      // Calculate derived metrics
+      const net = totalBenefit - totalCost;
+      const roiPct = totalCost > 0 ? (net / totalCost) * 100 : 0;
+      console.log(`[L4-SNAPSHOT-${requestId}] Derived metrics: net=${net}, roiPct=${roiPct}%`);
+
+      // Upsert snapshot
+      console.log(`[L4-SNAPSHOT-${requestId}] Upserting L4 ROI snapshot`);
+      const upsertStart = Date.now();
+      const snap = await prisma.l4RoiSnapshot.upsert({
+        where: {
+          companyId_period: { companyId: body.companyId, period: new Date(period) },
+        },
+        create: {
+          companyId: body.companyId,
+          period: new Date(period),
+          totalCost,
+          totalBenefit,
+          roiPct,
+          assumptions: JSON.stringify({ ...body.assumptions, _derived: { net, roiPct } }),
+        },
+        update: {
+          totalCost,
+          totalBenefit,
+          roiPct,
+          assumptions: JSON.stringify({ ...body.assumptions, _derived: { net, roiPct } }),
+        },
+      });
+      const upsertDuration = Date.now() - upsertStart;
+      console.log(`[L4-SNAPSHOT-${requestId}] Upsert completed in ${upsertDuration}ms, snapshot ID: ${snap.id}`);
+
+      const totalDuration = Date.now() - startTime;
+      console.log(`[L4-SNAPSHOT-${requestId}] Request completed successfully in ${totalDuration}ms`);
+      
+      return res.json(snap);
+    })();
+
+    // Race between operation and timeout
+    await Promise.race([operationPromise, timeoutPromise]);
+
+  } catch (error) {
+    const totalDuration = Date.now() - startTime;
+    console.error(`[L4-SNAPSHOT-${requestId}] Request failed after ${totalDuration}ms:`, {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString()
+    });
+
+    // Don't send response if already sent
+    if (!res.headersSent) {
+      if (error instanceof Error && error.message.includes('timeout')) {
+        return res.status(504).json({ 
+          error: 'L4 snapshot computation timeout', 
+          requestId,
+          duration: totalDuration 
+        });
+      }
+      
+      return res.status(500).json({ 
+        error: 'Internal server error during L4 snapshot computation',
+        requestId,
+        duration: totalDuration
+      });
+    }
+  }
 };
 
 // ---- GET /api/l4/snapshots/:companyId ----
@@ -121,19 +204,53 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (
 type SnapParams = { companyId: string };
 
 const getSnapshots: RequestHandler<SnapParams> = async (req, res: Response) => {
-  const { companyId } = req.params;
-
-  const u = req.user as AuthUser | undefined;
-  if (u?.role !== 'ADMIN' && u?.companyId !== companyId) {
-    return res.status(403).json({ error: 'Forbidden' });
-  }
-
-  const snaps = await prisma.l4RoiSnapshot.findMany({
-    where: { companyId },
-    orderBy: { period: 'asc' },
+  const requestId = randomUUID();
+  const startTime = Date.now();
+  
+  console.log(`[L4-SNAPSHOTS-${requestId}] Request started`, {
+    method: req.method,
+    path: req.path,
+    companyId: req.params.companyId,
+    timestamp: new Date().toISOString()
   });
 
-  res.json(snaps);
+  try {
+    const { companyId } = req.params;
+
+    const u = req.user as AuthUser | undefined;
+    if (u?.role !== 'ADMIN' && u?.companyId !== companyId) {
+      console.log(`[L4-SNAPSHOTS-${requestId}] Authorization failed: user role=${u?.role}, userCompanyId=${u?.companyId}, requestCompanyId=${companyId}`);
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    console.log(`[L4-SNAPSHOTS-${requestId}] Fetching snapshots for company: ${companyId}`);
+    const queryStart = Date.now();
+    const snaps = await prisma.l4RoiSnapshot.findMany({
+      where: { companyId },
+      orderBy: { period: 'asc' },
+    });
+    const queryDuration = Date.now() - queryStart;
+    
+    const totalDuration = Date.now() - startTime;
+    console.log(`[L4-SNAPSHOTS-${requestId}] Request completed in ${totalDuration}ms (query: ${queryDuration}ms), found ${snaps.length} snapshots`);
+
+    res.json(snaps);
+  } catch (error) {
+    const totalDuration = Date.now() - startTime;
+    console.error(`[L4-SNAPSHOTS-${requestId}] Request failed after ${totalDuration}ms:`, {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString()
+    });
+
+    if (!res.headersSent) {
+      return res.status(500).json({ 
+        error: 'Internal server error during L4 snapshots fetch',
+        requestId,
+        duration: totalDuration
+      });
+    }
+  }
 };
 
 r.post('/snapshot', auth, postSnapshot);
