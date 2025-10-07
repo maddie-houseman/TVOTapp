@@ -1,7 +1,10 @@
 import path from 'path';
+import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 
 // Load ../.env relative to compiled JS (or ts-node). From src/, ../.env = server/.env
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const required = (name: string, v: string | undefined) => {
