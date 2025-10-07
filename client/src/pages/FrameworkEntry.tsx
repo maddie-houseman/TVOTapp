@@ -54,7 +54,8 @@ export default function FrameworkEntry() {
   
   
   // For admin users, use selected company; for regular users, use their own company
-  const companyId = user.role === 'ADMIN' ? selectedCompanyId : user.companyId;
+  // If admin hasn't selected a company, use their own company
+  const companyId = user.role === 'ADMIN' ? (selectedCompanyId || user.companyId) : user.companyId;
   const full = `${period}-01`; // server expects YYYY-MM-DD
 
   // For non-admin users, check if they have a company
