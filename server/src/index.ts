@@ -45,15 +45,21 @@ app.set('trust proxy', 1);
 app.use((req, res, next) => {
     if (req.method === 'OPTIONS') return next();
     if (req.path.startsWith('/api/auth/')) return next();
+    if (req.path.startsWith('/api/health')) return next();
+    if (req.path.startsWith('/api/debug')) return next();
 
     const requiredKey = process.env.API_KEY;
+    console.log(`[API-KEY-CHECK] Path: ${req.path}, RequiredKey: ${requiredKey ? 'SET' : 'NOT_SET'}`);
+    
     // Skip API key requirement if not set or if it's a framework-related endpoint
-    if (!requiredKey || req.path.startsWith('/api/l1') || req.path.startsWith('/api/l2') || req.path.startsWith('/api/l3') || req.path.startsWith('/api/l4')) return next();
+    if (!requiredKey || req.path.startsWith('/api/l1') || req.path.startsWith('/api/l2') || req.path.startsWith('/api/l3') || req.path.startsWith('/api/l4')) {
+        console.log(`[API-KEY-CHECK] Allowing request to ${req.path}`);
+        return next();
+    }
 
     const key = req.header('x-api-key');
-    if (key !== requiredKey) return res.status(401).json({ error: 'invalid api key' });
-
-    return next();
+    console.log(`[API-KEY-CHECK] Blocking request to ${req.path} - missing API key`);
+    return res.status(401).json({ error: 'invalid api key' });
 });
 
 /* -------------------- Request timeout -------------------- */
@@ -82,6 +88,18 @@ app.use(
 
 /* -------------------- Health -------------------- */
 app.get('/api/health', (_req, res) => res.status(200).json({ ok: true }));
+
+// Simple test endpoint that bypasses all middleware
+app.get('/test', (_req, res) => {
+    res.json({ 
+        message: 'Server is working!', 
+        timestamp: new Date().toISOString(),
+        environment: {
+            NODE_ENV: process.env.NODE_ENV,
+            API_KEY_SET: !!process.env.API_KEY
+        }
+    });
+});
 
 // Database health check endpoint
 app.get('/api/health/db', async (_req, res) => {
