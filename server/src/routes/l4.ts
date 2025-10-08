@@ -53,7 +53,8 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (
     path: req.path,
     bodySize: JSON.stringify(req.body).length,
     userAgent: req.get('User-Agent'),
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    platform: 'Railway'
   });
 
   // IMMEDIATE RESPONSE - No database, no hanging

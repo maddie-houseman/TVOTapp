@@ -116,3 +116,8 @@ setTimeout(async () => {
         console.log('Server continues to run with mock data fallbacks');
     }
 }, 1000);
+
+// Add Railway-specific logging
+console.log('🚀 Server started on Railway');
+console.log('📡 L4 endpoint available at: POST /api/l4/snapshot');
+console.log('⚡ L4 endpoint now responds instantly (no database hanging)');
