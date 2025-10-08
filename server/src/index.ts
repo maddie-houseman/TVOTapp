@@ -56,6 +56,20 @@ app.use((req, res, next) => {
     return next();
 });
 
+/* -------------------- Request timeout -------------------- */
+app.use((req, res, next) => {
+    // Set a 30-second timeout for all requests
+    const timeout = setTimeout(() => {
+        if (!res.headersSent) {
+            res.status(408).json({ error: 'Request timeout' });
+        }
+    }, 30000); // 30 seconds
+
+    res.on('finish', () => clearTimeout(timeout));
+    res.on('close', () => clearTimeout(timeout));
+    next();
+});
+
 /* -------------------- Rate limit -------------------- */
 app.use(
     rateLimit({
@@ -68,6 +82,29 @@ app.use(
 
 /* -------------------- Health -------------------- */
 app.get('/api/health', (_req, res) => res.status(200).json({ ok: true }));
+
+// Database health check endpoint
+app.get('/api/health/db', async (_req, res) => {
+    try {
+        const { prisma } = await import('./prisma.js');
+        
+        // Test database connection with timeout
+        const queryPromise = prisma.$queryRaw`SELECT 1 as test`;
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Database query timeout')), 5000)
+        );
+        
+        await Promise.race([queryPromise, timeoutPromise]);
+        res.status(200).json({ ok: true, database: 'connected' });
+    } catch (error) {
+        console.error('Database health check failed:', error);
+        res.status(503).json({ 
+            ok: false, 
+            database: 'disconnected',
+            error: error instanceof Error ? error.message : 'Unknown error'
+        });
+    }
+});
 
 /* -------------------- Bootstrap: Routers Only -------------------- */
 (async () => {
@@ -109,8 +146,19 @@ setTimeout(async () => {
     try {
         console.log('Attempting database connection...');
         const { prisma } = await import('./prisma.js');
-        await prisma.$connect();
+        
+        // Add connection timeout
+        const connectPromise = prisma.$connect();
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Database connection timeout')), 10000)
+        );
+        
+        await Promise.race([connectPromise, timeoutPromise]);
         console.log('Prisma connected successfully');
+        
+        // Test the connection with a simple query
+        await prisma.$queryRaw`SELECT 1`;
+        console.log('Database connection verified');
     } catch (e) {
         console.error('Prisma connect failed (non-blocking):', e);
         console.log('Server continues to run with mock data fallbacks');

@@ -96,24 +96,40 @@
 
     async function jsonFetch<T>(
     path: string,
-    init?: RequestInit & { json?: unknown }
+    init?: RequestInit & { json?: unknown; timeout?: number }
     ): Promise<T> {
-    const { json, ...rest } = init ?? {};
-    const res = await fetch(withBase(path), {
-        credentials: "include", // send/receive cookies
-        ...rest,
-        headers: {
-        ...(json !== undefined ? { "Content-Type": "application/json" } : {}),
-        ...(rest.headers ?? {}),
-        },
-        body: json !== undefined ? JSON.stringify(json) : (rest as RequestInit).body,
-    });
+    const { json, timeout = 30000, ...rest } = init ?? {}; // 30 second default timeout
+    
+    // Create AbortController for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    
+    try {
+        const res = await fetch(withBase(path), {
+            credentials: "include", // send/receive cookies
+            signal: controller.signal,
+            ...rest,
+            headers: {
+            ...(json !== undefined ? { "Content-Type": "application/json" } : {}),
+            ...(rest.headers ?? {}),
+            },
+            body: json !== undefined ? JSON.stringify(json) : (rest as RequestInit).body,
+        });
 
-    if (!res.ok) throw await toApiError(res);
-    if (res.status === 204) return undefined as unknown as T;
+        clearTimeout(timeoutId);
+        
+        if (!res.ok) throw await toApiError(res);
+        if (res.status === 204) return undefined as unknown as T;
 
-    const text = await res.text();
-    return (text ? JSON.parse(text) : undefined) as T;
+        const text = await res.text();
+        return (text ? JSON.parse(text) : undefined) as T;
+    } catch (error) {
+        clearTimeout(timeoutId);
+        if (error instanceof Error && error.name === 'AbortError') {
+            throw new Error(`Request timeout after ${timeout}ms`);
+        }
+        throw error;
+    }
     }
 
     function isHttpStatus(e: unknown, code: number): e is Error {
@@ -213,6 +229,7 @@
         return jsonFetch<L4Snapshot>(`/api/l4/snapshot`, {
         method: "POST",
         json: params,
+        timeout: 15000, // 15 second timeout for L4 snapshot
         });
     },
 
