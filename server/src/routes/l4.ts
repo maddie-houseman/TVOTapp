@@ -57,16 +57,30 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
 
     console.log(`[L4-SNAPSHOT-${requestId}] Computing ROI for company: ${companyId}, period: ${normalizedPeriod}`);
 
+    // Test database connection first
+    console.log(`[L4-SNAPSHOT-${requestId}] Testing database connection...`);
+    const dbTestStart = Date.now();
+    await prisma.$queryRaw`SELECT 1 as test`;
+    const dbTestDuration = Date.now() - dbTestStart;
+    console.log(`[L4-SNAPSHOT-${requestId}] Database test completed in ${dbTestDuration}ms`);
+
     // Fetch L1, L2, L3 data with timeouts
+    console.log(`[L4-SNAPSHOT-${requestId}] Starting data fetch...`);
     const [l1Data, l2Data, l3Data] = await Promise.all([
       // L1 data
       Promise.race([
-        prisma.l1OperationalInput.findMany({
-          where: { 
-            companyId, 
-            period: new Date(normalizedPeriod)
-          }
-        }),
+        (async () => {
+          console.log(`[L4-SNAPSHOT-${requestId}] Starting L1 query...`);
+          const start = Date.now();
+          const result = await prisma.l1OperationalInput.findMany({
+            where: { 
+              companyId, 
+              period: new Date(normalizedPeriod)
+            }
+          });
+          console.log(`[L4-SNAPSHOT-${requestId}] L1 query completed in ${Date.now() - start}ms, found ${result.length} records`);
+          return result;
+        })(),
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('L1 query timeout')), 3000)
         )
@@ -74,12 +88,18 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
       
       // L2 data
       Promise.race([
-        prisma.l2AllocationWeight.findMany({
-          where: { 
-            companyId, 
-            period: new Date(normalizedPeriod)
-          }
-        }),
+        (async () => {
+          console.log(`[L4-SNAPSHOT-${requestId}] Starting L2 query...`);
+          const start = Date.now();
+          const result = await prisma.l2AllocationWeight.findMany({
+            where: { 
+              companyId, 
+              period: new Date(normalizedPeriod)
+            }
+          });
+          console.log(`[L4-SNAPSHOT-${requestId}] L2 query completed in ${Date.now() - start}ms, found ${result.length} records`);
+          return result;
+        })(),
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('L2 query timeout')), 3000)
         )
@@ -87,12 +107,18 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
       
       // L3 data
       Promise.race([
-        prisma.l3BenefitWeight.findMany({
-          where: { 
-            companyId, 
-            period: new Date(normalizedPeriod)
-          }
-        }),
+        (async () => {
+          console.log(`[L4-SNAPSHOT-${requestId}] Starting L3 query...`);
+          const start = Date.now();
+          const result = await prisma.l3BenefitWeight.findMany({
+            where: { 
+              companyId, 
+              period: new Date(normalizedPeriod)
+            }
+          });
+          console.log(`[L4-SNAPSHOT-${requestId}] L3 query completed in ${Date.now() - start}ms, found ${result.length} records`);
+          return result;
+        })(),
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('L3 query timeout')), 3000)
         )
