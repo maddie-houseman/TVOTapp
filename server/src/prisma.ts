@@ -24,13 +24,6 @@ export const prisma = new PrismaClient({
       url: process.env.DATABASE_URL,
     },
   },
-  // Add connection timeout and retry configuration
-  __internal: {
-    engine: {
-      connectTimeout: 10000, // 10 seconds
-      queryTimeout: 30000,   // 30 seconds
-    },
-  },
 });
 
 // Log slow queries (>1000ms) and errors
