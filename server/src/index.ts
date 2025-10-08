@@ -106,6 +106,163 @@ app.get('/api/health/db', async (_req, res) => {
     }
 });
 
+// Comprehensive diagnostic endpoint
+app.get('/api/debug/full', async (req, res) => {
+    const startTime = Date.now();
+    const results: any = {
+        timestamp: new Date().toISOString(),
+        environment: {
+            NODE_ENV: process.env.NODE_ENV,
+            PORT: process.env.PORT,
+            DATABASE_URL: process.env.DATABASE_URL ? 'SET' : 'NOT_SET',
+            JWT_SECRET: process.env.JWT_SECRET ? 'SET' : 'NOT_SET'
+        },
+        tests: {}
+    };
+
+    try {
+        // Test 1: Basic server response
+        results.tests.basicResponse = { status: 'OK', duration: Date.now() - startTime };
+
+        // Test 2: Database connection
+        const dbStart = Date.now();
+        try {
+            const { prisma } = await import('./prisma.js');
+            await prisma.$queryRaw`SELECT 1 as test`;
+            results.tests.databaseConnection = { 
+                status: 'OK', 
+                duration: Date.now() - dbStart 
+            };
+        } catch (error) {
+            results.tests.databaseConnection = { 
+                status: 'FAILED', 
+                duration: Date.now() - dbStart,
+                error: error instanceof Error ? error.message : 'Unknown error'
+            };
+        }
+
+        // Test 3: Database tables existence
+        const tablesStart = Date.now();
+        try {
+            const { prisma } = await import('./prisma.js');
+            const tables = await prisma.$queryRaw`
+                SELECT table_name 
+                FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                AND table_name LIKE 'L%'
+                ORDER BY table_name
+            `;
+            results.tests.databaseTables = { 
+                status: 'OK', 
+                duration: Date.now() - tablesStart,
+                tables: tables
+            };
+        } catch (error) {
+            results.tests.databaseTables = { 
+                status: 'FAILED', 
+                duration: Date.now() - tablesStart,
+                error: error instanceof Error ? error.message : 'Unknown error'
+            };
+        }
+
+        // Test 4: Sample data query
+        const dataStart = Date.now();
+        try {
+            const { prisma } = await import('./prisma.js');
+            const [l1Count, l2Count, l3Count] = await Promise.all([
+                prisma.l1OperationalInput.count(),
+                prisma.l2AllocationWeight.count(),
+                prisma.l3BenefitWeight.count()
+            ]);
+            results.tests.sampleData = { 
+                status: 'OK', 
+                duration: Date.now() - dataStart,
+                counts: { l1: l1Count, l2: l2Count, l3: l3Count }
+            };
+        } catch (error) {
+            results.tests.sampleData = { 
+                status: 'FAILED', 
+                duration: Date.now() - dataStart,
+                error: error instanceof Error ? error.message : 'Unknown error'
+            };
+        }
+
+        // Test 5: Memory usage
+        const memUsage = process.memoryUsage();
+        results.tests.memoryUsage = {
+            status: 'OK',
+            rss: Math.round(memUsage.rss / 1024 / 1024) + ' MB',
+            heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024) + ' MB',
+            heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024) + ' MB'
+        };
+
+        results.totalDuration = Date.now() - startTime;
+        res.json(results);
+
+    } catch (error) {
+        results.error = error instanceof Error ? error.message : 'Unknown error';
+        results.totalDuration = Date.now() - startTime;
+        res.status(500).json(results);
+    }
+});
+
+// Test specific company data
+app.get('/api/debug/company/:companyId', async (req, res) => {
+    const { companyId } = req.params;
+    const { period = '2024-01' } = req.query;
+    const startTime = Date.now();
+    
+    try {
+        const { prisma } = await import('./prisma.js');
+        const normalizedPeriod = new Date(`${period}-01`);
+        
+        const [l1Data, l2Data, l3Data] = await Promise.all([
+            prisma.l1OperationalInput.findMany({
+                where: { companyId, period: normalizedPeriod }
+            }),
+            prisma.l2AllocationWeight.findMany({
+                where: { companyId, period: normalizedPeriod }
+            }),
+            prisma.l3BenefitWeight.findMany({
+                where: { companyId, period: normalizedPeriod }
+            })
+        ]);
+
+        res.json({
+            companyId,
+            period: normalizedPeriod.toISOString(),
+            data: {
+                l1: l1Data.map(item => ({
+                    department: item.department,
+                    budget: Number(item.budget),
+                    employees: item.employees
+                })),
+                l2: l2Data.map(item => ({
+                    department: item.department,
+                    tower: item.tower,
+                    weightPct: Number(item.weightPct)
+                })),
+                l3: l3Data.map(item => ({
+                    category: item.category,
+                    weightPct: Number(item.weightPct)
+                }))
+            },
+            counts: {
+                l1: l1Data.length,
+                l2: l2Data.length,
+                l3: l3Data.length
+            },
+            duration: Date.now() - startTime
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            error: error instanceof Error ? error.message : 'Unknown error',
+            duration: Date.now() - startTime
+        });
+    }
+});
+
 /* -------------------- Bootstrap: Routers Only -------------------- */
 (async () => {
     try {

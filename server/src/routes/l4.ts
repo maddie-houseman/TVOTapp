@@ -68,7 +68,7 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
           }
         }),
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('L1 query timeout')), 5000)
+          setTimeout(() => reject(new Error('L1 query timeout')), 3000)
         )
       ]) as Promise<any[]>,
       
@@ -81,7 +81,7 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
           }
         }),
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('L2 query timeout')), 5000)
+          setTimeout(() => reject(new Error('L2 query timeout')), 3000)
         )
       ]) as Promise<any[]>,
       
@@ -94,10 +94,24 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
           }
         }),
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('L3 query timeout')), 5000)
+          setTimeout(() => reject(new Error('L3 query timeout')), 3000)
         )
       ]) as Promise<any[]>
     ]);
+
+    // Check if we have the required data
+    if (l1Data.length === 0 || l2Data.length === 0 || l3Data.length === 0) {
+      console.log(`[L4-SNAPSHOT-${requestId}] Missing required data: L1=${l1Data.length}, L2=${l2Data.length}, L3=${l3Data.length}`);
+      return res.status(400).json({
+        error: 'Missing required data for ROI computation',
+        details: {
+          l1Count: l1Data.length,
+          l2Count: l2Data.length,
+          l3Count: l3Data.length
+        },
+        message: 'Please complete L1, L2, and L3 data entry before computing ROI'
+      });
+    }
 
     console.log(`[L4-SNAPSHOT-${requestId}] Data fetched: L1=${l1Data.length}, L2=${l2Data.length}, L3=${l3Data.length}`);
 
@@ -288,8 +302,124 @@ const testData: RequestHandler = async (req, res) => {
   }
 };
 
+// Simple test endpoint without auth for debugging
+const testSnapshot: RequestHandler = async (req, res) => {
+  const requestId = randomUUID();
+  const startTime = Date.now();
+  
+  console.log(`[L4-TEST-SNAPSHOT-${requestId}] Test request started`);
+  
+  try {
+    const { companyId = 'test-company', period = '2024-01' } = req.body;
+    const normalizedPeriod = toPeriod(period);
+
+    console.log(`[L4-TEST-SNAPSHOT-${requestId}] Testing with companyId: ${companyId}, period: ${normalizedPeriod}`);
+
+    // Test database connection first
+    const dbTestStart = Date.now();
+    await prisma.$queryRaw`SELECT 1 as test`;
+    const dbTestDuration = Date.now() - dbTestStart;
+    console.log(`[L4-TEST-SNAPSHOT-${requestId}] Database test completed in ${dbTestDuration}ms`);
+
+    // Fetch data with individual timeouts
+    const l1Start = Date.now();
+    const l1Data = await Promise.race([
+      prisma.l1OperationalInput.findMany({
+        where: { 
+          companyId, 
+          period: new Date(normalizedPeriod)
+        }
+      }),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('L1 query timeout')), 3000)
+      )
+    ]) as any[];
+    const l1Duration = Date.now() - l1Start;
+    console.log(`[L4-TEST-SNAPSHOT-${requestId}] L1 query completed in ${l1Duration}ms, found ${l1Data.length} records`);
+
+    const l2Start = Date.now();
+    const l2Data = await Promise.race([
+      prisma.l2AllocationWeight.findMany({
+        where: { 
+          companyId, 
+          period: new Date(normalizedPeriod)
+        }
+      }),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('L2 query timeout')), 3000)
+      )
+    ]) as any[];
+    const l2Duration = Date.now() - l2Start;
+    console.log(`[L4-TEST-SNAPSHOT-${requestId}] L2 query completed in ${l2Duration}ms, found ${l2Data.length} records`);
+
+    const l3Start = Date.now();
+    const l3Data = await Promise.race([
+      prisma.l3BenefitWeight.findMany({
+        where: { 
+          companyId, 
+          period: new Date(normalizedPeriod)
+        }
+      }),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('L3 query timeout')), 3000)
+      )
+    ]) as any[];
+    const l3Duration = Date.now() - l3Start;
+    console.log(`[L4-TEST-SNAPSHOT-${requestId}] L3 query completed in ${l3Duration}ms, found ${l3Data.length} records`);
+
+    // Return test results
+    res.json({
+      success: true,
+      requestId,
+      companyId,
+      period: normalizedPeriod,
+      timings: {
+        total: Date.now() - startTime,
+        dbTest: dbTestDuration,
+        l1Query: l1Duration,
+        l2Query: l2Duration,
+        l3Query: l3Duration
+      },
+      dataCounts: {
+        l1: l1Data.length,
+        l2: l2Data.length,
+        l3: l3Data.length
+      },
+      hasAllData: l1Data.length > 0 && l2Data.length > 0 && l3Data.length > 0,
+      sampleData: {
+        l1: l1Data.slice(0, 2).map(item => ({
+          department: item.department,
+          budget: Number(item.budget)
+        })),
+        l2: l2Data.slice(0, 2).map(item => ({
+          department: item.department,
+          tower: item.tower,
+          weightPct: Number(item.weightPct)
+        })),
+        l3: l3Data.slice(0, 2).map(item => ({
+          category: item.category,
+          weightPct: Number(item.weightPct)
+        }))
+      }
+    });
+
+  } catch (error) {
+    const totalDuration = Date.now() - startTime;
+    console.error(`[L4-TEST-SNAPSHOT-${requestId}] Test failed after ${totalDuration}ms:`, error);
+    
+    res.status(500).json({
+      success: false,
+      requestId,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      duration: totalDuration,
+      timestamp: new Date().toISOString()
+    });
+  }
+};
+
 r.post('/snapshot', auth, postSnapshot);
 r.get('/snapshots/:companyId', auth, getSnapshots);
 r.get('/test-data', auth, testData);
+r.post('/test-snapshot', testSnapshot); // No auth for testing
 
 export default r;
