@@ -236,6 +236,16 @@
     async snapshots(companyId: string): Promise<L4Snapshot[]> {
         return jsonFetch<L4Snapshot[]>(`/api/l4/snapshots/${companyId}`);
     },
+
+    async testL4Data(companyId: string, period: string): Promise<{
+        success: boolean;
+        companyId: string;
+        period: string;
+        dataCounts: { l1: number; l2: number; l3: number };
+        hasAllData: boolean;
+    }> {
+        return jsonFetch(`/api/l4/test-data?companyId=${companyId}&period=${period}`);
+    },
     };
 
 export default api;
