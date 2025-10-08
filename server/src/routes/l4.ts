@@ -61,8 +61,11 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
     const [l1Data, l2Data, l3Data] = await Promise.all([
       // L1 data
       Promise.race([
-        prisma.l1Input.findMany({
-          where: { companyId, period: normalizedPeriod }
+        prisma.l1OperationalInput.findMany({
+          where: { 
+            companyId, 
+            period: new Date(normalizedPeriod)
+          }
         }),
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('L1 query timeout')), 5000)
@@ -71,8 +74,11 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
       
       // L2 data
       Promise.race([
-        prisma.l2Input.findMany({
-          where: { companyId, period: normalizedPeriod }
+        prisma.l2AllocationWeight.findMany({
+          where: { 
+            companyId, 
+            period: new Date(normalizedPeriod)
+          }
         }),
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('L2 query timeout')), 5000)
@@ -81,8 +87,11 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
       
       // L3 data
       Promise.race([
-        prisma.l3Input.findMany({
-          where: { companyId, period: normalizedPeriod }
+        prisma.l3BenefitWeight.findMany({
+          where: { 
+            companyId, 
+            period: new Date(normalizedPeriod)
+          }
         }),
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('L3 query timeout')), 5000)
@@ -98,18 +107,18 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
     // Transform data for ROI computation
     const l1Formatted = l1Data.map(item => ({
       department: item.department,
-      budget: item.budget
+      budget: Number(item.budget) // Convert Decimal to number
     }));
 
     const l2Formatted = l2Data.map(item => ({
       department: item.department,
       tower: item.tower,
-      weightPct: item.weightPct
+      weightPct: Number(item.weightPct) // Convert Decimal to number
     }));
 
     const l3Formatted = l3Data.map(item => ({
       category: item.category,
-      weightPct: item.weightPct
+      weightPct: Number(item.weightPct) // Convert Decimal to number
     }));
 
     // Compute costs and benefits
@@ -124,11 +133,11 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
       prisma.l4RoiSnapshot.create({
         data: {
           companyId,
-          period: normalizedPeriod,
+          period: new Date(normalizedPeriod),
           totalCost,
           totalBenefit,
           roiPct,
-          assumptions: assumptions || {},
+          assumptions: JSON.stringify(assumptions || {}), // Convert to JSON string
         }
       }),
       new Promise((_, reject) => 
@@ -146,7 +155,7 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
       totalCost: snapshot.totalCost,
       totalBenefit: snapshot.totalBenefit,
       roiPct: snapshot.roiPct,
-      assumptions: snapshot.assumptions,
+      assumptions: snapshot.assumptions ? JSON.parse(snapshot.assumptions) : {},
       createdAt: snapshot.createdAt
     });
 
@@ -254,9 +263,9 @@ const testData: RequestHandler = async (req, res) => {
     const normalizedPeriod = period ? toPeriod(period as string) : '2024-01-01';
     
     const [l1Count, l2Count, l3Count] = await Promise.all([
-      prisma.l1Input.count({ where: { companyId: companyId as string, period: normalizedPeriod } }),
-      prisma.l2Input.count({ where: { companyId: companyId as string, period: normalizedPeriod } }),
-      prisma.l3Input.count({ where: { companyId: companyId as string, period: normalizedPeriod } })
+      prisma.l1OperationalInput.count({ where: { companyId: companyId as string, period: new Date(normalizedPeriod) } }),
+      prisma.l2AllocationWeight.count({ where: { companyId: companyId as string, period: new Date(normalizedPeriod) } }),
+      prisma.l3BenefitWeight.count({ where: { companyId: companyId as string, period: new Date(normalizedPeriod) } })
     ]);
     
     res.json({
