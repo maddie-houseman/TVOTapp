@@ -89,7 +89,6 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
       logging: false
     });
     
-    const imgData = canvas.toDataURL('image/png');
     // Create PDF with dimensions matching A4 portrait by default
     const pdf = new jsPDF({ orientation: 'p', unit: 'pt', format: 'a4' });
     const pageWidth = pdf.internal.pageSize.getWidth();

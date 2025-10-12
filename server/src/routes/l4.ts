@@ -228,6 +228,7 @@ const getSnapshots: RequestHandler<SnapParams> = async (req, res: Response) => {
 
     res.json(snaps);
   } catch (error) {
+    const totalDuration = Date.now() - startTime;
     console.error(`[L4-SNAPSHOTS-${requestId}] Request failed:`, error instanceof Error ? error.message : String(error));
 
     if (!res.headersSent) {
@@ -291,7 +292,9 @@ const testSnapshot: RequestHandler = async (req, res) => {
 
 
     // Test database connection first
+    const dbTestStart = Date.now();
     await prisma.$queryRaw`SELECT 1 as test`;
+    const dbTestDuration = Date.now() - dbTestStart;
 
     // Fetch data with individual timeouts
     const l1Start = Date.now();
@@ -306,6 +309,7 @@ const testSnapshot: RequestHandler = async (req, res) => {
         setTimeout(() => reject(new Error('L1 query timeout')), 3000)
       )
     ]) as any[];
+    const l1Duration = Date.now() - l1Start;
 
     const l2Start = Date.now();
     const l2Data = await Promise.race([
@@ -319,6 +323,7 @@ const testSnapshot: RequestHandler = async (req, res) => {
         setTimeout(() => reject(new Error('L2 query timeout')), 3000)
       )
     ]) as any[];
+    const l2Duration = Date.now() - l2Start;
 
     const l3Start = Date.now();
     const l3Data = await Promise.race([
@@ -332,6 +337,7 @@ const testSnapshot: RequestHandler = async (req, res) => {
         setTimeout(() => reject(new Error('L3 query timeout')), 3000)
       )
     ]) as any[];
+    const l3Duration = Date.now() - l3Start;
 
     // Return test results
     res.json({
@@ -370,6 +376,7 @@ const testSnapshot: RequestHandler = async (req, res) => {
     });
 
   } catch (error) {
+    const totalDuration = Date.now() - startTime;
     console.error(`[L4-TEST-SNAPSHOT-${requestId}] Test failed:`, error instanceof Error ? error.message : String(error));
     
     res.status(500).json({
