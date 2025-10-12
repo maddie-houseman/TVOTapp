@@ -20,7 +20,7 @@ async function main() {
         },
     });
 
-    console.log(`Seeded ${email} / ${password}`);
+    // Seeded user
     }
 
 main()

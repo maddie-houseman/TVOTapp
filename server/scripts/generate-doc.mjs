@@ -131,7 +131,7 @@ async function main() {
     const shots = await captureScreenshots(baseUrl, pages, outDir);
     const backend = buildBackendSections();
     await buildDocx(shots, backend, docPath);
-    console.log(`✅ Word document created at: ${docPath}`);
+    console.log(`Word document created at: ${docPath}`);
   } finally {
     server.close();
   }
@@ -141,6 +141,8 @@ main().catch((err) => {
   console.error('❌ Generator failed:', err);
   process.exit(1);
 });
+
+
 
 
 

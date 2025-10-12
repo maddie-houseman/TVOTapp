@@ -4,17 +4,13 @@ import fetch from 'node-fetch';
 const SERVER_URL = 'http://localhost:8080';
 
 async function testServer() {
-  console.log('🧪 Testing server connection...');
-  
   try {
     // Test health endpoint
-    console.log('1. Testing health endpoint...');
     const healthResponse = await fetch(`${SERVER_URL}/api/health`);
     const healthData = await healthResponse.json();
-    console.log('✅ Health check:', healthData);
+    console.log('Health check:', healthData);
     
     // Test L4 endpoint
-    console.log('2. Testing L4 snapshot endpoint...');
     const l4Response = await fetch(`${SERVER_URL}/api/l4/snapshot`, {
       method: 'POST',
       headers: {
@@ -32,12 +28,11 @@ async function testServer() {
     });
     
     const l4Data = await l4Response.json();
-    console.log('✅ L4 response:', l4Data);
-    console.log('✅ All tests passed!');
+    console.log('L4 response:', l4Data);
+    console.log('All tests passed!');
     
   } catch (error) {
-    console.error('❌ Test failed:', error.message);
-    console.error('❌ This means the server is not running or not accessible');
+    console.error('Test failed:', error.message);
   }
 }
 

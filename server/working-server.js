@@ -7,7 +7,6 @@ app.use(express.json());
 
 // Mock L4 endpoint that works immediately
 app.post('/api/l4/snapshot', (req, res) => {
-  console.log('L4 snapshot request received:', new Date().toISOString());
   
   // Immediate response - no database, no hanging
   res.json({
@@ -30,7 +29,5 @@ app.get('/api/health', (req, res) => {
 // Start server
 const port = 8080;
 app.listen(port, () => {
-  console.log(`🚀 Working server running on http://localhost:${port}`);
-  console.log('✅ L4 endpoint ready: POST /api/l4/snapshot');
-  console.log('✅ No database required - works immediately!');
+  console.log(`Server running on http://localhost:${port}`);
 });

@@ -44,41 +44,26 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
   const requestId = randomUUID();
   const startTime = Date.now();
   
-  console.log(`[L4-SNAPSHOT-${requestId}] Request started`, {
-    method: req.method,
-    path: req.path,
-    body: req.body,
-    timestamp: new Date().toISOString()
-  });
 
   try {
     const { companyId, period, assumptions } = req.body;
     const normalizedPeriod = toPeriod(period);
 
-    console.log(`[L4-SNAPSHOT-${requestId}] Computing ROI for company: ${companyId}, period: ${normalizedPeriod}`);
 
     // Test database connection first
-    console.log(`[L4-SNAPSHOT-${requestId}] Testing database connection...`);
-    const dbTestStart = Date.now();
     await prisma.$queryRaw`SELECT 1 as test`;
-    const dbTestDuration = Date.now() - dbTestStart;
-    console.log(`[L4-SNAPSHOT-${requestId}] Database test completed in ${dbTestDuration}ms`);
 
     // Fetch L1, L2, L3 data with timeouts
-    console.log(`[L4-SNAPSHOT-${requestId}] Starting data fetch...`);
     const [l1Data, l2Data, l3Data] = await Promise.all([
       // L1 data
       Promise.race([
         (async () => {
-          console.log(`[L4-SNAPSHOT-${requestId}] Starting L1 query...`);
-          const start = Date.now();
           const result = await prisma.l1OperationalInput.findMany({
             where: { 
               companyId, 
               period: new Date(normalizedPeriod)
             }
           });
-          console.log(`[L4-SNAPSHOT-${requestId}] L1 query completed in ${Date.now() - start}ms, found ${result.length} records`);
           return result;
         })(),
         new Promise((_, reject) => 
@@ -89,15 +74,12 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
       // L2 data
       Promise.race([
         (async () => {
-          console.log(`[L4-SNAPSHOT-${requestId}] Starting L2 query...`);
-          const start = Date.now();
           const result = await prisma.l2AllocationWeight.findMany({
             where: { 
               companyId, 
               period: new Date(normalizedPeriod)
             }
           });
-          console.log(`[L4-SNAPSHOT-${requestId}] L2 query completed in ${Date.now() - start}ms, found ${result.length} records`);
           return result;
         })(),
         new Promise((_, reject) => 
@@ -108,15 +90,12 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
       // L3 data
       Promise.race([
         (async () => {
-          console.log(`[L4-SNAPSHOT-${requestId}] Starting L3 query...`);
-          const start = Date.now();
           const result = await prisma.l3BenefitWeight.findMany({
             where: { 
               companyId, 
               period: new Date(normalizedPeriod)
             }
           });
-          console.log(`[L4-SNAPSHOT-${requestId}] L3 query completed in ${Date.now() - start}ms, found ${result.length} records`);
           return result;
         })(),
         new Promise((_, reject) => 
@@ -127,7 +106,6 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
 
     // Check if we have the required data
     if (l1Data.length === 0 || l2Data.length === 0 || l3Data.length === 0) {
-      console.log(`[L4-SNAPSHOT-${requestId}] Missing required data: L1=${l1Data.length}, L2=${l2Data.length}, L3=${l3Data.length}`);
       return res.status(400).json({
         error: 'Missing required data for ROI computation',
         details: {
@@ -139,7 +117,6 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
       });
     }
 
-    console.log(`[L4-SNAPSHOT-${requestId}] Data fetched: L1=${l1Data.length}, L2=${l2Data.length}, L3=${l3Data.length}`);
 
     // Import ROI computation utilities
     const { computeCost, computeBenefit, computeRoi } = await import('../utils/roi.js');
@@ -166,7 +143,6 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
     const { totalBenefit } = computeBenefit(l3Formatted, assumptions);
     const roiPct = computeRoi(totalCost, totalBenefit);
 
-    console.log(`[L4-SNAPSHOT-${requestId}] Computed: cost=${totalCost}, benefit=${totalBenefit}, roi=${roiPct}%`);
 
     // Save to database
     const snapshot = await Promise.race([
@@ -185,8 +161,6 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
       )
     ]) as any;
 
-    const totalDuration = Date.now() - startTime;
-    console.log(`[L4-SNAPSHOT-${requestId}] Request completed in ${totalDuration}ms`);
 
     res.json({
       id: snapshot.id,
@@ -200,16 +174,10 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
     });
 
   } catch (error) {
-    const totalDuration = Date.now() - startTime;
-    console.error(`[L4-SNAPSHOT-${requestId}] Request failed after ${totalDuration}ms:`, {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-      timestamp: new Date().toISOString()
-    });
+    console.error(`[L4-SNAPSHOT-${requestId}] Request failed:`, error instanceof Error ? error.message : String(error));
 
     if (!res.headersSent) {
       // Return mock data as fallback if computation fails
-      console.log(`[L4-SNAPSHOT-${requestId}] Returning fallback mock data`);
       const fallbackResponse = {
         id: 'fallback-' + Date.now(),
         companyId: req.body.companyId || 'fallback-company',
@@ -233,23 +201,15 @@ const getSnapshots: RequestHandler<SnapParams> = async (req, res: Response) => {
   const requestId = randomUUID();
   const startTime = Date.now();
   
-  console.log(`[L4-SNAPSHOTS-${requestId}] Request started`, {
-    method: req.method,
-    path: req.path,
-    companyId: req.params.companyId,
-    timestamp: new Date().toISOString()
-  });
 
   try {
     const { companyId } = req.params;
 
     const u = req.user as AuthUser | undefined;
     if (u?.role !== 'ADMIN' && u?.companyId !== companyId) {
-      console.log(`[L4-SNAPSHOTS-${requestId}] Authorization failed: user role=${u?.role}, userCompanyId=${u?.companyId}, requestCompanyId=${companyId}`);
       return res.status(403).json({ error: 'Forbidden' });
     }
 
-    console.log(`[L4-SNAPSHOTS-${requestId}] Fetching snapshots for company: ${companyId}`);
     const queryStart = Date.now();
     
     // Add database query timeout
@@ -265,22 +225,14 @@ const getSnapshots: RequestHandler<SnapParams> = async (req, res: Response) => {
     const snaps = await Promise.race([queryPromise, timeoutPromise]) as any[];
     const queryDuration = Date.now() - queryStart;
     
-    const totalDuration = Date.now() - startTime;
-    console.log(`[L4-SNAPSHOTS-${requestId}] Request completed in ${totalDuration}ms (query: ${queryDuration}ms), found ${snaps.length} snapshots`);
 
     res.json(snaps);
   } catch (error) {
-    const totalDuration = Date.now() - startTime;
-    console.error(`[L4-SNAPSHOTS-${requestId}] Request failed after ${totalDuration}ms:`, {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-      timestamp: new Date().toISOString()
-    });
+    console.error(`[L4-SNAPSHOTS-${requestId}] Request failed:`, error instanceof Error ? error.message : String(error));
 
     if (!res.headersSent) {
       // Return mock data if database is unavailable
       if (error instanceof Error && error.message.includes('timeout')) {
-        console.log(`[L4-SNAPSHOTS-${requestId}] Returning mock data due to database timeout`);
         return res.json([]);
       }
       
@@ -296,7 +248,6 @@ const getSnapshots: RequestHandler<SnapParams> = async (req, res: Response) => {
 // Test endpoint to check data availability
 const testData: RequestHandler = async (req, res) => {
   const requestId = randomUUID();
-  console.log(`[L4-TEST-${requestId}] Testing data availability`);
   
   try {
     const { companyId, period } = req.query;
@@ -333,19 +284,14 @@ const testSnapshot: RequestHandler = async (req, res) => {
   const requestId = randomUUID();
   const startTime = Date.now();
   
-  console.log(`[L4-TEST-SNAPSHOT-${requestId}] Test request started`);
   
   try {
     const { companyId = 'test-company', period = '2024-01' } = req.body;
     const normalizedPeriod = toPeriod(period);
 
-    console.log(`[L4-TEST-SNAPSHOT-${requestId}] Testing with companyId: ${companyId}, period: ${normalizedPeriod}`);
 
     // Test database connection first
-    const dbTestStart = Date.now();
     await prisma.$queryRaw`SELECT 1 as test`;
-    const dbTestDuration = Date.now() - dbTestStart;
-    console.log(`[L4-TEST-SNAPSHOT-${requestId}] Database test completed in ${dbTestDuration}ms`);
 
     // Fetch data with individual timeouts
     const l1Start = Date.now();
@@ -360,8 +306,6 @@ const testSnapshot: RequestHandler = async (req, res) => {
         setTimeout(() => reject(new Error('L1 query timeout')), 3000)
       )
     ]) as any[];
-    const l1Duration = Date.now() - l1Start;
-    console.log(`[L4-TEST-SNAPSHOT-${requestId}] L1 query completed in ${l1Duration}ms, found ${l1Data.length} records`);
 
     const l2Start = Date.now();
     const l2Data = await Promise.race([
@@ -375,8 +319,6 @@ const testSnapshot: RequestHandler = async (req, res) => {
         setTimeout(() => reject(new Error('L2 query timeout')), 3000)
       )
     ]) as any[];
-    const l2Duration = Date.now() - l2Start;
-    console.log(`[L4-TEST-SNAPSHOT-${requestId}] L2 query completed in ${l2Duration}ms, found ${l2Data.length} records`);
 
     const l3Start = Date.now();
     const l3Data = await Promise.race([
@@ -390,8 +332,6 @@ const testSnapshot: RequestHandler = async (req, res) => {
         setTimeout(() => reject(new Error('L3 query timeout')), 3000)
       )
     ]) as any[];
-    const l3Duration = Date.now() - l3Start;
-    console.log(`[L4-TEST-SNAPSHOT-${requestId}] L3 query completed in ${l3Duration}ms, found ${l3Data.length} records`);
 
     // Return test results
     res.json({
@@ -430,8 +370,7 @@ const testSnapshot: RequestHandler = async (req, res) => {
     });
 
   } catch (error) {
-    const totalDuration = Date.now() - startTime;
-    console.error(`[L4-TEST-SNAPSHOT-${requestId}] Test failed after ${totalDuration}ms:`, error);
+    console.error(`[L4-TEST-SNAPSHOT-${requestId}] Test failed:`, error instanceof Error ? error.message : String(error));
     
     res.status(500).json({
       success: false,

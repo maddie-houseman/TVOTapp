@@ -72,7 +72,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
       }
     } catch {
-      console.log('Not authenticated');
+      // Not authenticated
     } finally {
       setIsLoading(false);
     }

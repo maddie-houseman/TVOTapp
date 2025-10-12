@@ -16,10 +16,7 @@ r.get('/:companyId/:period', auth(), restrictToCompany, async (req, res) => {
 
 // Handle POST requests to /api/l1
 r.post('/', auth(), async (req, res) => {
-    console.log('L1 POST route hit:', req.path, req.method);
-    console.log('User:', { role: req.user!.role, companyId: req.user!.companyId });
     const body = l1Schema.parse(req.body);
-    console.log('Request body companyId:', body.companyId);
     
     // For admin users, they can access any company's data
     if (req.user!.role === 'ADMIN') {
@@ -27,15 +24,11 @@ r.post('/', auth(), async (req, res) => {
         if (!body.companyId && req.user!.companyId) {
             body.companyId = req.user!.companyId;
         }
-        console.log('Admin user authorized, using companyId:', body.companyId);
     } else {
         // For non-admin users, they can only access their own company's data
         if (req.user!.companyId !== body.companyId) {
-            console.log('Authorization failed: user companyId does not match request companyId');
-            console.log('User companyId:', req.user!.companyId, 'Request companyId:', body.companyId);
             return res.status(403).json({ error: 'Forbidden' });
         }
-        console.log('Regular user authorized for their own company');
     }
     const created = await prisma.l1OperationalInput.upsert({
         where: { companyId_period_department: { companyId: body.companyId, period: new Date(body.period), department: body.department } },

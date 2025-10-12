@@ -25,8 +25,6 @@ app.options('*', (req, res) => {
 
 // L4 Snapshot endpoint - INSTANT response
 app.post('/api/l4/snapshot', (req, res) => {
-  console.log('🚀 L4 Snapshot request received at:', new Date().toISOString());
-  console.log('📝 Request body:', JSON.stringify(req.body, null, 2));
   
   // INSTANT response - no delays, no database, no hanging
   const response = {
@@ -40,7 +38,6 @@ app.post('/api/l4/snapshot', (req, res) => {
     createdAt: new Date().toISOString()
   };
   
-  console.log('✅ Sending instant response:', response);
   res.json(response);
 });
 
@@ -61,17 +58,10 @@ app.get('/api/test', (req, res) => {
 // Start server
 const port = 8080;
 app.listen(port, '0.0.0.0', () => {
-  console.log('🎉 STANDALONE L4 SERVER STARTED!');
-  console.log(`🌐 Server running on: http://localhost:${port}`);
-  console.log('📡 L4 Endpoint: POST /api/l4/snapshot');
-  console.log('❤️  Health Check: GET /api/health');
-  console.log('🧪 Test Endpoint: GET /api/test');
-  console.log('⚡ INSTANT RESPONSES - NO HANGING!');
-  console.log('=====================================');
+  console.log(`Server running on: http://localhost:${port}`);
 });
 
 // Graceful shutdown
 process.on('SIGINT', () => {
-  console.log('\n🛑 Shutting down standalone server...');
   process.exit(0);
 });

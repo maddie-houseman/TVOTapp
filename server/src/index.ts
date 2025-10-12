@@ -42,9 +42,8 @@ app.set('trust proxy', 1);
  *  - never gate preflights
  *  - allow /api/auth/* without an API key
  */
-// TEMPORARILY DISABLED API KEY CHECK FOR TESTING
+// API key check disabled for testing
 app.use((req, res, next) => {
-    console.log(`[API-KEY-CHECK] Allowing request to ${req.path} - API key check disabled for testing`);
     return next();
 });
 
@@ -73,7 +72,9 @@ app.use(
 );
 
 /* -------------------- Health -------------------- */
-app.get('/api/health', (_req, res) => res.status(200).json({ ok: true }));
+app.get('/api/health', (_req, res) => {
+    res.status(200).json({ ok: true });
+});
 
 // Simple test endpoint that bypasses all middleware
 app.get('/test', (_req, res) => {
@@ -270,7 +271,6 @@ app.get('/api/debug/company/:companyId', async (req, res) => {
 /* -------------------- Bootstrap: Routers Only -------------------- */
 (async () => {
     try {
-        console.log('Loading routes...');
         const { default: authRouter } = await import('./routes/auth.js');
         const { default: l1Router } = await import('./routes/l1.js');
         const { default: l2Router } = await import('./routes/l2.js');
@@ -288,13 +288,11 @@ app.get('/api/debug/company/:companyId', async (req, res) => {
         app.use('/api', companyRouter);
         app.use('/api', aiRouter);
 
-        console.log('Routers mounted');
         
         // Start server immediately
         const port = Number(process.env.PORT) || 8080;
         app.listen(port, '0.0.0.0', () => {
             console.log(`API listening on http://0.0.0.0:${port}`);
-            console.log('Server started successfully - database connection will be attempted in background');
         });
     } catch (e) {
         console.error('Router load failed:', e);
@@ -305,7 +303,6 @@ app.get('/api/debug/company/:companyId', async (req, res) => {
 // Try database connection in background (non-blocking)
 setTimeout(async () => {
     try {
-        console.log('Attempting database connection...');
         const { prisma } = await import('./prisma.js');
         
         // Add connection timeout
@@ -315,18 +312,11 @@ setTimeout(async () => {
         );
         
         await Promise.race([connectPromise, timeoutPromise]);
-        console.log('Prisma connected successfully');
         
         // Test the connection with a simple query
         await prisma.$queryRaw`SELECT 1`;
-        console.log('Database connection verified');
     } catch (e) {
         console.error('Prisma connect failed (non-blocking):', e);
-        console.log('Server continues to run with mock data fallbacks');
     }
 }, 1000);
 
-// Add Railway-specific logging
-console.log('🚀 Server started on Railway');
-console.log('📡 L4 endpoint available at: POST /api/l4/snapshot');
-console.log('⚡ L4 endpoint now responds instantly (no database hanging)');

@@ -6,8 +6,6 @@ app.use(express.json());
 
 // Simple test endpoint
 app.post('/api/l4/snapshot', (req, res) => {
-  console.log('L4 test endpoint hit!', new Date().toISOString());
-  console.log('Request body:', req.body);
   
   // Immediate response
   res.json({
@@ -30,14 +28,10 @@ app.get('/api/health', (req, res) => {
 // Start server
 const port = 8080;
 app.listen(port, '0.0.0.0', () => {
-  console.log(`✅ Simple test server running on http://localhost:${port}`);
-  console.log('✅ Test L4 endpoint: POST /api/l4/snapshot');
-  console.log('✅ Health check: GET /api/health');
-  console.log('✅ Server started successfully!');
+  console.log(`Test server running on http://localhost:${port}`);
 });
 
 // Handle shutdown
 process.on('SIGINT', () => {
-  console.log('\n🛑 Shutting down test server...');
   process.exit(0);
 });

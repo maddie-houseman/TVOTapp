@@ -221,9 +221,7 @@ export default function Dashboard() {
                     return;
                   }
                   
-                  console.log('Starting PDF export...');
                   await exportElementToPdf(el, `dashboard-${selectedPeriod}.pdf`);
-                  console.log('PDF export completed successfully');
                 } catch (error) {
                   console.error('PDF export failed:', error);
                   alert(`PDF export failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please check the console for details.`);
