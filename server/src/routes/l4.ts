@@ -50,8 +50,13 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
     const normalizedPeriod = toPeriod(period);
 
 
-    // Test database connection first
-    await prisma.$queryRaw`SELECT 1 as test`;
+    // Test database connection first with timeout
+    await Promise.race([
+      prisma.$queryRaw`SELECT 1 as test`,
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Database connection timeout')), 5000)
+      )
+    ]);
 
     // Fetch L1, L2, L3 data with timeouts
     const [l1Data, l2Data, l3Data] = await Promise.all([
@@ -398,43 +403,84 @@ r.get('/debug/:companyId/:period', auth, async (req: Request, res: Response) => 
   const normalizedPeriod = toPeriod(period);
   
   try {
-    // Test database connection
+    // Test database connection with timeout
     const dbStart = Date.now();
-    await prisma.$queryRaw`SELECT 1 as test`;
+    const dbTest = await Promise.race([
+      prisma.$queryRaw`SELECT 1 as test`,
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Database test timeout')), 5000)
+      )
+    ]);
     const dbTime = Date.now() - dbStart;
     
-    // Check data availability
+    // Check data availability with timeouts
     const [l1Count, l2Count, l3Count] = await Promise.all([
-      prisma.l1OperationalInput.count({ where: { companyId, period: new Date(normalizedPeriod) } }),
-      prisma.l2AllocationWeight.count({ where: { companyId, period: new Date(normalizedPeriod) } }),
-      prisma.l3BenefitWeight.count({ where: { companyId, period: new Date(normalizedPeriod) } })
+      Promise.race([
+        prisma.l1OperationalInput.count({ where: { companyId, period: new Date(normalizedPeriod) } }),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('L1 count timeout')), 5000))
+      ]),
+      Promise.race([
+        prisma.l2AllocationWeight.count({ where: { companyId, period: new Date(normalizedPeriod) } }),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('L2 count timeout')), 5000))
+      ]),
+      Promise.race([
+        prisma.l3BenefitWeight.count({ where: { companyId, period: new Date(normalizedPeriod) } }),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('L3 count timeout')), 5000))
+      ])
     ]);
-    
-    // Check L2 weight validation
-    const l2Data = await prisma.l2AllocationWeight.findMany({
-      where: { companyId, period: new Date(normalizedPeriod) }
-    });
-    
-    const weightValidation = l2Data.reduce((acc, item) => {
-      if (!acc[item.department]) acc[item.department] = 0;
-      acc[item.department] += Number(item.weightPct);
-      return acc;
-    }, {} as Record<string, number>);
     
     res.json({
       success: true,
-      database: { connected: true, responseTime: dbTime },
+      database: { connected: true, responseTime: dbTime, testResult: dbTest },
       dataCounts: { l1: l1Count, l2: l2Count, l3: l3Count },
-      l2WeightValidation: weightValidation,
       hasAllData: l1Count > 0 && l2Count > 0 && l3Count > 0,
-      readyForSnapshot: l1Count > 0 && l2Count > 0 && l3Count > 0 && 
-        Object.values(weightValidation).every(w => Math.abs(w - 1) < 0.0001)
+      readyForSnapshot: l1Count > 0 && l2Count > 0 && l3Count > 0
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : String(error),
       database: { connected: false }
+    });
+  }
+});
+
+// Simple test endpoint without auth
+r.get('/simple-test', async (req: Request, res: Response) => {
+  try {
+    const start = Date.now();
+    
+    // Check environment variables
+    const dbUrl = process.env.DATABASE_URL;
+    const hasDbUrl = !!dbUrl;
+    
+    // Try to connect first
+    await prisma.$connect();
+    
+    const result = await Promise.race([
+      prisma.$queryRaw`SELECT 1 as test`,
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Query timeout')), 3000)
+      )
+    ]);
+    const duration = Date.now() - start;
+    
+    res.json({
+      success: true,
+      result,
+      duration,
+      timestamp: new Date().toISOString(),
+      prismaConnected: true,
+      hasDatabaseUrl: hasDbUrl,
+      databaseUrlLength: dbUrl ? dbUrl.length : 0
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+      timestamp: new Date().toISOString(),
+      prismaConnected: false,
+      hasDatabaseUrl: !!process.env.DATABASE_URL
     });
   }
 });
