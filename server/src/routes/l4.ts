@@ -54,6 +54,11 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
 
     // Test database connection first with timeout
     console.log(`[L4-SNAPSHOT-${requestId}] Testing database connection...`);
+    console.log(`[L4-SNAPSHOT-${requestId}] DATABASE_URL:`, process.env.DATABASE_URL ? 'SET' : 'NOT SET');
+    
+    // Force connection with explicit connect
+    await prisma.$connect();
+    
     await Promise.race([
       prisma.$queryRaw`SELECT 1 as test`,
       new Promise((_, reject) => 
@@ -68,6 +73,7 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
       // L1 data
       Promise.race([
         (async () => {
+          await prisma.$connect();
           const result = await prisma.l1OperationalInput.findMany({
             where: { 
               companyId, 
@@ -84,6 +90,7 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
       // L2 data
       Promise.race([
         (async () => {
+          await prisma.$connect();
           const result = await prisma.l2AllocationWeight.findMany({
             where: { 
               companyId, 
@@ -100,6 +107,7 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
       // L3 data
       Promise.race([
         (async () => {
+          await prisma.$connect();
           const result = await prisma.l3BenefitWeight.findMany({
             where: { 
               companyId, 
@@ -532,6 +540,106 @@ r.get('/test-tables', async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : String(error),
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Test L4 snapshot logic without auth
+r.post('/test-snapshot-logic', async (req: Request, res: Response) => {
+  const requestId = randomUUID();
+  const startTime = Date.now();
+  
+  console.log(`[TEST-SNAPSHOT-${requestId}] Starting test snapshot computation`);
+
+  try {
+    const { companyId, period, assumptions } = req.body;
+    const normalizedPeriod = toPeriod(period);
+
+    console.log(`[TEST-SNAPSHOT-${requestId}] Parameters: companyId=${companyId}, period=${normalizedPeriod}`);
+
+    // Test database connection first with timeout
+    console.log(`[TEST-SNAPSHOT-${requestId}] Testing database connection...`);
+    await Promise.race([
+      prisma.$queryRaw`SELECT 1 as test`,
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Database connection timeout')), 5000)
+      )
+    ]);
+    console.log(`[TEST-SNAPSHOT-${requestId}] Database connection successful`);
+
+    // Test L1 query specifically
+    console.log(`[TEST-SNAPSHOT-${requestId}] Testing L1 query...`);
+    const l1Data = await Promise.race([
+      prisma.l1OperationalInput.findMany({
+        where: { 
+          companyId, 
+          period: new Date(normalizedPeriod)
+        }
+      }),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('L1 query timeout')), 5000)
+      )
+    ]) as any[];
+    console.log(`[TEST-SNAPSHOT-${requestId}] L1 query successful, found ${l1Data.length} records`);
+
+    // Test L2 query specifically
+    console.log(`[TEST-SNAPSHOT-${requestId}] Testing L2 query...`);
+    const l2Data = await Promise.race([
+      prisma.l2AllocationWeight.findMany({
+        where: { 
+          companyId, 
+          period: new Date(normalizedPeriod)
+        }
+      }),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('L2 query timeout')), 5000)
+      )
+    ]) as any[];
+    console.log(`[TEST-SNAPSHOT-${requestId}] L2 query successful, found ${l2Data.length} records`);
+
+    // Test L3 query specifically
+    console.log(`[TEST-SNAPSHOT-${requestId}] Testing L3 query...`);
+    const l3Data = await Promise.race([
+      prisma.l3BenefitWeight.findMany({
+        where: { 
+          companyId, 
+          period: new Date(normalizedPeriod)
+        }
+      }),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('L3 query timeout')), 5000)
+      )
+    ]) as any[];
+    console.log(`[TEST-SNAPSHOT-${requestId}] L3 query successful, found ${l3Data.length} records`);
+
+    const totalDuration = Date.now() - startTime;
+    console.log(`[TEST-SNAPSHOT-${requestId}] All queries successful in ${totalDuration}ms`);
+
+    res.json({
+      success: true,
+      requestId,
+      companyId,
+      period: normalizedPeriod,
+      dataCounts: {
+        l1: l1Data.length,
+        l2: l2Data.length,
+        l3: l3Data.length
+      },
+      hasAllData: l1Data.length > 0 && l2Data.length > 0 && l3Data.length > 0,
+      duration: totalDuration,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    const totalDuration = Date.now() - startTime;
+    console.error(`[TEST-SNAPSHOT-${requestId}] Test failed after ${totalDuration}ms:`, error);
+    
+    res.status(500).json({
+      success: false,
+      requestId,
+      error: error instanceof Error ? error.message : String(error),
+      duration: totalDuration,
       timestamp: new Date().toISOString()
     });
   }
