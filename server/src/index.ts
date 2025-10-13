@@ -73,7 +73,12 @@ app.use(
 
 /* -------------------- Health -------------------- */
 app.get('/api/health', (_req, res) => {
-    res.status(200).json({ ok: true });
+    res.status(200).json({ 
+        ok: true, 
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        environment: process.env.NODE_ENV || 'development'
+    });
 });
 
 // Simple test endpoint that bypasses all middleware
@@ -292,7 +297,9 @@ app.get('/api/debug/company/:companyId', async (req, res) => {
         // Start server immediately
         const port = Number(process.env.PORT) || 8080;
         app.listen(port, '0.0.0.0', () => {
-            console.log(`API listening on http://0.0.0.0:${port}`);
+            console.log(`✅ Server started successfully on port ${port}`);
+            console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+            console.log(`📊 Health check: http://0.0.0.0:${port}/api/health`);
         });
     } catch (e) {
         console.error('Router load failed:', e);
@@ -319,4 +326,26 @@ setTimeout(async () => {
         console.error('Prisma connect failed (non-blocking):', e);
     }
 }, 1000);
+
+// Handle uncaught exceptions and unhandled rejections
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    process.exit(1);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+    console.log('SIGTERM received, shutting down gracefully');
+    process.exit(0);
+});
+
+process.on('SIGINT', () => {
+    console.log('SIGINT received, shutting down gracefully');
+    process.exit(0);
+});
 

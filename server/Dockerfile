@@ -34,7 +34,7 @@ COPY --from=build /app/server/package*.json ./
 COPY --from=build /app/server/dist ./dist
 
 # Railway sets $PORT; Express should listen on it
-EXPOSE 8080
+EXPOSE $PORT
 
 # Run migrations (or db push) then (optionally) seed, then start the API.
 # The "node dist/index.js || node dist/src/index.js" part is robust to either output layout.

@@ -60,7 +60,7 @@
     };
 
     // -------- Base URL --------
-    const BASE = import.meta.env.DEV ? "" : (import.meta.env.VITE_API_BASE ?? "");
+    const BASE = import.meta.env.DEV ? "https://tvotapp-production.up.railway.app" : (import.meta.env.VITE_API_BASE ?? "https://tvotapp-production.up.railway.app");
 
     // -------- Helpers --------
     function withBase(path: string) {

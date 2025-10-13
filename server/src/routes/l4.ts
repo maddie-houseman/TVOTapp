@@ -393,5 +393,50 @@ r.post('/snapshot', auth, postSnapshot);
 r.get('/snapshots/:companyId', auth, getSnapshots);
 r.get('/test-data', auth, testData);
 r.post('/test-snapshot', testSnapshot); // No auth for testing
+r.get('/debug/:companyId/:period', auth, async (req, res) => {
+  const { companyId, period } = req.params;
+  const normalizedPeriod = toPeriod(period);
+  
+  try {
+    // Test database connection
+    const dbStart = Date.now();
+    await prisma.$queryRaw`SELECT 1 as test`;
+    const dbTime = Date.now() - dbStart;
+    
+    // Check data availability
+    const [l1Count, l2Count, l3Count] = await Promise.all([
+      prisma.l1OperationalInput.count({ where: { companyId, period: new Date(normalizedPeriod) } }),
+      prisma.l2AllocationWeight.count({ where: { companyId, period: new Date(normalizedPeriod) } }),
+      prisma.l3BenefitWeight.count({ where: { companyId, period: new Date(normalizedPeriod) } })
+    ]);
+    
+    // Check L2 weight validation
+    const l2Data = await prisma.l2AllocationWeight.findMany({
+      where: { companyId, period: new Date(normalizedPeriod) }
+    });
+    
+    const weightValidation = l2Data.reduce((acc, item) => {
+      if (!acc[item.department]) acc[item.department] = 0;
+      acc[item.department] += Number(item.weightPct);
+      return acc;
+    }, {} as Record<string, number>);
+    
+    res.json({
+      success: true,
+      database: { connected: true, responseTime: dbTime },
+      dataCounts: { l1: l1Count, l2: l2Count, l3: l3Count },
+      l2WeightValidation: weightValidation,
+      hasAllData: l1Count > 0 && l2Count > 0 && l3Count > 0,
+      readyForSnapshot: l1Count > 0 && l2Count > 0 && l3Count > 0 && 
+        Object.values(weightValidation).every(w => Math.abs(w - 1) < 0.0001)
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+      database: { connected: false }
+    });
+  }
+});
 
 export default r;
