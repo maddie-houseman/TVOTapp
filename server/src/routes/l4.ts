@@ -408,6 +408,7 @@ const testSnapshot: RequestHandler = async (req, res) => {
 };
 
 r.post('/snapshot', auth, postSnapshot);
+r.post('/snapshot-no-auth', postSnapshot); // Temporary endpoint without auth for testing
 r.get('/snapshots/:companyId', auth, getSnapshots);
 r.get('/test-data', auth, testData);
 r.post('/test-snapshot', testSnapshot); // No auth for testing
@@ -533,6 +534,54 @@ r.get('/test-tables', async (req: Request, res: Response) => {
     res.json({
       success: true,
       tables,
+      duration,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Check what data actually exists
+r.get('/check-data', async (req: Request, res: Response) => {
+  try {
+    const start = Date.now();
+    
+    // Get sample data from each table
+    const [l1Sample, l2Sample, l3Sample] = await Promise.all([
+      Promise.race([
+        prisma.l1OperationalInput.findMany({ take: 3 }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('L1 query timeout')), 5000)
+        )
+      ]),
+      Promise.race([
+        prisma.l2AllocationWeight.findMany({ take: 3 }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('L2 query timeout')), 5000)
+        )
+      ]),
+      Promise.race([
+        prisma.l3BenefitWeight.findMany({ take: 3 }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('L3 query timeout')), 5000)
+        )
+      ])
+    ]);
+    
+    const duration = Date.now() - start;
+    
+    res.json({
+      success: true,
+      sampleData: {
+        l1: l1Sample,
+        l2: l2Sample,
+        l3: l3Sample
+      },
       duration,
       timestamp: new Date().toISOString()
     });
