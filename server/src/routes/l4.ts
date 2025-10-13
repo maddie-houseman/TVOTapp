@@ -1,4 +1,4 @@
-import { Router, type RequestHandler, type Response } from 'express';
+import { Router, type RequestHandler, type Request, type Response } from 'express';
 import { z } from 'zod';
 import { prisma } from '../prisma.js';
 import { auth } from '../middleware/auth.js'; // named import (auth is a function)
@@ -393,7 +393,7 @@ r.post('/snapshot', auth, postSnapshot);
 r.get('/snapshots/:companyId', auth, getSnapshots);
 r.get('/test-data', auth, testData);
 r.post('/test-snapshot', testSnapshot); // No auth for testing
-r.get('/debug/:companyId/:period', auth, async (req, res) => {
+r.get('/debug/:companyId/:period', auth, async (req: Request, res: Response) => {
   const { companyId, period } = req.params;
   const normalizedPeriod = toPeriod(period);
   
