@@ -44,21 +44,26 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
   const requestId = randomUUID();
   const startTime = Date.now();
   
+  console.log(`[L4-SNAPSHOT-${requestId}] Starting snapshot computation`);
 
   try {
     const { companyId, period, assumptions } = req.body;
     const normalizedPeriod = toPeriod(period);
 
+    console.log(`[L4-SNAPSHOT-${requestId}] Parameters: companyId=${companyId}, period=${normalizedPeriod}`);
 
     // Test database connection first with timeout
+    console.log(`[L4-SNAPSHOT-${requestId}] Testing database connection...`);
     await Promise.race([
       prisma.$queryRaw`SELECT 1 as test`,
       new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Database connection timeout')), 5000)
       )
     ]);
+    console.log(`[L4-SNAPSHOT-${requestId}] Database connection successful`);
 
     // Fetch L1, L2, L3 data with timeouts
+    console.log(`[L4-SNAPSHOT-${requestId}] Fetching L1, L2, L3 data...`);
     const [l1Data, l2Data, l3Data] = await Promise.all([
       // L1 data
       Promise.race([
@@ -453,6 +458,7 @@ r.get('/simple-test', async (req: Request, res: Response) => {
     // Check environment variables
     const dbUrl = process.env.DATABASE_URL;
     const hasDbUrl = !!dbUrl;
+    const dbUrlPreview = dbUrl ? `${dbUrl.substring(0, 20)}...` : 'none';
     
     // Try to connect first
     await prisma.$connect();
@@ -472,7 +478,8 @@ r.get('/simple-test', async (req: Request, res: Response) => {
       timestamp: new Date().toISOString(),
       prismaConnected: true,
       hasDatabaseUrl: hasDbUrl,
-      databaseUrlLength: dbUrl ? dbUrl.length : 0
+      databaseUrlPreview: dbUrlPreview,
+      environment: process.env.NODE_ENV
     });
   } catch (error) {
     res.status(500).json({
@@ -480,7 +487,44 @@ r.get('/simple-test', async (req: Request, res: Response) => {
       error: error instanceof Error ? error.message : String(error),
       timestamp: new Date().toISOString(),
       prismaConnected: false,
-      hasDatabaseUrl: !!process.env.DATABASE_URL
+      hasDatabaseUrl: !!process.env.DATABASE_URL,
+      environment: process.env.NODE_ENV
+    });
+  }
+});
+
+// Test database tables existence
+r.get('/test-tables', async (req: Request, res: Response) => {
+  try {
+    const start = Date.now();
+    
+    // Test if tables exist
+    const tables = await Promise.race([
+      prisma.$queryRaw`
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name LIKE 'L%'
+        ORDER BY table_name
+      `,
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Table query timeout')), 5000)
+      )
+    ]);
+    
+    const duration = Date.now() - start;
+    
+    res.json({
+      success: true,
+      tables,
+      duration,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+      timestamp: new Date().toISOString()
     });
   }
 });

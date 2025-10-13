@@ -1,4 +1,16 @@
 import { PrismaClient } from "@prisma/client";
+import { ENV } from './env.js';
+
+// Fix SSL issues by modifying the DATABASE_URL
+function fixDatabaseUrl(url: string): string {
+  // If it's a Railway URL, ensure proper SSL configuration
+  if (url.includes('railway') || url.includes('rlwy.net')) {
+    // Remove any existing sslmode and add the correct one
+    const cleanUrl = url.split('?')[0];
+    return `${cleanUrl}?sslmode=require&connect_timeout=10`;
+  }
+  return url;
+}
 
 export const prisma = new PrismaClient({
   log: [
@@ -21,7 +33,7 @@ export const prisma = new PrismaClient({
   ],
   datasources: {
     db: {
-      url: process.env.DATABASE_URL,
+      url: fixDatabaseUrl(ENV.DATABASE_URL),
     },
   },
 });
