@@ -3,40 +3,59 @@ import { ENV } from './env.js';
 
 // Fix SSL issues by modifying the DATABASE_URL
 function fixDatabaseUrl(url: string): string {
+  console.log('🔍 Original DATABASE_URL:', url ? `${url.substring(0, 30)}...` : 'NOT SET');
+  
+  // Always add SSL parameters if they're missing
+  if (!url.includes('sslmode=')) {
+    const separator = url.includes('?') ? '&' : '?';
+    const fixedUrl = `${url}${separator}sslmode=disable&connect_timeout=10`;
+    console.log('🔧 Added SSL parameters (disabled):', `${fixedUrl.substring(0, 30)}...`);
+    return fixedUrl;
+  }
+  
   // If it's a Railway URL, ensure proper SSL configuration
   if (url.includes('railway') || url.includes('rlwy.net')) {
-    // Remove any existing sslmode and add the correct one
     const cleanUrl = url.split('?')[0];
-    return `${cleanUrl}?sslmode=require&connect_timeout=10`;
+    const fixedUrl = `${cleanUrl}?sslmode=require&connect_timeout=10`;
+    console.log('🔧 Fixed Railway DATABASE_URL:', `${fixedUrl.substring(0, 30)}...`);
+    return fixedUrl;
   }
+  
   return url;
 }
 
-export const prisma = new PrismaClient({
-  log: [
-    {
-      emit: 'event',
-      level: 'query',
+// Create Prisma client with proper configuration
+function createPrismaClient() {
+  const databaseUrl = fixDatabaseUrl(ENV.DATABASE_URL);
+  
+  return new PrismaClient({
+    log: [
+      {
+        emit: 'event',
+        level: 'query',
+      },
+      {
+        emit: 'event',
+        level: 'error',
+      },
+      {
+        emit: 'event',
+        level: 'info',
+      },
+      {
+        emit: 'event',
+        level: 'warn',
+      },
+    ],
+    datasources: {
+      db: {
+        url: databaseUrl,
+      },
     },
-    {
-      emit: 'event',
-      level: 'error',
-    },
-    {
-      emit: 'event',
-      level: 'info',
-    },
-    {
-      emit: 'event',
-      level: 'warn',
-    },
-  ],
-  datasources: {
-    db: {
-      url: fixDatabaseUrl(ENV.DATABASE_URL),
-    },
-  },
-});
+  });
+}
+
+export const prisma = createPrismaClient();
 
 // Log slow queries (>1000ms) and errors
 prisma.$on('query', (e) => {

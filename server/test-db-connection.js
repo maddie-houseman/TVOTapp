@@ -6,14 +6,10 @@ console.log('🔍 Testing Database Connection...');
 console.log('Environment:', process.env.NODE_ENV);
 console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
 console.log('DATABASE_URL preview:', process.env.DATABASE_URL ? `${process.env.DATABASE_URL.substring(0, 30)}...` : 'NOT SET');
+console.log('Full DATABASE_URL:', process.env.DATABASE_URL);
 
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: ENV.DATABASE_URL,
-    },
-  },
-});
+// Import the configured Prisma client
+import { prisma } from './dist/prisma.js';
 
 async function testConnection() {
   try {

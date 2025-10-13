@@ -460,16 +460,23 @@ r.get('/simple-test', async (req: Request, res: Response) => {
     const hasDbUrl = !!dbUrl;
     const dbUrlPreview = dbUrl ? `${dbUrl.substring(0, 20)}...` : 'none';
     
+    console.log('🔍 Testing database connection...');
+    console.log('DATABASE_URL exists:', hasDbUrl);
+    console.log('DATABASE_URL preview:', dbUrlPreview);
+    
     // Try to connect first
     await prisma.$connect();
+    console.log('✅ Prisma connected successfully');
     
     const result = await Promise.race([
       prisma.$queryRaw`SELECT 1 as test`,
       new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Query timeout')), 3000)
+        setTimeout(() => reject(new Error('Query timeout')), 5000)
       )
     ]);
     const duration = Date.now() - start;
+    
+    console.log('✅ Query executed successfully in', duration, 'ms');
     
     res.json({
       success: true,
@@ -482,6 +489,7 @@ r.get('/simple-test', async (req: Request, res: Response) => {
       environment: process.env.NODE_ENV
     });
   } catch (error) {
+    console.error('❌ Database test failed:', error);
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : String(error),
