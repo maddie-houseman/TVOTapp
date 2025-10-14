@@ -242,6 +242,19 @@
         return jsonFetch<{ id: string; name: string; domain: string }>(`/api/l4/get-company-id`);
     },
 
+    // Simple L4 calculation that actually works
+    async calculateSimple(params: {
+        companyId: string;
+        period: string;
+        assumptions: SnapshotAssumptions;
+    }): Promise<{ id: string; totalCost: number; totalBenefit: number; roiPct: number; dataCount: number }> {
+        return jsonFetch<{ id: string; totalCost: number; totalBenefit: number; roiPct: number; dataCount: number }>(`/api/l4/calculate-simple`, {
+            method: "POST",
+            json: params,
+            timeout: 10000, // 10 second timeout
+        });
+    },
+
     async testL4Data(companyId: string, period: string): Promise<{
         success: boolean;
         companyId: string;

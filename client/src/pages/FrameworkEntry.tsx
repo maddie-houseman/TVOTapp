@@ -167,7 +167,8 @@ export default function FrameworkEntry() {
     setSuccessMessage('');
 
     try {
-      await api.snapshot({
+      // Use the simple calculation that actually works
+      const result = await api.calculateSimple({
         companyId: targetCompanyId,
         period: full,
         assumptions: {
@@ -176,9 +177,10 @@ export default function FrameworkEntry() {
           avgLoadedRate: rate,
         },
       });
-      setSuccessMessage('ROI snapshot computed and saved successfully! Framework setup complete.');
+      
+      setSuccessMessage(`ROI calculated successfully! Total Cost: $${result.totalCost.toLocaleString()}, Total Benefit: $${result.totalBenefit.toLocaleString()}, ROI: ${result.roiPct.toFixed(1)}%`);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to compute snapshot');
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to compute ROI');
     } finally {
       setIsLoading(false);
     }
