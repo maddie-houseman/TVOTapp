@@ -704,17 +704,45 @@ r.post('/calculate-simple', auth, async (req: Request, res: Response) => {
     
     console.log(`[SIMPLE-${requestId}] Calculated: Revenue=${revenue}, Costs=${costs}, ROI=${roi}%`);
     
-    // Save result
-    const result = await prisma.l4RoiSnapshot.create({
-      data: {
-        companyId,
-        period: new Date(normalizedPeriod),
-        assumptions: JSON.stringify(assumptions),
-        totalCost: costs,
-        totalBenefit: revenue,
-        roiPct: roi
+    // Save result (handle duplicates)
+    let result;
+    try {
+      result = await prisma.l4RoiSnapshot.create({
+        data: {
+          companyId,
+          period: new Date(normalizedPeriod),
+          assumptions: JSON.stringify(assumptions),
+          totalCost: costs,
+          totalBenefit: revenue,
+          roiPct: roi
+        }
+      });
+      console.log(`[SIMPLE-${requestId}] Created new snapshot: ${result.id}`);
+    } catch (error: any) {
+      if (error.code === 'P2002') { // Unique constraint violation
+        console.log(`[SIMPLE-${requestId}] Snapshot exists, updating instead...`);
+        // Find existing snapshot and update it
+        const existing = await prisma.l4RoiSnapshot.findFirst({
+          where: { companyId, period: new Date(normalizedPeriod) }
+        });
+        if (existing) {
+          result = await prisma.l4RoiSnapshot.update({
+            where: { id: existing.id },
+            data: {
+              assumptions: JSON.stringify(assumptions),
+              totalCost: costs,
+              totalBenefit: revenue,
+              roiPct: roi
+            }
+          });
+          console.log(`[SIMPLE-${requestId}] Updated existing snapshot: ${result.id}`);
+        } else {
+          throw error; // Re-throw if we can't find the existing record
+        }
+      } else {
+        throw error; // Re-throw other errors
       }
-    });
+    }
     
     const duration = Date.now() - startTime;
     console.log(`[SIMPLE-${requestId}] Completed in ${duration}ms`);
