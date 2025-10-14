@@ -296,11 +296,12 @@ app.get('/api/debug/company/:companyId', async (req, res) => {
         
         // Start server immediately
         const port = Number(process.env.PORT) || 8080;
-        app.listen(port, '0.0.0.0', () => {
-            console.log(`✅ Server started successfully on port ${port}`);
-            console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
-            console.log(`📊 Health check: http://0.0.0.0:${port}/api/health`);
-        });
+app.listen(port, '0.0.0.0', () => {
+    console.log(`✅ Server started successfully on port ${port}`);
+    console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`📊 Health check: http://0.0.0.0:${port}/api/health`);
+    console.log(`🔧 Database connection timeouts: 30s (Railway optimized)`);
+});
     } catch (e) {
         console.error('Router load failed:', e);
         process.exit(1);
