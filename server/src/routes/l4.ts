@@ -209,6 +209,152 @@ r.get('/test', async (req: Request, res: Response) => {
   }
 });
 
+/** ===== Step-by-step database test ===== */
+r.get('/test-steps', async (req: Request, res: Response) => {
+  const requestId = randomUUID();
+  const startTime = Date.now();
+  const steps: any[] = [];
+  
+  try {
+    // Step 1: Basic connection
+    const step1Start = Date.now();
+    await prisma.$connect();
+    await prisma.$queryRaw`SELECT 1 as test`;
+    steps.push({
+      step: 1,
+      name: 'Basic connection',
+      duration: Date.now() - step1Start,
+      success: true
+    });
+
+    // Step 2: Check if company exists
+    const step2Start = Date.now();
+    const companyId = 'test-company';
+    const existingCompany = await prisma.company.findUnique({
+      where: { id: companyId }
+    });
+    steps.push({
+      step: 2,
+      name: 'Check company exists',
+      duration: Date.now() - step2Start,
+      success: true,
+      found: !!existingCompany
+    });
+
+    // Step 3: Create company if needed
+    const step3Start = Date.now();
+    let company = existingCompany;
+    if (!company) {
+      company = await prisma.company.create({
+        data: {
+          id: companyId,
+          name: companyId,
+          domain: `${companyId}.com`
+        }
+      });
+    }
+    steps.push({
+      step: 3,
+      name: 'Create/use company',
+      duration: Date.now() - step3Start,
+      success: true,
+      created: !existingCompany
+    });
+
+    // Step 4: Test L1 query
+    const step4Start = Date.now();
+    const l1Data = await prisma.l1OperationalInput.findMany({
+      where: { 
+        companyId, 
+        period: new Date('2024-01-01')
+      }
+    });
+    steps.push({
+      step: 4,
+      name: 'L1 data query',
+      duration: Date.now() - step4Start,
+      success: true,
+      count: l1Data.length
+    });
+
+    // Step 5: Test L2 query
+    const step5Start = Date.now();
+    const l2Data = await prisma.l2AllocationWeight.findMany({
+      where: { 
+        companyId, 
+        period: new Date('2024-01-01')
+      }
+    });
+    steps.push({
+      step: 5,
+      name: 'L2 data query',
+      duration: Date.now() - step5Start,
+      success: true,
+      count: l2Data.length
+    });
+
+    // Step 6: Test L3 query
+    const step6Start = Date.now();
+    const l3Data = await prisma.l3BenefitWeight.findMany({
+      where: { 
+        companyId, 
+        period: new Date('2024-01-01')
+      }
+    });
+    steps.push({
+      step: 6,
+      name: 'L3 data query',
+      duration: Date.now() - step6Start,
+      success: true,
+      count: l3Data.length
+    });
+
+    // Step 7: Test snapshot creation
+    const step7Start = Date.now();
+    const snapshot = await prisma.l4RoiSnapshot.create({
+      data: {
+        companyId,
+        period: new Date('2024-01-01'),
+        assumptions: JSON.stringify({ test: true }),
+        totalCost: 100000,
+        totalBenefit: 150000,
+        roiPct: 50.0
+      }
+    });
+    steps.push({
+      step: 7,
+      name: 'Create snapshot',
+      duration: Date.now() - step7Start,
+      success: true,
+      snapshotId: snapshot.id
+    });
+
+    const totalDuration = Date.now() - startTime;
+    
+    res.json({
+      success: true,
+      requestId,
+      totalDuration,
+      steps,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    const totalDuration = Date.now() - startTime;
+    console.error(`[TEST-STEPS-${requestId}] Error at step ${steps.length + 1}:`, error);
+    
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+      requestId,
+      totalDuration,
+      steps,
+      failedAtStep: steps.length + 1,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 /** ===== Test endpoint without auth ===== */
 r.post('/snapshot-test', postSnapshot);
 
