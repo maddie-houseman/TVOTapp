@@ -53,9 +53,6 @@ export default function FrameworkEntry() {
   if (!user) return <div className="text-sm">Please login.</div>;
   
   
-  // For admin users, use selected company; for regular users, use their own company
-  // If admin hasn't selected a company, use their own company
-  const companyId = user.role === 'ADMIN' ? (selectedCompanyId || user.companyId) : user.companyId;
   const full = `${period}-01`; // server expects YYYY-MM-DD
 
   // For non-admin users, check if they have a company
@@ -72,24 +69,22 @@ export default function FrameworkEntry() {
 
   // ----- Actions -----
   async function saveL1() {
-    if (!companyId) {
-      setErrorMessage('No company in context');
-      return;
-    }
-    
     setIsLoading(true);
     setErrorMessage('');
     setSuccessMessage('');
     
     try {
+      // Get the correct company ID that has data
+      const correctCompany = await api.getCorrectCompanyId();
+      
       await api.l1Upsert({
-        companyId,
+        companyId: correctCompany.id,
         period: full,
         department: dept,
         employees,
         budget,
       });
-      setSuccessMessage('L1 Operational inputs saved successfully!');
+      setSuccessMessage(`L1 Operational inputs saved successfully for ${correctCompany.name}!`);
       setCurrentStep(2);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Failed to save L1 data');
@@ -99,22 +94,20 @@ export default function FrameworkEntry() {
   }
 
   async function saveL2() {
-    if (!companyId) {
-      setErrorMessage('No company in context');
-      return;
-    }
-
     setIsLoading(true);
     setErrorMessage('');
     setSuccessMessage('');
 
     try {
+      // Get the correct company ID that has data
+      const correctCompany = await api.getCorrectCompanyId();
+      
       await Promise.all([
-        api.l2Upsert({ companyId, period: full, department: dept, tower: 'APP_DEV', weightPct: appDev }),
-        api.l2Upsert({ companyId, period: full, department: dept, tower: 'CLOUD', weightPct: cloud }),
-        api.l2Upsert({ companyId, period: full, department: dept, tower: 'END_USER', weightPct: endUser }),
+        api.l2Upsert({ companyId: correctCompany.id, period: full, department: dept, tower: 'APP_DEV', weightPct: appDev }),
+        api.l2Upsert({ companyId: correctCompany.id, period: full, department: dept, tower: 'CLOUD', weightPct: cloud }),
+        api.l2Upsert({ companyId: correctCompany.id, period: full, department: dept, tower: 'END_USER', weightPct: endUser }),
       ]);
-      setSuccessMessage('L2 Allocation weights saved successfully!');
+      setSuccessMessage(`L2 Allocation weights saved successfully for ${correctCompany.name}!`);
       setCurrentStep(3);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Failed to save L2 data');
@@ -124,21 +117,19 @@ export default function FrameworkEntry() {
   }
 
   async function saveL3() {
-    if (!companyId) {
-      setErrorMessage('No company in context');
-      return;
-    }
-
     setIsLoading(true);
     setErrorMessage('');
     setSuccessMessage('');
 
     try {
+      // Get the correct company ID that has data
+      const correctCompany = await api.getCorrectCompanyId();
+      
       await Promise.all([
-        api.l3Upsert({ companyId, period: full, category: 'PRODUCTIVITY', weightPct: prod }),
-        api.l3Upsert({ companyId, period: full, category: 'REVENUE_UPLIFT', weightPct: rev }),
+        api.l3Upsert({ companyId: correctCompany.id, period: full, category: 'PRODUCTIVITY', weightPct: prod }),
+        api.l3Upsert({ companyId: correctCompany.id, period: full, category: 'REVENUE_UPLIFT', weightPct: rev }),
       ]);
-      setSuccessMessage('L3 Benefit weights saved successfully!');
+      setSuccessMessage(`L3 Benefit weights saved successfully for ${correctCompany.name}!`);
       setCurrentStep(4);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Failed to save L3 data');
@@ -148,18 +139,16 @@ export default function FrameworkEntry() {
   }
 
   async function computeAndSave() {
-    if (!companyId) {
-      setErrorMessage('No company in context');
-      return;
-    }
-
     setIsLoading(true);
     setErrorMessage('');
     setSuccessMessage('');
 
     try {
+      // Get the correct company ID that has data
+      const correctCompany = await api.getCorrectCompanyId();
+      
       await api.snapshot({
-        companyId,
+        companyId: correctCompany.id,
         period: full,
         assumptions: {
           revenueUplift: uplift,
@@ -167,7 +156,7 @@ export default function FrameworkEntry() {
           avgLoadedRate: rate,
         },
       });
-      setSuccessMessage('ROI snapshot computed and saved successfully! Framework setup complete.');
+      setSuccessMessage(`ROI snapshot computed and saved successfully for ${correctCompany.name}! Framework setup complete.`);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Failed to compute snapshot');
     } finally {

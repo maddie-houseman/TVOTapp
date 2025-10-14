@@ -237,6 +237,11 @@
         return jsonFetch<L4Snapshot[]>(`/api/l4/snapshots/${companyId}`);
     },
 
+    // Get the correct company ID that has data
+    async getCorrectCompanyId(): Promise<{ id: string; name: string; domain: string }> {
+        return jsonFetch<{ id: string; name: string; domain: string }>(`/api/l4/get-company-id`);
+    },
+
     async testL4Data(companyId: string, period: string): Promise<{
         success: boolean;
         companyId: string;
