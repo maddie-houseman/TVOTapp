@@ -19,9 +19,9 @@ const snapshotSchema = z.object({
   companyId: z.string().min(1),
   period: z.string().regex(/^\d{4}(-\d{2}(-\d{2})?)?$/, "Use 'YYYY-MM' or 'YYYY-MM-DD'"),
   assumptions: z.object({
-    revenueUplift: z.number().nonnegative().default(0),
-    productivityGainHours: z.number().nonnegative().default(0),
-    avgLoadedRate: z.number().nonnegative().default(0),
+      revenueUplift: z.number().nonnegative().default(0),
+      productivityGainHours: z.number().nonnegative().default(0),
+      avgLoadedRate: z.number().nonnegative().default(0),
   }).passthrough(),
 });
 type SnapshotBody = z.infer<typeof snapshotSchema>;
@@ -55,7 +55,7 @@ function calculateL4Metrics(l1Data: any[], l2Data: any[], l3Data: any[], assumpt
 const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res) => {
   const requestId = randomUUID();
   const startTime = Date.now();
-  
+
   try {
     const { companyId, period, assumptions } = req.body;
     
@@ -68,7 +68,7 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
 
     // Normalize period
     const normalizedPeriod = toPeriod(period);
-    
+
     // Test database connection
     await prisma.$connect();
     await prisma.$queryRaw`SELECT 1 as test`;
@@ -89,12 +89,15 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
     }
 
     // Fetch data with simple queries
+    console.log(`[L4-SNAPSHOT-${requestId}] Fetching data for companyId: ${companyId}, period: ${normalizedPeriod}`);
+    
     const l1Data = await prisma.l1OperationalInput.findMany({
       where: { 
         companyId, 
         period: new Date(normalizedPeriod)
       }
     });
+    console.log(`[L4-SNAPSHOT-${requestId}] L1 data found: ${l1Data.length} records`);
     
     const l2Data = await prisma.l2AllocationWeight.findMany({
       where: { 
@@ -102,6 +105,7 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
         period: new Date(normalizedPeriod)
       }
     });
+    console.log(`[L4-SNAPSHOT-${requestId}] L2 data found: ${l2Data.length} records`);
     
     const l3Data = await prisma.l3BenefitWeight.findMany({
       where: { 
@@ -109,15 +113,16 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
         period: new Date(normalizedPeriod)
       }
     });
+    console.log(`[L4-SNAPSHOT-${requestId}] L3 data found: ${l3Data.length} records`);
 
     // Calculate L4 metrics
     const l4Metrics = calculateL4Metrics(l1Data, l2Data, l3Data, assumptions);
 
     // Save snapshot
     const snapshot = await prisma.l4RoiSnapshot.create({
-      data: {
-        companyId,
-        period: new Date(normalizedPeriod),
+        data: {
+          companyId,
+          period: new Date(normalizedPeriod),
         assumptions: JSON.stringify(assumptions),
         totalCost: l4Metrics.totalCosts,
         totalBenefit: l4Metrics.totalRevenue,
@@ -130,14 +135,14 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
     res.json({
       success: true,
       snapshot: {
-        id: snapshot.id,
-        companyId: snapshot.companyId,
-        period: snapshot.period,
+      id: snapshot.id,
+      companyId: snapshot.companyId,
+      period: snapshot.period,
         assumptions: snapshot.assumptions ? JSON.parse(snapshot.assumptions) : null,
-        totalCost: snapshot.totalCost,
-        totalBenefit: snapshot.totalBenefit,
-        roiPct: snapshot.roiPct,
-        createdAt: snapshot.createdAt
+      totalCost: snapshot.totalCost,
+      totalBenefit: snapshot.totalBenefit,
+      roiPct: snapshot.roiPct,
+      createdAt: snapshot.createdAt
       },
       duration: totalDuration,
       requestId,
@@ -161,7 +166,7 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
 const getSnapshots: RequestHandler<{ companyId: string }> = async (req, res) => {
   try {
     const { companyId } = req.params;
-    
+
     const snapshots = await prisma.l4RoiSnapshot.findMany({
       where: { companyId },
       orderBy: { createdAt: 'desc' },
@@ -201,6 +206,76 @@ r.get('/test', async (req: Request, res: Response) => {
       message: 'Database connection successful',
       timestamp: new Date().toISOString()
     });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : String(error)
+    });
+  }
+});
+
+/** ===== Check data for specific company and period ===== */
+r.get('/check-company-data/:companyId/:period', async (req: Request, res: Response) => {
+  try {
+    const { companyId, period } = req.params;
+    const normalizedPeriod = toPeriod(period);
+
+    // Check if company exists
+    const company = await prisma.company.findUnique({
+      where: { id: companyId }
+    });
+    
+    if (!company) {
+      return res.json({
+        success: false,
+        error: 'Company not found',
+        companyId,
+        period: normalizedPeriod
+      });
+    }
+    
+    // Check L1, L2, L3 data for this company and period
+    const [l1Data, l2Data, l3Data] = await Promise.all([
+      prisma.l1OperationalInput.findMany({
+        where: { 
+          companyId, 
+          period: new Date(normalizedPeriod)
+        }
+      }),
+      prisma.l2AllocationWeight.findMany({
+        where: { 
+          companyId, 
+          period: new Date(normalizedPeriod)
+        }
+      }),
+      prisma.l3BenefitWeight.findMany({
+        where: { 
+          companyId, 
+          period: new Date(normalizedPeriod)
+        }
+      })
+    ]);
+    
+    res.json({
+      success: true,
+      company: {
+        id: company.id,
+        name: company.name,
+        domain: company.domain
+      },
+      period: normalizedPeriod,
+      dataCounts: {
+        l1: l1Data.length,
+        l2: l2Data.length,
+        l3: l3Data.length
+      },
+      data: {
+        l1: l1Data,
+        l2: l2Data,
+        l3: l3Data
+      }
+    });
+    
   } catch (error) {
     res.status(500).json({
       success: false,
