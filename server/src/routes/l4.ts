@@ -33,19 +33,35 @@ function toPeriod(bodyPeriod: string) {
 
 /** Calculate L4 metrics from L1, L2, L3 data */
 function calculateL4Metrics(l1Data: any[], l2Data: any[], l3Data: any[], assumptions: any) {
-  // Simple calculation - handle empty data gracefully
-  const totalRevenue = l1Data.reduce((sum, item) => sum + (item.budget || 0), 0);
-  const totalCosts = l1Data.reduce((sum, item) => sum + (item.budget || 0), 0);
+  console.log(`[L4-CALC] Starting calculation with data: L1=${l1Data.length}, L2=${l2Data.length}, L3=${l3Data.length}`);
   
-  // If no data, use assumptions
-  const revenue = totalRevenue > 0 ? totalRevenue : assumptions.revenueUplift || 0;
-  const costs = totalCosts > 0 ? totalCosts : 100000; // Default cost
+  // Calculate from actual data if available
+  const totalRevenue = l1Data.reduce((sum, item) => sum + Number(item.budget || 0), 0);
+  const totalCosts = l1Data.reduce((sum, item) => sum + Number(item.budget || 0), 0);
+  
+  console.log(`[L4-CALC] Calculated from data - Revenue: ${totalRevenue}, Costs: ${totalCosts}`);
+  
+  // If no L1 data, use assumptions for a basic calculation
+  let revenue, costs;
+  if (l1Data.length === 0) {
+    console.log(`[L4-CALC] No L1 data, using assumptions`);
+    revenue = assumptions.revenueUplift || 0;
+    costs = 100000; // Default cost base
+  } else {
+    revenue = totalRevenue;
+    costs = totalCosts;
+  }
+  
+  const netBenefit = revenue - costs;
+  const roi = costs > 0 ? ((revenue - costs) / costs) * 100 : 0;
+  
+  console.log(`[L4-CALC] Final calculation - Revenue: ${revenue}, Costs: ${costs}, ROI: ${roi}%`);
   
   return {
     totalRevenue: revenue,
     totalCosts: costs,
-    netBenefit: revenue - costs,
-    roi: costs > 0 ? ((revenue - costs) / costs) * 100 : 0,
+    netBenefit: netBenefit,
+    roi: roi,
     assumptions,
     dataCount: { l1: l1Data.length, l2: l2Data.length, l3: l3Data.length }
   };
