@@ -50,21 +50,31 @@ export default function Dashboard() {
   // Load data when period or company changes
   useEffect(() => {
     const loadData = async () => {
-      if (!isAuthenticated) {
+      // For admin users, use selected company; for regular users, use their own company
+      const targetCompanyId = user?.role === 'ADMIN' && selectedCompanyId ? selectedCompanyId : company?.id;
+      
+      if (!targetCompanyId || !isAuthenticated) {
         setIsLoading(false);
         return;
       }
 
       setIsLoading(true);
       try {
-        // Get the correct company ID that has data
-        const correctCompany = await api.getCorrectCompanyId();
-        
-        const [l1, l2, l4] = await Promise.all([
-          api.l1Get(correctCompany.id, selectedPeriod),
-          api.l2Get(correctCompany.id, selectedPeriod),
-          api.snapshots(correctCompany.id)
+        // Load L1 and L2 data from user's company
+        const [l1, l2] = await Promise.all([
+          api.l1Get(targetCompanyId, selectedPeriod),
+          api.l2Get(targetCompanyId, selectedPeriod)
         ]);
+
+        // For L4 snapshots, try to get from the correct company that has data
+        let l4: any[] = [];
+        try {
+          const correctCompany = await api.getCorrectCompanyId();
+          l4 = await api.snapshots(correctCompany.id);
+        } catch (error) {
+          // If that fails, try user's company
+          l4 = await api.snapshots(targetCompanyId);
+        }
 
         setL1Data(l1);
         setL2Data(l2);
@@ -79,7 +89,7 @@ export default function Dashboard() {
     };
 
     loadData();
-  }, [selectedPeriod, isAuthenticated]);
+  }, [company?.id, selectedCompanyId, selectedPeriod, isAuthenticated, user?.role]);
 
   // Get the latest snapshot for the selected period
   const currentSnapshot = l4Data.find(snapshot => 

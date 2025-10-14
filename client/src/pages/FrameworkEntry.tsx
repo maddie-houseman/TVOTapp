@@ -69,22 +69,27 @@ export default function FrameworkEntry() {
 
   // ----- Actions -----
   async function saveL1() {
+    // Use the user's actual company ID for L1 operations
+    const targetCompanyId = user?.role === 'ADMIN' && selectedCompanyId ? selectedCompanyId : user?.companyId;
+    
+    if (!targetCompanyId) {
+      setErrorMessage('No company in context');
+      return;
+    }
+    
     setIsLoading(true);
     setErrorMessage('');
     setSuccessMessage('');
     
     try {
-      // Get the correct company ID that has data
-      const correctCompany = await api.getCorrectCompanyId();
-      
       await api.l1Upsert({
-        companyId: correctCompany.id,
+        companyId: targetCompanyId,
         period: full,
         department: dept,
         employees,
         budget,
       });
-      setSuccessMessage(`L1 Operational inputs saved successfully for ${correctCompany.name}!`);
+      setSuccessMessage('L1 Operational inputs saved successfully!');
       setCurrentStep(2);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Failed to save L1 data');
@@ -94,20 +99,25 @@ export default function FrameworkEntry() {
   }
 
   async function saveL2() {
+    // Use the user's actual company ID for L2 operations
+    const targetCompanyId = user?.role === 'ADMIN' && selectedCompanyId ? selectedCompanyId : user?.companyId;
+    
+    if (!targetCompanyId) {
+      setErrorMessage('No company in context');
+      return;
+    }
+    
     setIsLoading(true);
     setErrorMessage('');
     setSuccessMessage('');
 
     try {
-      // Get the correct company ID that has data
-      const correctCompany = await api.getCorrectCompanyId();
-      
       await Promise.all([
-        api.l2Upsert({ companyId: correctCompany.id, period: full, department: dept, tower: 'APP_DEV', weightPct: appDev }),
-        api.l2Upsert({ companyId: correctCompany.id, period: full, department: dept, tower: 'CLOUD', weightPct: cloud }),
-        api.l2Upsert({ companyId: correctCompany.id, period: full, department: dept, tower: 'END_USER', weightPct: endUser }),
+        api.l2Upsert({ companyId: targetCompanyId, period: full, department: dept, tower: 'APP_DEV', weightPct: appDev }),
+        api.l2Upsert({ companyId: targetCompanyId, period: full, department: dept, tower: 'CLOUD', weightPct: cloud }),
+        api.l2Upsert({ companyId: targetCompanyId, period: full, department: dept, tower: 'END_USER', weightPct: endUser }),
       ]);
-      setSuccessMessage(`L2 Allocation weights saved successfully for ${correctCompany.name}!`);
+      setSuccessMessage('L2 Allocation weights saved successfully!');
       setCurrentStep(3);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Failed to save L2 data');
@@ -117,19 +127,24 @@ export default function FrameworkEntry() {
   }
 
   async function saveL3() {
+    // Use the user's actual company ID for L3 operations
+    const targetCompanyId = user?.role === 'ADMIN' && selectedCompanyId ? selectedCompanyId : user?.companyId;
+    
+    if (!targetCompanyId) {
+      setErrorMessage('No company in context');
+      return;
+    }
+    
     setIsLoading(true);
     setErrorMessage('');
     setSuccessMessage('');
 
     try {
-      // Get the correct company ID that has data
-      const correctCompany = await api.getCorrectCompanyId();
-      
       await Promise.all([
-        api.l3Upsert({ companyId: correctCompany.id, period: full, category: 'PRODUCTIVITY', weightPct: prod }),
-        api.l3Upsert({ companyId: correctCompany.id, period: full, category: 'REVENUE_UPLIFT', weightPct: rev }),
+        api.l3Upsert({ companyId: targetCompanyId, period: full, category: 'PRODUCTIVITY', weightPct: prod }),
+        api.l3Upsert({ companyId: targetCompanyId, period: full, category: 'REVENUE_UPLIFT', weightPct: rev }),
       ]);
-      setSuccessMessage(`L3 Benefit weights saved successfully for ${correctCompany.name}!`);
+      setSuccessMessage('L3 Benefit weights saved successfully!');
       setCurrentStep(4);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Failed to save L3 data');
