@@ -52,13 +52,6 @@ function createPrismaClient() {
         url: databaseUrl,
       },
     },
-    // Add connection pool settings to prevent connection drops
-    __internal: {
-      engine: {
-        connectTimeout: 30000, // 30 seconds
-        queryTimeout: 30000,   // 30 seconds
-      },
-    },
   });
 }
 
