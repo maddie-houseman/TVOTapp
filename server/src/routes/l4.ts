@@ -73,6 +73,21 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
     await prisma.$connect();
     await prisma.$queryRaw`SELECT 1 as test`;
 
+    // Ensure company exists (create if it doesn't)
+    let company = await prisma.company.findUnique({
+      where: { id: companyId }
+    });
+    
+    if (!company) {
+      company = await prisma.company.create({
+        data: {
+          id: companyId,
+          name: companyId,
+          domain: `${companyId}.com`
+        }
+      });
+    }
+
     // Fetch data with simple queries
     const l1Data = await prisma.l1OperationalInput.findMany({
       where: { 
@@ -125,7 +140,8 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
         createdAt: snapshot.createdAt
       },
       duration: totalDuration,
-      requestId
+      requestId,
+      dataCount: l4Metrics.dataCount
     });
 
   } catch (error) {
