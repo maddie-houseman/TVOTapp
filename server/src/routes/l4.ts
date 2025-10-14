@@ -71,9 +71,10 @@ function calculateL4Metrics(l1Data: any[], l2Data: any[], l3Data: any[], assumpt
 const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res) => {
   const requestId = randomUUID();
   const startTime = Date.now();
-
+  
   try {
     const { companyId, period, assumptions } = req.body;
+    console.log(`[L4-SNAPSHOT-${requestId}] START - Request received at ${new Date().toISOString()}`);
     
     // Validate input
     if (!companyId || !period || !assumptions) {
@@ -84,17 +85,23 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
 
     // Normalize period
     const normalizedPeriod = toPeriod(period);
-
+    console.log(`[L4-SNAPSHOT-${requestId}] STEP 1 - Period normalized: ${normalizedPeriod} (${Date.now() - startTime}ms)`);
+    
     // Test database connection
+    const dbStart = Date.now();
     await prisma.$connect();
     await prisma.$queryRaw`SELECT 1 as test`;
+    console.log(`[L4-SNAPSHOT-${requestId}] STEP 2 - Database connection test completed (${Date.now() - dbStart}ms)`);
 
     // Ensure company exists (create if it doesn't)
+    const companyStart = Date.now();
     let company = await prisma.company.findUnique({
       where: { id: companyId }
     });
+    console.log(`[L4-SNAPSHOT-${requestId}] STEP 3A - Company lookup completed (${Date.now() - companyStart}ms)`);
     
     if (!company) {
+      const createStart = Date.now();
       company = await prisma.company.create({
         data: {
           id: companyId,
@@ -102,50 +109,63 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
           domain: `${companyId}.com`
         }
       });
+      console.log(`[L4-SNAPSHOT-${requestId}] STEP 3B - Company created (${Date.now() - createStart}ms)`);
     }
 
-    // Fetch data with simple queries
-    console.log(`[L4-SNAPSHOT-${requestId}] Fetching data for companyId: ${companyId}, period: ${normalizedPeriod}`);
-    
+    // Fetch L1 data
+    const l1Start = Date.now();
+    console.log(`[L4-SNAPSHOT-${requestId}] STEP 4 - Starting L1 query...`);
     const l1Data = await prisma.l1OperationalInput.findMany({
-            where: { 
-              companyId, 
-              period: new Date(normalizedPeriod)
-            }
-          });
-    console.log(`[L4-SNAPSHOT-${requestId}] L1 data found: ${l1Data.length} records`);
+      where: { 
+        companyId, 
+        period: new Date(normalizedPeriod)
+      }
+    });
+    console.log(`[L4-SNAPSHOT-${requestId}] STEP 4 - L1 query completed: ${l1Data.length} records (${Date.now() - l1Start}ms)`);
     
+    // Fetch L2 data
+    const l2Start = Date.now();
+    console.log(`[L4-SNAPSHOT-${requestId}] STEP 5 - Starting L2 query...`);
     const l2Data = await prisma.l2AllocationWeight.findMany({
-            where: { 
-              companyId, 
-              period: new Date(normalizedPeriod)
-            }
-          });
-    console.log(`[L4-SNAPSHOT-${requestId}] L2 data found: ${l2Data.length} records`);
+      where: { 
+        companyId, 
+        period: new Date(normalizedPeriod)
+      }
+    });
+    console.log(`[L4-SNAPSHOT-${requestId}] STEP 5 - L2 query completed: ${l2Data.length} records (${Date.now() - l2Start}ms)`);
     
+    // Fetch L3 data
+    const l3Start = Date.now();
+    console.log(`[L4-SNAPSHOT-${requestId}] STEP 6 - Starting L3 query...`);
     const l3Data = await prisma.l3BenefitWeight.findMany({
-            where: { 
-              companyId, 
-              period: new Date(normalizedPeriod)
-            }
-          });
-    console.log(`[L4-SNAPSHOT-${requestId}] L3 data found: ${l3Data.length} records`);
+      where: { 
+        companyId, 
+        period: new Date(normalizedPeriod)
+      }
+    });
+    console.log(`[L4-SNAPSHOT-${requestId}] STEP 6 - L3 query completed: ${l3Data.length} records (${Date.now() - l3Start}ms)`);
 
     // Calculate L4 metrics
+    const calcStart = Date.now();
+    console.log(`[L4-SNAPSHOT-${requestId}] STEP 7 - Starting calculation...`);
     const l4Metrics = calculateL4Metrics(l1Data, l2Data, l3Data, assumptions);
+    console.log(`[L4-SNAPSHOT-${requestId}] STEP 7 - Calculation completed (${Date.now() - calcStart}ms)`);
 
     // Save snapshot (handle duplicates by finding existing first)
-    console.log(`[L4-SNAPSHOT-${requestId}] Checking for existing snapshot...`);
+    const saveStart = Date.now();
+    console.log(`[L4-SNAPSHOT-${requestId}] STEP 8 - Checking for existing snapshot...`);
     const existingSnapshot = await prisma.l4RoiSnapshot.findFirst({
       where: {
         companyId,
         period: new Date(normalizedPeriod)
       }
     });
+    console.log(`[L4-SNAPSHOT-${requestId}] STEP 8A - Snapshot lookup completed (${Date.now() - saveStart}ms)`);
     
     let snapshot;
     if (existingSnapshot) {
-      console.log(`[L4-SNAPSHOT-${requestId}] Updating existing snapshot: ${existingSnapshot.id}`);
+      const updateStart = Date.now();
+      console.log(`[L4-SNAPSHOT-${requestId}] STEP 8B - Updating existing snapshot: ${existingSnapshot.id}`);
       snapshot = await prisma.l4RoiSnapshot.update({
         where: { id: existingSnapshot.id },
         data: {
@@ -155,8 +175,10 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
           roiPct: l4Metrics.roi
         }
       });
+      console.log(`[L4-SNAPSHOT-${requestId}] STEP 8B - Snapshot updated (${Date.now() - updateStart}ms)`);
     } else {
-      console.log(`[L4-SNAPSHOT-${requestId}] Creating new snapshot...`);
+      const createStart = Date.now();
+      console.log(`[L4-SNAPSHOT-${requestId}] STEP 8C - Creating new snapshot...`);
       snapshot = await prisma.l4RoiSnapshot.create({
         data: {
           companyId,
@@ -167,22 +189,23 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
           roiPct: l4Metrics.roi
         }
       });
+      console.log(`[L4-SNAPSHOT-${requestId}] STEP 8C - Snapshot created (${Date.now() - createStart}ms)`);
     }
-    console.log(`[L4-SNAPSHOT-${requestId}] Snapshot saved: ${snapshot.id}`);
 
     const totalDuration = Date.now() - startTime;
+    console.log(`[L4-SNAPSHOT-${requestId}] COMPLETE - Total duration: ${totalDuration}ms`);
 
     res.json({
       success: true,
       snapshot: {
-      id: snapshot.id,
-      companyId: snapshot.companyId,
-      period: snapshot.period,
+        id: snapshot.id,
+        companyId: snapshot.companyId,
+        period: snapshot.period,
         assumptions: snapshot.assumptions ? JSON.parse(snapshot.assumptions) : null,
-      totalCost: snapshot.totalCost,
-      totalBenefit: snapshot.totalBenefit,
-      roiPct: snapshot.roiPct,
-      createdAt: snapshot.createdAt
+        totalCost: snapshot.totalCost,
+        totalBenefit: snapshot.totalBenefit,
+        roiPct: snapshot.roiPct,
+        createdAt: snapshot.createdAt
       },
       duration: totalDuration,
       requestId,
@@ -191,7 +214,7 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
 
   } catch (error) {
     const totalDuration = Date.now() - startTime;
-    console.error(`[L4-SNAPSHOT-${requestId}] Error:`, error);
+    console.error(`[L4-SNAPSHOT-${requestId}] ERROR after ${totalDuration}ms:`, error);
     
     res.status(500).json({
       error: error instanceof Error ? error.message : 'Internal server error',
@@ -672,28 +695,37 @@ r.post('/calculate-simple', auth, async (req: Request, res: Response) => {
   
   try {
     const { companyId, period, assumptions } = req.body;
-    console.log(`[SIMPLE-${requestId}] Starting simple calculation`);
+    console.log(`[SIMPLE-${requestId}] START - Request received at ${new Date().toISOString()}`);
     
     // Normalize period
     const normalizedPeriod = toPeriod(period);
-    console.log(`[SIMPLE-${requestId}] Using period: ${normalizedPeriod}`);
+    console.log(`[SIMPLE-${requestId}] STEP 1 - Period normalized: ${normalizedPeriod} (${Date.now() - startTime}ms)`);
     
     // Ensure company exists
+    const companyStart = Date.now();
     let company = await prisma.company.findUnique({ where: { id: companyId } });
+    console.log(`[SIMPLE-${requestId}] STEP 2A - Company lookup completed (${Date.now() - companyStart}ms)`);
+    
     if (!company) {
+      const createStart = Date.now();
       company = await prisma.company.create({
         data: { id: companyId, name: companyId, domain: `${companyId}.com` }
       });
+      console.log(`[SIMPLE-${requestId}] STEP 2B - Company created (${Date.now() - createStart}ms)`);
     }
     console.log(`[SIMPLE-${requestId}] Company ready: ${company.id}`);
     
     // Get L1 data (budget/employees)
+    const l1Start = Date.now();
+    console.log(`[SIMPLE-${requestId}] STEP 3 - Starting L1 query...`);
     const l1Data = await prisma.l1OperationalInput.findMany({
       where: { companyId, period: new Date(normalizedPeriod) }
     });
-    console.log(`[SIMPLE-${requestId}] L1 records: ${l1Data.length}`);
+    console.log(`[SIMPLE-${requestId}] STEP 3 - L1 query completed: ${l1Data.length} records (${Date.now() - l1Start}ms)`);
     
     // Simple calculation
+    const calcStart = Date.now();
+    console.log(`[SIMPLE-${requestId}] STEP 4 - Starting calculation...`);
     const totalBudget = l1Data.reduce((sum, item) => sum + Number(item.budget || 0), 0);
     const totalEmployees = l1Data.reduce((sum, item) => sum + Number(item.employees || 0), 0);
     
@@ -701,12 +733,14 @@ r.post('/calculate-simple', auth, async (req: Request, res: Response) => {
     const revenue = totalBudget > 0 ? totalBudget : (assumptions.revenueUplift || 100000);
     const costs = totalBudget > 0 ? totalBudget * 0.8 : 80000; // Assume 80% cost ratio
     const roi = costs > 0 ? ((revenue - costs) / costs) * 100 : 0;
-    
-    console.log(`[SIMPLE-${requestId}] Calculated: Revenue=${revenue}, Costs=${costs}, ROI=${roi}%`);
+    console.log(`[SIMPLE-${requestId}] STEP 4 - Calculation completed: Revenue=${revenue}, Costs=${costs}, ROI=${roi}% (${Date.now() - calcStart}ms)`);
     
     // Save result (handle duplicates)
+    const saveStart = Date.now();
+    console.log(`[SIMPLE-${requestId}] STEP 5 - Starting snapshot save...`);
     let result;
     try {
+      const createStart = Date.now();
       result = await prisma.l4RoiSnapshot.create({
         data: {
           companyId,
@@ -717,15 +751,19 @@ r.post('/calculate-simple', auth, async (req: Request, res: Response) => {
           roiPct: roi
         }
       });
-      console.log(`[SIMPLE-${requestId}] Created new snapshot: ${result.id}`);
+      console.log(`[SIMPLE-${requestId}] STEP 5A - Snapshot created: ${result.id} (${Date.now() - createStart}ms)`);
     } catch (error: any) {
       if (error.code === 'P2002') { // Unique constraint violation
-        console.log(`[SIMPLE-${requestId}] Snapshot exists, updating instead...`);
+        console.log(`[SIMPLE-${requestId}] STEP 5B - Snapshot exists, updating instead...`);
         // Find existing snapshot and update it
+        const findStart = Date.now();
         const existing = await prisma.l4RoiSnapshot.findFirst({
           where: { companyId, period: new Date(normalizedPeriod) }
         });
+        console.log(`[SIMPLE-${requestId}] STEP 5B1 - Existing snapshot found (${Date.now() - findStart}ms)`);
+        
         if (existing) {
+          const updateStart = Date.now();
           result = await prisma.l4RoiSnapshot.update({
             where: { id: existing.id },
             data: {
@@ -735,7 +773,7 @@ r.post('/calculate-simple', auth, async (req: Request, res: Response) => {
               roiPct: roi
             }
           });
-          console.log(`[SIMPLE-${requestId}] Updated existing snapshot: ${result.id}`);
+          console.log(`[SIMPLE-${requestId}] STEP 5B2 - Snapshot updated: ${result.id} (${Date.now() - updateStart}ms)`);
         } else {
           throw error; // Re-throw if we can't find the existing record
         }
@@ -743,9 +781,10 @@ r.post('/calculate-simple', auth, async (req: Request, res: Response) => {
         throw error; // Re-throw other errors
       }
     }
+    console.log(`[SIMPLE-${requestId}] STEP 5 - Snapshot save completed (${Date.now() - saveStart}ms)`);
     
     const duration = Date.now() - startTime;
-    console.log(`[SIMPLE-${requestId}] Completed in ${duration}ms`);
+    console.log(`[SIMPLE-${requestId}] COMPLETE - Total duration: ${duration}ms`);
     
     res.json({
       success: true,
@@ -762,12 +801,38 @@ r.post('/calculate-simple', auth, async (req: Request, res: Response) => {
     
   } catch (error) {
     const duration = Date.now() - startTime;
-    console.error(`[SIMPLE-${requestId}] Error after ${duration}ms:`, error);
+    console.error(`[SIMPLE-${requestId}] ERROR after ${duration}ms:`, error);
     
     res.status(500).json({
       error: error instanceof Error ? error.message : String(error),
       duration,
       requestId
+    });
+  }
+});
+
+/** ===== Ultra-simple test endpoint ===== */
+r.post('/test-ultra-simple', async (req: Request, res: Response) => {
+  const startTime = Date.now();
+  
+  try {
+    console.log('Ultra-simple test starting...');
+    
+    // Just return a simple response without any database operations
+    const duration = Date.now() - startTime;
+    
+    res.json({
+      success: true,
+      message: 'Ultra-simple test completed',
+      duration,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    res.status(500).json({
+      error: error instanceof Error ? error.message : String(error),
+      duration
     });
   }
 });
