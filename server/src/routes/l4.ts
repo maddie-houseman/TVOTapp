@@ -665,6 +665,85 @@ r.post('/snapshot-minimal', async (req: Request, res: Response) => {
   }
 });
 
+/** ===== Simple L4 calculation endpoint ===== */
+r.post('/calculate-simple', auth, async (req: Request, res: Response) => {
+  const requestId = randomUUID();
+  const startTime = Date.now();
+  
+  try {
+    const { companyId, period, assumptions } = req.body;
+    console.log(`[SIMPLE-${requestId}] Starting simple calculation`);
+    
+    // Normalize period
+    const normalizedPeriod = toPeriod(period);
+    console.log(`[SIMPLE-${requestId}] Using period: ${normalizedPeriod}`);
+    
+    // Ensure company exists
+    let company = await prisma.company.findUnique({ where: { id: companyId } });
+    if (!company) {
+      company = await prisma.company.create({
+        data: { id: companyId, name: companyId, domain: `${companyId}.com` }
+      });
+    }
+    console.log(`[SIMPLE-${requestId}] Company ready: ${company.id}`);
+    
+    // Get L1 data (budget/employees)
+    const l1Data = await prisma.l1OperationalInput.findMany({
+      where: { companyId, period: new Date(normalizedPeriod) }
+    });
+    console.log(`[SIMPLE-${requestId}] L1 records: ${l1Data.length}`);
+    
+    // Simple calculation
+    const totalBudget = l1Data.reduce((sum, item) => sum + Number(item.budget || 0), 0);
+    const totalEmployees = l1Data.reduce((sum, item) => sum + Number(item.employees || 0), 0);
+    
+    // Use assumptions if no data
+    const revenue = totalBudget > 0 ? totalBudget : (assumptions.revenueUplift || 100000);
+    const costs = totalBudget > 0 ? totalBudget * 0.8 : 80000; // Assume 80% cost ratio
+    const roi = costs > 0 ? ((revenue - costs) / costs) * 100 : 0;
+    
+    console.log(`[SIMPLE-${requestId}] Calculated: Revenue=${revenue}, Costs=${costs}, ROI=${roi}%`);
+    
+    // Save result
+    const result = await prisma.l4RoiSnapshot.create({
+      data: {
+        companyId,
+        period: new Date(normalizedPeriod),
+        assumptions: JSON.stringify(assumptions),
+        totalCost: costs,
+        totalBenefit: revenue,
+        roiPct: roi
+      }
+    });
+    
+    const duration = Date.now() - startTime;
+    console.log(`[SIMPLE-${requestId}] Completed in ${duration}ms`);
+    
+    res.json({
+      success: true,
+      result: {
+        id: result.id,
+        totalCost: costs,
+        totalBenefit: revenue,
+        roiPct: roi,
+        dataCount: l1Data.length
+      },
+      duration,
+      requestId
+    });
+    
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    console.error(`[SIMPLE-${requestId}] Error after ${duration}ms:`, error);
+    
+    res.status(500).json({
+      error: error instanceof Error ? error.message : String(error),
+      duration,
+      requestId
+    });
+  }
+});
+
 /** ===== Routes ===== */
 r.post('/snapshot', auth, postSnapshot);
 r.get('/snapshots/:companyId', auth, getSnapshots);
