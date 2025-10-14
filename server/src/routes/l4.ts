@@ -108,35 +108,47 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
     console.log(`[L4-SNAPSHOT-${requestId}] Fetching data for companyId: ${companyId}, period: ${normalizedPeriod}`);
     
     const l1Data = await prisma.l1OperationalInput.findMany({
-      where: { 
-        companyId, 
-        period: new Date(normalizedPeriod)
-      }
-    });
+            where: { 
+              companyId, 
+              period: new Date(normalizedPeriod)
+            }
+          });
     console.log(`[L4-SNAPSHOT-${requestId}] L1 data found: ${l1Data.length} records`);
     
     const l2Data = await prisma.l2AllocationWeight.findMany({
-      where: { 
-        companyId, 
-        period: new Date(normalizedPeriod)
-      }
-    });
+            where: { 
+              companyId, 
+              period: new Date(normalizedPeriod)
+            }
+          });
     console.log(`[L4-SNAPSHOT-${requestId}] L2 data found: ${l2Data.length} records`);
     
     const l3Data = await prisma.l3BenefitWeight.findMany({
-      where: { 
-        companyId, 
-        period: new Date(normalizedPeriod)
-      }
-    });
+            where: { 
+              companyId, 
+              period: new Date(normalizedPeriod)
+            }
+          });
     console.log(`[L4-SNAPSHOT-${requestId}] L3 data found: ${l3Data.length} records`);
 
     // Calculate L4 metrics
     const l4Metrics = calculateL4Metrics(l1Data, l2Data, l3Data, assumptions);
 
-    // Save snapshot
-    const snapshot = await prisma.l4RoiSnapshot.create({
-        data: {
+    // Save snapshot (upsert to handle duplicates)
+    const snapshot = await prisma.l4RoiSnapshot.upsert({
+      where: {
+        companyId_period: {
+          companyId,
+          period: new Date(normalizedPeriod)
+        }
+      },
+      update: {
+        assumptions: JSON.stringify(assumptions),
+        totalCost: l4Metrics.totalCosts,
+        totalBenefit: l4Metrics.totalRevenue,
+        roiPct: l4Metrics.roi
+      },
+      create: {
           companyId,
           period: new Date(normalizedPeriod),
         assumptions: JSON.stringify(assumptions),
