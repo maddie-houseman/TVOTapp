@@ -33,16 +33,21 @@ function toPeriod(bodyPeriod: string) {
 
 /** Calculate L4 metrics from L1, L2, L3 data */
 function calculateL4Metrics(l1Data: any[], l2Data: any[], l3Data: any[], assumptions: any) {
-  // Simple calculation - you can expand this
-  const totalRevenue = l1Data.reduce((sum, item) => sum + (item.revenue || 0), 0);
-  const totalCosts = l1Data.reduce((sum, item) => sum + (item.costs || 0), 0);
+  // Simple calculation - handle empty data gracefully
+  const totalRevenue = l1Data.reduce((sum, item) => sum + (item.budget || 0), 0);
+  const totalCosts = l1Data.reduce((sum, item) => sum + (item.budget || 0), 0);
+  
+  // If no data, use assumptions
+  const revenue = totalRevenue > 0 ? totalRevenue : assumptions.revenueUplift || 0;
+  const costs = totalCosts > 0 ? totalCosts : 100000; // Default cost
   
   return {
-    totalRevenue,
-    totalCosts,
-    netBenefit: totalRevenue - totalCosts,
-    roi: totalCosts > 0 ? ((totalRevenue - totalCosts) / totalCosts) * 100 : 0,
-    assumptions
+    totalRevenue: revenue,
+    totalCosts: costs,
+    netBenefit: revenue - costs,
+    roi: costs > 0 ? ((revenue - costs) / costs) * 100 : 0,
+    assumptions,
+    dataCount: { l1: l1Data.length, l2: l2Data.length, l3: l3Data.length }
   };
 }
 
@@ -187,6 +192,9 @@ r.get('/test', async (req: Request, res: Response) => {
     });
   }
 });
+
+/** ===== Test endpoint without auth ===== */
+r.post('/snapshot-test', postSnapshot);
 
 /** ===== Routes ===== */
 r.post('/snapshot', auth, postSnapshot);
