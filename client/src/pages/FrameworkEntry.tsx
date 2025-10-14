@@ -154,16 +154,21 @@ export default function FrameworkEntry() {
   }
 
   async function computeAndSave() {
+    // Use the user's actual company ID for L4 computation (same as L1, L2, L3)
+    const targetCompanyId = user?.role === 'ADMIN' && selectedCompanyId ? selectedCompanyId : user?.companyId;
+    
+    if (!targetCompanyId) {
+      setErrorMessage('No company in context');
+      return;
+    }
+
     setIsLoading(true);
     setErrorMessage('');
     setSuccessMessage('');
 
     try {
-      // Get the correct company ID that has data
-      const correctCompany = await api.getCorrectCompanyId();
-      
       await api.snapshot({
-        companyId: correctCompany.id,
+        companyId: targetCompanyId,
         period: full,
         assumptions: {
           revenueUplift: uplift,
@@ -171,7 +176,7 @@ export default function FrameworkEntry() {
           avgLoadedRate: rate,
         },
       });
-      setSuccessMessage(`ROI snapshot computed and saved successfully for ${correctCompany.name}! Framework setup complete.`);
+      setSuccessMessage('ROI snapshot computed and saved successfully! Framework setup complete.');
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Failed to compute snapshot');
     } finally {

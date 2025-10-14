@@ -66,15 +66,8 @@ export default function Dashboard() {
           api.l2Get(targetCompanyId, selectedPeriod)
         ]);
 
-        // For L4 snapshots, try to get from the correct company that has data
-        let l4: any[] = [];
-        try {
-          const correctCompany = await api.getCorrectCompanyId();
-          l4 = await api.snapshots(correctCompany.id);
-        } catch (error) {
-          // If that fails, try user's company
-          l4 = await api.snapshots(targetCompanyId);
-        }
+        // Load L4 snapshots from user's company
+        const l4 = await api.snapshots(targetCompanyId);
 
         setL1Data(l1);
         setL2Data(l2);
