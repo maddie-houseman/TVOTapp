@@ -583,6 +583,64 @@ r.get('/test-steps', async (req: Request, res: Response) => {
 /** ===== Test endpoint without auth ===== */
 r.post('/snapshot-test', postSnapshot);
 
+/** ===== Minimal test endpoint ===== */
+r.post('/snapshot-minimal', async (req: Request, res: Response) => {
+  const requestId = randomUUID();
+  const startTime = Date.now();
+  
+  try {
+    console.log(`[MINIMAL-${requestId}] Starting minimal test`);
+    
+    const { companyId, period, assumptions } = req.body;
+    console.log(`[MINIMAL-${requestId}] Received: companyId=${companyId}, period=${period}`);
+    
+    // Test 1: Basic connection
+    console.log(`[MINIMAL-${requestId}] Testing database connection...`);
+    await prisma.$connect();
+    await prisma.$queryRaw`SELECT 1 as test`;
+    console.log(`[MINIMAL-${requestId}] Database connection OK`);
+    
+    // Test 2: Company check
+    console.log(`[MINIMAL-${requestId}] Checking company...`);
+    const company = await prisma.company.findUnique({ where: { id: companyId } });
+    console.log(`[MINIMAL-${requestId}] Company found: ${!!company}`);
+    
+    // Test 3: Simple snapshot creation
+    console.log(`[MINIMAL-${requestId}] Creating snapshot...`);
+    const snapshot = await prisma.l4RoiSnapshot.create({
+      data: {
+        companyId,
+        period: new Date(period),
+        assumptions: JSON.stringify(assumptions),
+        totalCost: 100000,
+        totalBenefit: 150000,
+        roiPct: 50.0
+      }
+    });
+    console.log(`[MINIMAL-${requestId}] Snapshot created: ${snapshot.id}`);
+    
+    const duration = Date.now() - startTime;
+    console.log(`[MINIMAL-${requestId}] Completed in ${duration}ms`);
+    
+    res.json({
+      success: true,
+      snapshotId: snapshot.id,
+      duration,
+      requestId
+    });
+    
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    console.error(`[MINIMAL-${requestId}] Error after ${duration}ms:`, error);
+    
+    res.status(500).json({
+      error: error instanceof Error ? error.message : String(error),
+      duration,
+      requestId
+    });
+  }
+});
+
 /** ===== Routes ===== */
 r.post('/snapshot', auth, postSnapshot);
 r.get('/snapshots/:companyId', auth, getSnapshots);
