@@ -209,6 +209,85 @@ r.get('/test', async (req: Request, res: Response) => {
   }
 });
 
+/** ===== Quick diagnostic test ===== */
+r.get('/test-quick', async (req: Request, res: Response) => {
+  const startTime = Date.now();
+  const results: any = {};
+  
+  try {
+    // Test 1: Basic connection
+    const connStart = Date.now();
+    await prisma.$connect();
+    await prisma.$queryRaw`SELECT 1 as test`;
+    results.connection = { duration: Date.now() - connStart, success: true };
+
+    // Test 2: Company query
+    const companyStart = Date.now();
+    const company = await prisma.company.findFirst();
+    results.companyQuery = { 
+      duration: Date.now() - companyStart, 
+      success: true, 
+      found: !!company,
+      companyId: company?.id 
+    };
+
+    // Test 3: L1 query (this might be the slow one)
+    const l1Start = Date.now();
+    const l1Count = await prisma.l1OperationalInput.count();
+    results.l1Query = { 
+      duration: Date.now() - l1Start, 
+      success: true, 
+      count: l1Count 
+    };
+
+    // Test 4: L2 query
+    const l2Start = Date.now();
+    const l2Count = await prisma.l2AllocationWeight.count();
+    results.l2Query = { 
+      duration: Date.now() - l2Start, 
+      success: true, 
+      count: l2Count 
+    };
+
+    // Test 5: L3 query
+    const l3Start = Date.now();
+    const l3Count = await prisma.l3BenefitWeight.count();
+    results.l3Query = { 
+      duration: Date.now() - l3Start, 
+      success: true, 
+      count: l3Count 
+    };
+
+    // Test 6: Snapshot query
+    const snapshotStart = Date.now();
+    const snapshotCount = await prisma.l4RoiSnapshot.count();
+    results.snapshotQuery = { 
+      duration: Date.now() - snapshotStart, 
+      success: true, 
+      count: snapshotCount 
+    };
+
+    const totalDuration = Date.now() - startTime;
+    
+    res.json({
+      success: true,
+      totalDuration,
+      results,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    const totalDuration = Date.now() - startTime;
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+      totalDuration,
+      results,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 /** ===== Step-by-step database test ===== */
 r.get('/test-steps', async (req: Request, res: Response) => {
   const requestId = randomUUID();
