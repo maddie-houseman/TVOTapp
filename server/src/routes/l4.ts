@@ -209,6 +209,61 @@ r.get('/test', async (req: Request, res: Response) => {
   }
 });
 
+/** ===== Get correct company ID ===== */
+r.get('/get-company-id', async (req: Request, res: Response) => {
+  try {
+    // Get the first company that has data
+    const company = await prisma.company.findFirst({
+      where: {
+        l1Inputs: {
+          some: {}
+        }
+      },
+      select: {
+        id: true,
+        name: true,
+        domain: true
+      }
+    });
+    
+    if (!company) {
+      // If no company with data, get any company
+      const anyCompany = await prisma.company.findFirst({
+        select: {
+          id: true,
+          name: true,
+          domain: true
+        }
+      });
+      
+      if (!anyCompany) {
+        return res.status(404).json({
+          success: false,
+          error: 'No companies found in database'
+        });
+      }
+      
+      return res.json({
+        success: true,
+        company: anyCompany,
+        message: 'Using any available company (no data found)'
+      });
+    }
+    
+    res.json({
+      success: true,
+      company,
+      message: 'Found company with data'
+    });
+    
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : String(error)
+    });
+  }
+});
+
 /** ===== Quick diagnostic test ===== */
 r.get('/test-quick', async (req: Request, res: Response) => {
   const startTime = Date.now();
