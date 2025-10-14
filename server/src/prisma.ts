@@ -16,7 +16,7 @@ function fixDatabaseUrl(url: string): string {
   // If it's a Railway URL, ensure proper SSL configuration
   if (url.includes('railway') || url.includes('rlwy.net')) {
     const cleanUrl = url.split('?')[0];
-    const fixedUrl = `${cleanUrl}?sslmode=require&connect_timeout=10`;
+    const fixedUrl = `${cleanUrl}?sslmode=require&connect_timeout=30&pool_timeout=30`;
     console.log('🔧 Fixed Railway DATABASE_URL:', `${fixedUrl.substring(0, 30)}...`);
     return fixedUrl;
   }
@@ -50,6 +50,13 @@ function createPrismaClient() {
     datasources: {
       db: {
         url: databaseUrl,
+      },
+    },
+    // Add connection pool settings to prevent connection drops
+    __internal: {
+      engine: {
+        connectTimeout: 30000, // 30 seconds
+        queryTimeout: 30000,   // 30 seconds
       },
     },
   });
