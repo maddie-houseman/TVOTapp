@@ -134,29 +134,41 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
     // Calculate L4 metrics
     const l4Metrics = calculateL4Metrics(l1Data, l2Data, l3Data, assumptions);
 
-    // Save snapshot (upsert to handle duplicates)
-    const snapshot = await prisma.l4RoiSnapshot.upsert({
+    // Save snapshot (handle duplicates by finding existing first)
+    console.log(`[L4-SNAPSHOT-${requestId}] Checking for existing snapshot...`);
+    const existingSnapshot = await prisma.l4RoiSnapshot.findFirst({
       where: {
-        companyId_period: {
-          companyId,
-          period: new Date(normalizedPeriod)
-        }
-      },
-      update: {
-        assumptions: JSON.stringify(assumptions),
-        totalCost: l4Metrics.totalCosts,
-        totalBenefit: l4Metrics.totalRevenue,
-        roiPct: l4Metrics.roi
-      },
-      create: {
-          companyId,
-          period: new Date(normalizedPeriod),
-        assumptions: JSON.stringify(assumptions),
-        totalCost: l4Metrics.totalCosts,
-        totalBenefit: l4Metrics.totalRevenue,
-        roiPct: l4Metrics.roi
+        companyId,
+        period: new Date(normalizedPeriod)
       }
     });
+    
+    let snapshot;
+    if (existingSnapshot) {
+      console.log(`[L4-SNAPSHOT-${requestId}] Updating existing snapshot: ${existingSnapshot.id}`);
+      snapshot = await prisma.l4RoiSnapshot.update({
+        where: { id: existingSnapshot.id },
+        data: {
+          assumptions: JSON.stringify(assumptions),
+          totalCost: l4Metrics.totalCosts,
+          totalBenefit: l4Metrics.totalRevenue,
+          roiPct: l4Metrics.roi
+        }
+      });
+    } else {
+      console.log(`[L4-SNAPSHOT-${requestId}] Creating new snapshot...`);
+      snapshot = await prisma.l4RoiSnapshot.create({
+        data: {
+          companyId,
+          period: new Date(normalizedPeriod),
+          assumptions: JSON.stringify(assumptions),
+          totalCost: l4Metrics.totalCosts,
+          totalBenefit: l4Metrics.totalRevenue,
+          roiPct: l4Metrics.roi
+        }
+      });
+    }
+    console.log(`[L4-SNAPSHOT-${requestId}] Snapshot saved: ${snapshot.id}`);
 
     const totalDuration = Date.now() - startTime;
 
