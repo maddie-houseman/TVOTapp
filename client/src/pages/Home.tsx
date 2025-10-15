@@ -8,7 +8,7 @@ export default function Home() {
   const frameworkLayers = [
     {
       title: 'L1 - Operational Inputs',
-      description: 'Capture current operational metrics including headcount, budget allocation, and baseline KPIs by department.',
+      description: 'Capture current operational metrics including headcount, budget allocation, for micheal.',
       icon: '📊',
       color: 'bg-blue-500',
       link: '/framework'
