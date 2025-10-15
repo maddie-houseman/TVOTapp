@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/useAuth';
 
 export default function Login() {
-    const [email, setEmail] = useState('admin@example.com');
-    const [password, setPassword] = useState('AdminPass123!');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [name, setName] = useState('');
     const [companyName, setCompanyName] = useState('');
     const [companyDomain, setCompanyDomain] = useState('');
@@ -18,7 +18,7 @@ export default function Login() {
         setErr('');
         try {
             if (isSignup) {
-                await signup(email, password, name, companyName || undefined, companyDomain || undefined);
+                await signup(email, password, name, companyName, companyDomain);
             } else {
                 await login(email, password);
             }
@@ -95,14 +95,15 @@ export default function Login() {
                             <>
                                 <div>
                                     <label htmlFor="company-name" className="sr-only">
-                                        Company Name (Optional)
+                                        Company Name
                                     </label>
                                     <input
                                         id="company-name"
                                         name="companyName"
                                         type="text"
+                                        required
                                         className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                        placeholder="Company Name (Optional)"
+                                        placeholder="Company Name"
                                         value={companyName}
                                         onChange={(e) => setCompanyName(e.target.value)}
                                     />

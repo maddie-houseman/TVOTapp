@@ -70,7 +70,6 @@ export default function Dashboard() {
         const l4Response = await api.snapshots(targetCompanyId);
         const l4 = l4Response.snapshots || [];
 
-        console.log('Dashboard data loaded:', { l1: l1.length, l2: l2.length, l4: l4.length, targetCompanyId, selectedPeriod });
         setL1Data(l1);
         setL2Data(l2);
         setL4Data(l4);
