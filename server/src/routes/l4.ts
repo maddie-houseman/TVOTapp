@@ -876,6 +876,80 @@ r.post('/test-db-only', async (req: Request, res: Response) => {
   }
 });
 
+/** ===== Simple calculation WITHOUT authentication ===== */
+r.post('/calculate-simple-no-auth', async (req: Request, res: Response) => {
+  const requestId = randomUUID();
+  const startTime = Date.now();
+  
+  try {
+    const { companyId, period, assumptions } = req.body;
+    console.log(`[SIMPLE-NO-AUTH-${requestId}] START - Request received at ${new Date().toISOString()}`);
+    
+    // Normalize period
+    const normalizedPeriod = toPeriod(period);
+    console.log(`[SIMPLE-NO-AUTH-${requestId}] STEP 1 - Period normalized: ${normalizedPeriod} (${Date.now() - startTime}ms)`);
+    
+    // Ensure company exists
+    const companyStart = Date.now();
+    let company = await prisma.company.findUnique({ where: { id: companyId } });
+    console.log(`[SIMPLE-NO-AUTH-${requestId}] STEP 2A - Company lookup completed (${Date.now() - companyStart}ms)`);
+    
+    if (!company) {
+      const createStart = Date.now();
+      company = await prisma.company.create({
+        data: { id: companyId, name: companyId, domain: `${companyId}.com` }
+      });
+      console.log(`[SIMPLE-NO-AUTH-${requestId}] STEP 2B - Company created (${Date.now() - createStart}ms)`);
+    }
+    console.log(`[SIMPLE-NO-AUTH-${requestId}] Company ready: ${company.id}`);
+    
+    // Get L1 data (budget/employees)
+    const l1Start = Date.now();
+    console.log(`[SIMPLE-NO-AUTH-${requestId}] STEP 3 - Starting L1 query...`);
+    const l1Data = await prisma.l1OperationalInput.findMany({
+      where: { companyId, period: new Date(normalizedPeriod) }
+    });
+    console.log(`[SIMPLE-NO-AUTH-${requestId}] STEP 3 - L1 query completed: ${l1Data.length} records (${Date.now() - l1Start}ms)`);
+    
+    // Simple calculation
+    const calcStart = Date.now();
+    console.log(`[SIMPLE-NO-AUTH-${requestId}] STEP 4 - Starting calculation...`);
+    const totalBudget = l1Data.reduce((sum, item) => sum + Number(item.budget || 0), 0);
+    const totalEmployees = l1Data.reduce((sum, item) => sum + Number(item.employees || 0), 0);
+    
+    // Use assumptions if no data
+    const revenue = totalBudget > 0 ? totalBudget : (assumptions.revenueUplift || 100000);
+    const costs = totalBudget > 0 ? totalBudget * 0.8 : 80000; // Assume 80% cost ratio
+    const roi = costs > 0 ? ((revenue - costs) / costs) * 100 : 0;
+    console.log(`[SIMPLE-NO-AUTH-${requestId}] STEP 4 - Calculation completed: Revenue=${revenue}, Costs=${costs}, ROI=${roi}% (${Date.now() - calcStart}ms)`);
+    
+    const duration = Date.now() - startTime;
+    console.log(`[SIMPLE-NO-AUTH-${requestId}] COMPLETE - Total duration: ${duration}ms`);
+    
+    res.json({
+      success: true,
+      result: {
+        totalCost: costs,
+        totalBenefit: revenue,
+        roiPct: roi,
+        dataCount: l1Data.length
+      },
+      duration,
+      requestId
+    });
+    
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    console.error(`[SIMPLE-NO-AUTH-${requestId}] ERROR after ${duration}ms:`, error);
+    
+    res.status(500).json({
+      error: error instanceof Error ? error.message : String(error),
+      duration,
+      requestId
+    });
+  }
+});
+
 /** ===== Routes ===== */
 r.post('/snapshot', auth, postSnapshot);
 r.get('/snapshots/:companyId', auth, getSnapshots);
