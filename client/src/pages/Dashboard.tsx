@@ -101,9 +101,19 @@ export default function Dashboard() {
         const l4 = l4Response.snapshots || [];
 
         setL1Data(l1);
-        setL2Data(l2);
+        
+        // Deduplicate L2 data by tower and department combination
+        const uniqueL2Data = l2.filter((tower, index, self) => 
+          index === self.findIndex(t => t.tower === tower.tower && t.department === tower.department)
+        );
+        setL2Data(uniqueL2Data);
+        
         setL4Data(l4);
-        setHasData(l1.length > 0 || l2.length > 0 || l4.length > 0);
+        setHasData(l1.length > 0 || uniqueL2Data.length > 0 || l4.length > 0);
+        
+        // Debug: Log L2 data to check for duplicates
+        console.log('Original L2 Data:', l2);
+        console.log('Deduplicated L2 Data:', uniqueL2Data);
         
         // Check if we have enough historical data for graphs (6+ consecutive months)
         const sortedSnapshots = l4.sort((a, b) => a.period.localeCompare(b.period));
@@ -257,6 +267,12 @@ export default function Dashboard() {
                 : company?.name || 'your company'
             }
           </p>
+          <p className="mt-1 text-sm text-gray-500">
+            Period: {new Date(parseInt(selectedYear), parseInt(selectedMonth) - 1).toLocaleDateString('en-US', { 
+              month: 'long', 
+              year: 'numeric' 
+            })}
+          </p>
           
           {/* Period Selector */}
           <div className="mt-4 flex items-center space-x-4">
@@ -348,7 +364,11 @@ export default function Dashboard() {
                   // Set exporting flag to prevent API calls during export
                   setIsExporting(true);
                   
-                  await exportElementToPdf(el, `dashboard-${selectedPeriod}.pdf`);
+                  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                                     'July', 'August', 'September', 'October', 'November', 'December'];
+                  const monthName = monthNames[parseInt(selectedMonth) - 1];
+                  const filename = `dashboard-${monthName}-${selectedYear}.pdf`;
+                  await exportElementToPdf(el, filename);
                 } catch (error) {
                   console.error('PDF export failed:', error);
                   alert(`PDF export failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please check the console for details.`);
