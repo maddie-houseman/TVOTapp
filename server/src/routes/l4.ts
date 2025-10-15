@@ -689,7 +689,7 @@ r.post('/snapshot-minimal', async (req: Request, res: Response) => {
 });
 
 /** ===== Simple L4 calculation endpoint ===== */
-r.post('/calculate-simple', auth, async (req: Request, res: Response) => {
+r.post('/calculate-simple', async (req: Request, res: Response) => {
   const requestId = randomUUID();
   const startTime = Date.now();
   
