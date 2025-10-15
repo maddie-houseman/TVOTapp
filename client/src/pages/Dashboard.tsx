@@ -32,6 +32,7 @@ export default function Dashboard() {
   // Admin company filtering
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>('');
   const [availableCompanies, setAvailableCompanies] = useState<{ id: string; name: string; domain: string }[]>([]);
+  const [loadingCompanies, setLoadingCompanies] = useState(false);
 
   // Real data state
   const [l1Data, setL1Data] = useState<L1Input[]>([]);
@@ -47,10 +48,29 @@ export default function Dashboard() {
 
   // Load companies for admin users
   useEffect(() => {
-    if (user?.role === 'ADMIN') {
-      api.getCompanies().then(setAvailableCompanies).catch(() => setAvailableCompanies([]));
+    console.log('Admin check - User role:', user?.role, 'Is authenticated:', isAuthenticated);
+    
+    if (user?.role === 'ADMIN' && isAuthenticated) {
+      console.log('Loading companies for admin user...');
+      setLoadingCompanies(true);
+      api.getCompanies()
+        .then(companies => {
+          console.log('Successfully loaded companies for admin:', companies);
+          setAvailableCompanies(companies);
+        })
+        .catch(error => {
+          console.error('Failed to load companies for admin:', error);
+          setAvailableCompanies([]);
+        })
+        .finally(() => {
+          setLoadingCompanies(false);
+        });
+    } else {
+      console.log('Not loading companies - User role:', user?.role, 'Is authenticated:', isAuthenticated);
+      setAvailableCompanies([]);
+      setLoadingCompanies(false);
     }
-  }, [user?.role]);
+  }, [user?.role, isAuthenticated]);
 
   // Load data when period or company changes
   useEffect(() => {
@@ -148,6 +168,15 @@ export default function Dashboard() {
             <p className="mt-1 text-sm text-gray-500">
               You can view data for any company in the system.
             </p>
+            <div className="mt-4 text-xs text-gray-400">
+              Debug: User role: {user?.role}, Loading: {loadingCompanies ? 'Yes' : 'No'}, Companies: {availableCompanies.length}
+            </div>
+            {loadingCompanies && (
+              <div className="mt-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="mt-2 text-sm text-gray-500">Loading companies...</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -250,18 +279,26 @@ export default function Dashboard() {
             {user?.role === 'ADMIN' && (
               <>
                 <label className="text-sm font-medium text-gray-700">Company:</label>
-                <select
-                  value={selectedCompanyId}
-                  onChange={(e) => setSelectedCompanyId(e.target.value)}
-                  className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select a Company</option>
-                  {availableCompanies.map((company) => (
-                    <option key={company.id} value={company.id}>
-                      {company.name}
-                    </option>
-                  ))}
-                </select>
+                {loadingCompanies ? (
+                  <div className="text-sm text-gray-500">Loading companies...</div>
+                ) : (
+                  <select
+                    value={selectedCompanyId}
+                    onChange={(e) => setSelectedCompanyId(e.target.value)}
+                    className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select a Company</option>
+                    {availableCompanies.map((company) => (
+                      <option key={company.id} value={company.id}>
+                        {company.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                {/* Debug info */}
+                <div className="text-xs text-gray-400">
+                  Debug: User role: {user?.role}, Loading: {loadingCompanies ? 'Yes' : 'No'}, Companies: {availableCompanies.length}
+                </div>
               </>
             )}
 
