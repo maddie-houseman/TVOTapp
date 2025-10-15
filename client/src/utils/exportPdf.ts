@@ -111,6 +111,44 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
     // Create a clone of the element to avoid iframe issues
     const clonedElement = target.cloneNode(true) as HTMLElement;
     
+    // Copy computed styles to the clone
+    const copyStyles = (original: HTMLElement, clone: HTMLElement) => {
+      const computedStyle = window.getComputedStyle(original);
+      const cloneStyle = clone.style;
+      
+      // Copy important styles
+      cloneStyle.width = computedStyle.width;
+      cloneStyle.height = computedStyle.height;
+      cloneStyle.backgroundColor = computedStyle.backgroundColor;
+      cloneStyle.color = computedStyle.color;
+      cloneStyle.fontFamily = computedStyle.fontFamily;
+      cloneStyle.fontSize = computedStyle.fontSize;
+      cloneStyle.fontWeight = computedStyle.fontWeight;
+      cloneStyle.padding = computedStyle.padding;
+      cloneStyle.margin = computedStyle.margin;
+      cloneStyle.border = computedStyle.border;
+      cloneStyle.borderRadius = computedStyle.borderRadius;
+      cloneStyle.display = computedStyle.display;
+      cloneStyle.flexDirection = computedStyle.flexDirection;
+      cloneStyle.justifyContent = computedStyle.justifyContent;
+      cloneStyle.alignItems = computedStyle.alignItems;
+      cloneStyle.gridTemplateColumns = computedStyle.gridTemplateColumns;
+      cloneStyle.gap = computedStyle.gap;
+      
+      // Process children
+      const originalChildren = Array.from(original.children);
+      const cloneChildren = Array.from(clone.children);
+      
+      originalChildren.forEach((originalChild, index) => {
+        const cloneChild = cloneChildren[index];
+        if (originalChild instanceof HTMLElement && cloneChild instanceof HTMLElement) {
+          copyStyles(originalChild, cloneChild);
+        }
+      });
+    };
+    
+    copyStyles(target, clonedElement);
+    
     // Remove all interactive elements from the clone
     const removeInteractiveElements = (element: HTMLElement) => {
       const interactiveSelectors = [
@@ -138,6 +176,7 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
     clonedElement.style.left = '-9999px';
     clonedElement.style.top = '-9999px';
     clonedElement.style.visibility = 'hidden';
+    clonedElement.style.zIndex = '-1';
     document.body.appendChild(clonedElement);
     
     let canvas: HTMLCanvasElement;
