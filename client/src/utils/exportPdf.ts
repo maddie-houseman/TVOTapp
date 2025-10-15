@@ -114,7 +114,7 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
       useCORS: true,
       allowTaint: true,
       logging: false,
-      ignoreElements: (element) => {
+      ignoreElements: (element: Element) => {
         // Skip elements with problematic CSS
         const style = window.getComputedStyle(element);
         return style.color?.includes('oklch') || 
