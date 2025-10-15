@@ -7,10 +7,10 @@ export default function Navigation() {
   const { isAuthenticated, company, user, logout } = useAuth();
 
   const navItems = [
-    { path: '/', label: 'Home', icon: '🏠' },
-    { path: '/framework', label: 'Framework Entry', icon: '📊' },
-    { path: '/dashboard', label: 'Dashboard', icon: '📈' },
-    { path: '/account', label: 'Account', icon: '👤' }
+    { path: '/', label: 'Home', icon: '🏠︎' },
+    { path: '/framework', label: 'Framework Entry', icon: '↗' },
+    { path: '/dashboard', label: 'Dashboard', icon: '☰' },
+    { path: '/account', label: 'Account', icon: '🗣' }
   ];
 
   return (
