@@ -163,20 +163,41 @@ export default function Dashboard() {
             </div>
             <h1 className="mt-6 text-3xl font-bold text-gray-900">Select a Company</h1>
             <p className="mt-2 text-lg text-gray-600">
-              As an admin, please select a company from the dropdown above to view its dashboard data.
+              As an admin, please select a company to view its dashboard data.
             </p>
             <p className="mt-1 text-sm text-gray-500">
               You can view data for any company in the system.
             </p>
+            
+            {/* Company Selector */}
+            <div className="mt-8 max-w-md mx-auto">
+              {loadingCompanies ? (
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="mt-2 text-sm text-gray-500">Loading companies...</p>
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Select Company:</label>
+                  <select
+                    value={selectedCompanyId}
+                    onChange={(e) => setSelectedCompanyId(e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Choose a company...</option>
+                    {availableCompanies.map((company) => (
+                      <option key={company.id} value={company.id}>
+                        {company.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+            
             <div className="mt-4 text-xs text-gray-400">
               Debug: User role: {user?.role}, Loading: {loadingCompanies ? 'Yes' : 'No'}, Companies: {availableCompanies.length}
             </div>
-            {loadingCompanies && (
-              <div className="mt-4">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-2 text-sm text-gray-500">Loading companies...</p>
-              </div>
-            )}
           </div>
         </div>
       </div>
