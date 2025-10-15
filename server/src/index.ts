@@ -301,6 +301,7 @@ app.listen(port, '0.0.0.0', () => {
     console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`📊 Health check: http://0.0.0.0:${port}/api/health`);
     console.log(`🔧 Database connection timeouts: 30s (Railway optimized)`);
+    console.log(`🚀 Deployment timestamp: ${new Date().toISOString()}`);
 });
     } catch (e) {
         console.error('Router load failed:', e);
