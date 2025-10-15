@@ -67,7 +67,8 @@ export default function Dashboard() {
         ]);
 
         // Load L4 snapshots from user's company
-        const l4 = await api.snapshots(targetCompanyId);
+        const l4Response = await api.snapshots(targetCompanyId);
+        const l4 = l4Response.snapshots || [];
 
         setL1Data(l1);
         setL2Data(l2);

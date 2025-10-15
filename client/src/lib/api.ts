@@ -233,8 +233,8 @@
         });
     },
 
-    async snapshots(companyId: string): Promise<L4Snapshot[]> {
-        return jsonFetch<L4Snapshot[]>(`/api/l4/snapshots/${companyId}`);
+    async snapshots(companyId: string): Promise<{ success: boolean; snapshots: L4Snapshot[] }> {
+        return jsonFetch<{ success: boolean; snapshots: L4Snapshot[] }>(`/api/l4/snapshots/${companyId}`);
     },
 
     // Get the correct company ID that has data
