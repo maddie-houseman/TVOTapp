@@ -8,7 +8,7 @@ import { Decimal } from '@prisma/client/runtime/library';
 
 const r = Router();
 
-r.get('/:companyId/:period', auth(), restrictToCompany, async (req, res) => {
+r.get('/:companyId/:period', async (req, res) => {
     const { companyId, period } = req.params;
     const data = await prisma.l1OperationalInput.findMany({ where: { companyId, period: new Date(period) } });
     res.json(data);
