@@ -102,9 +102,9 @@ export default function Dashboard() {
 
         setL1Data(l1);
         
-        // Deduplicate L2 data by tower and department combination
+        // Deduplicate L2 data by tower name only (since we want to show each tower once)
         const uniqueL2Data = l2.filter((tower, index, self) => 
-          index === self.findIndex(t => t.tower === tower.tower && t.department === tower.department)
+          index === self.findIndex(t => t.tower === tower.tower)
         );
         setL2Data(uniqueL2Data);
         
@@ -276,7 +276,6 @@ export default function Dashboard() {
           
           {/* Period Selector */}
           <div className="mt-4 flex items-center space-x-4">
-            <label className="text-sm font-medium text-gray-700">Year:</label>
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
@@ -292,7 +291,6 @@ export default function Dashboard() {
               })}
             </select>
             
-            <label className="text-sm font-medium text-gray-700">Month:</label>
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
