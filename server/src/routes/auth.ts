@@ -67,12 +67,17 @@ function resolveSecureFlag(req: Request): boolean {
         // Create company if provided, or find existing one
         let companyId: string | null = null;
         if (companyName) {
+        console.log(`[SIGNUP] Looking for company: "${companyName}"`);
+        
         // Check if company already exists
         let company = await prisma.company.findFirst({
             where: { name: companyName }
         });
         
-        if (!company) {
+        if (company) {
+            console.log(`[SIGNUP] Found existing company: ${company.id} - ${company.name}`);
+        } else {
+            console.log(`[SIGNUP] Company not found, creating new one: "${companyName}"`);
             // Create new company if it doesn't exist
             company = await prisma.company.create({
                 data: {
@@ -80,6 +85,7 @@ function resolveSecureFlag(req: Request): boolean {
                 domain: companyDomain || null,
                 },
             });
+            console.log(`[SIGNUP] Created new company: ${company.id} - ${company.name}`);
         }
         companyId = company.id;
         }
