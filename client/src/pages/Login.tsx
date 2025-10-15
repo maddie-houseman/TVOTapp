@@ -8,6 +8,8 @@ export default function Login() {
     const [name, setName] = useState('');
     const [companyName, setCompanyName] = useState('');
     const [companyDomain, setCompanyDomain] = useState('');
+    const [role, setRole] = useState<'EMPLOYEE' | 'ADMIN'>('EMPLOYEE');
+    const [adminPassword, setAdminPassword] = useState('');
     const [isSignup, setIsSignup] = useState(false);
     const [err, setErr] = useState('');
     const navigate = useNavigate();
@@ -16,9 +18,16 @@ export default function Login() {
     async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         setErr('');
+        
+        // Validate admin password if admin role is selected
+        if (isSignup && role === 'ADMIN' && adminPassword !== 'ADMINPASS') {
+            setErr('Invalid admin password. Please enter ADMINPASS to create an admin account.');
+            return;
+        }
+        
         try {
             if (isSignup) {
-                await signup(email, password, name, companyName, companyDomain);
+                await signup(email, password, name, companyName, companyDomain, role);
             } else {
                 await login(email, password);
             }
@@ -116,12 +125,44 @@ export default function Login() {
                                         id="company-domain"
                                         name="companyDomain"
                                         type="text"
-                                        className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                                        className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                                         placeholder="Company Domain (Optional)"
                                         value={companyDomain}
                                         onChange={(e) => setCompanyDomain(e.target.value)}
                                     />
                                 </div>
+                                <div>
+                                    <label htmlFor="role" className="sr-only">
+                                        Role
+                                    </label>
+                                    <select
+                                        id="role"
+                                        name="role"
+                                        className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                                        value={role}
+                                        onChange={(e) => setRole(e.target.value as 'EMPLOYEE' | 'ADMIN')}
+                                    >
+                                        <option value="EMPLOYEE">Employee</option>
+                                        <option value="ADMIN">Admin</option>
+                                    </select>
+                                </div>
+                                {role === 'ADMIN' && (
+                                    <div>
+                                        <label htmlFor="admin-password" className="sr-only">
+                                            Admin Password
+                                        </label>
+                                        <input
+                                            id="admin-password"
+                                            name="adminPassword"
+                                            type="password"
+                                            required
+                                            className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                                            placeholder="Admin Password (ADMINPASS)"
+                                            value={adminPassword}
+                                            onChange={(e) => setAdminPassword(e.target.value)}
+                                        />
+                                    </div>
+                                )}
                             </>
                         )}
                     </div>
@@ -152,6 +193,8 @@ export default function Login() {
                                 setName('');
                                 setCompanyName('');
                                 setCompanyDomain('');
+                                setRole('EMPLOYEE');
+                                setAdminPassword('');
                             }}
                             className="text-blue-600 hover:text-blue-500 text-sm font-medium"
                         >
