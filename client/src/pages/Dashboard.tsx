@@ -262,7 +262,7 @@ export default function Dashboard() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Total Budget</p>
                 <p className="text-2xl font-semibold text-gray-900">
-                  {formatCurrency(l1Data.reduce((sum, dept) => sum + dept.budget, 0))}
+                  {formatCurrency(l1Data.reduce((sum, dept) => sum + Number(dept.budget), 0))}
                 </p>
               </div>
             </div>
@@ -324,16 +324,16 @@ export default function Dashboard() {
             <h3 className="text-lg font-medium text-gray-900 mb-4">L1 - Department Budget Distribution</h3>
             {l1Data.length > 0 ? (
               <div className="space-y-4">
-                {mergeSort([...l1Data], (a, b) => b.budget - a.budget).map((dept, index) => (
+                {mergeSort([...l1Data], (a, b) => Number(b.budget) - Number(a.budget)).map((dept, index) => (
                   <div key={index} className="flex items-center justify-between">
                     <span className="text-sm font-medium text-gray-600">{dept.department}</span>
                     <div className="flex items-center space-x-4">
-                      <span className="text-sm text-gray-900">{formatCurrency(dept.budget)}</span>
+                      <span className="text-sm text-gray-900">{formatCurrency(Number(dept.budget))}</span>
                       <div className="w-32 bg-gray-200 rounded-full h-2">
                         <div
                           className="bg-blue-500 h-2 rounded-full"
                           style={{
-                            width: `${(dept.budget / Math.max(...l1Data.map(d => d.budget))) * 100}%`
+                            width: `${(Number(dept.budget) / Math.max(...l1Data.map(d => Number(d.budget)))) * 100}%`
                           }}
                         ></div>
                       </div>
