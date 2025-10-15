@@ -952,6 +952,6 @@ r.post('/calculate-simple-no-auth', async (req: Request, res: Response) => {
 
 /** ===== Routes ===== */
 r.post('/snapshot', auth, postSnapshot);
-r.get('/snapshots/:companyId', auth, getSnapshots);
+r.get('/snapshots/:companyId', getSnapshots);
 
 export default r;
