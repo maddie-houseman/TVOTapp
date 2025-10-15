@@ -178,7 +178,7 @@ export default function FrameworkEntry() {
         },
       });
       
-      setSuccessMessage(`ROI calculated successfully! Total Cost: $${result.totalCost.toLocaleString()}, Total Benefit: $${result.totalBenefit.toLocaleString()}, ROI: ${result.roiPct.toFixed(1)}%`);
+      setSuccessMessage(`ROI calculated successfully! Total Cost: $${result.result.totalCost.toLocaleString()}, Total Benefit: $${result.result.totalBenefit.toLocaleString()}, ROI: ${result.result.roiPct.toFixed(1)}%`);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Failed to compute ROI');
     } finally {
