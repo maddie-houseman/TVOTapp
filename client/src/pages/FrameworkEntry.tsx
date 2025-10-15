@@ -214,7 +214,7 @@ export default function FrameworkEntry() {
               <div key={step} className="flex items-center">
                 <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
                   step <= currentStep 
-                    ? 'bg-blue-600 border-blue-600 text-white' 
+                    ? 'bg-primary-600 border-primary-600 text-white' 
                     : 'bg-white border-gray-300 text-gray-500'
                 }`}>
                   {step}
@@ -227,7 +227,7 @@ export default function FrameworkEntry() {
                 </div>
                 {step < 4 && (
                   <div className={`w-16 h-0.5 mx-4 ${
-                    step < currentStep ? 'bg-blue-600' : 'bg-gray-300'
+                    step < currentStep ? 'bg-primary-600' : 'bg-gray-300'
                   }`} />
                 )}
               </div>
@@ -246,7 +246,7 @@ export default function FrameworkEntry() {
               type="month"
               value={period}
               onChange={(e) => setPeriod(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
           </div>
         </div>
@@ -263,7 +263,7 @@ export default function FrameworkEntry() {
               <select
                 value={selectedCompanyId}
                 onChange={(e) => setSelectedCompanyId(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 <option value="">Select a company...</option>
                 {availableCompanies.map((company) => (
@@ -303,7 +303,7 @@ export default function FrameworkEntry() {
                   <select
                     value={dept}
                     onChange={(e) => setDept(e.target.value as Department)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   >
                     {(['ENGINEERING', 'SALES', 'FINANCE', 'HR', 'MARKETING', 'OPERATIONS'] as Department[]).map(
                       (d) => (
@@ -322,7 +322,7 @@ export default function FrameworkEntry() {
                     min={0}
                     value={employees}
                     onChange={(e) => setEmployees(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
                 </div>
 
@@ -333,7 +333,7 @@ export default function FrameworkEntry() {
                     min={0}
                     value={budget}
                     onChange={(e) => setBudget(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
                 </div>
               </div>
@@ -342,7 +342,7 @@ export default function FrameworkEntry() {
                 <button
                   onClick={saveL1}
                   disabled={isLoading}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? 'Saving...' : 'Save L1 Data'}
                 </button>
@@ -366,7 +366,7 @@ export default function FrameworkEntry() {
                     max={1}
                     value={appDev}
                     onChange={(e) => setAppDev(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
                 </div>
                 <div>
@@ -378,7 +378,7 @@ export default function FrameworkEntry() {
                     max={1}
                     value={cloud}
                     onChange={(e) => setCloud(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
                 </div>
                 <div>
@@ -390,7 +390,7 @@ export default function FrameworkEntry() {
                     max={1}
                     value={endUser}
                     onChange={(e) => setEndUser(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
                 </div>
               </div>
@@ -419,7 +419,7 @@ export default function FrameworkEntry() {
                 <button
                   onClick={saveL2}
                   disabled={isLoading || Math.abs((appDev + cloud + endUser) - 1) >= 0.01}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? 'Saving...' : 'Save L2 Data'}
                 </button>
@@ -443,7 +443,7 @@ export default function FrameworkEntry() {
                     max={1}
                     value={prod}
                     onChange={(e) => setProd(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
                 </div>
                 <div>
@@ -455,7 +455,7 @@ export default function FrameworkEntry() {
                     max={1}
                     value={rev}
                     onChange={(e) => setRev(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
                 </div>
               </div>
@@ -484,7 +484,7 @@ export default function FrameworkEntry() {
                 <button
                   onClick={saveL3}
                   disabled={isLoading || Math.abs((prod + rev) - 1) >= 0.01}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? 'Saving...' : 'Save L3 Data'}
                 </button>
@@ -506,7 +506,7 @@ export default function FrameworkEntry() {
                     min={0}
                     value={uplift}
                     onChange={(e) => setUplift(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
                 </div>
                 <div>
@@ -516,7 +516,7 @@ export default function FrameworkEntry() {
                     min={0}
                     value={hours}
                     onChange={(e) => setHours(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
                 </div>
                 <div>
@@ -526,7 +526,7 @@ export default function FrameworkEntry() {
                     min={0}
                     value={rate}
                     onChange={(e) => setRate(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
                 </div>
               </div>

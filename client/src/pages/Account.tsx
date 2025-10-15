@@ -129,7 +129,7 @@ export default function Account() {
                 {!isEditingProfile && (
                   <button
                     onClick={handleProfileEdit}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-medium"
+                    className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 text-sm font-medium"
                   >
                     Edit Profile
                   </button>
@@ -144,7 +144,7 @@ export default function Account() {
                       type="text"
                       value={profileForm.name}
                       onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                     />
                   ) : (
                     <input
@@ -163,7 +163,7 @@ export default function Account() {
                       type="email"
                       value={profileForm.email}
                       onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                     />
                   ) : (
                     <input
@@ -207,7 +207,7 @@ export default function Account() {
                   <button
                     onClick={handleProfileSave}
                     disabled={isLoading}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                    className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                   >
                     {isLoading ? 'Saving...' : 'Save Changes'}
                   </button>
@@ -275,7 +275,7 @@ export default function Account() {
                         type="password"
                         value={passwordForm.currentPassword}
                         onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                       />
                     </div>
                     <div>
@@ -284,7 +284,7 @@ export default function Account() {
                         type="password"
                         value={passwordForm.newPassword}
                         onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                       />
                     </div>
                     <div className="md:col-span-2">
@@ -293,7 +293,7 @@ export default function Account() {
                         type="password"
                         value={passwordForm.confirmPassword}
                         onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                       />
                     </div>
                   </div>
