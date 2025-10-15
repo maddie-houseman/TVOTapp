@@ -106,14 +106,14 @@ export default function Home() {
 
       {/* Authentication Notice */}
       {!isAuthenticated && (
-        <div className="bg-blue-50 border-l-4 border-blue-400 p-4">
+        <div className="p-4" style={{ backgroundColor: 'var(--light-blue)', borderLeft: '4px solid var(--primary-teal)' }}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex">
               <div className="flex-shrink-0">
-                <span className="text-blue-400">ℹ️</span>
+                <span style={{ color: 'var(--primary-teal)' }}>ℹ️</span>
               </div>
               <div className="ml-3">
-                <p className="text-sm text-blue-700">
+                <p className="text-sm" style={{ color: 'var(--primary-navy)' }}>
                       <strong>Authentication Required:</strong>  
                       Please log in to access your TBM framework data.
                 </p>
@@ -124,27 +124,30 @@ export default function Home() {
       )}
 
       {/* Company Info */}
-      <div className="bg-gray-50 py-12">
+      <div className="py-12" style={{ backgroundColor: 'var(--light-grey)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Current Company</h3>
+          <div className="bg-white rounded-lg shadow p-6" style={{ border: '1px solid var(--light-blue)' }}>
+            <h3 className="text-lg font-medium mb-4" style={{ color: 'var(--dark-grey)' }}>Current Company</h3>
             {company ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Company Name</p>
-                  <p className="text-lg text-gray-900">{company.name}</p>
+                  <p className="text-sm font-medium" style={{ color: 'var(--medium-grey)' }}>Company Name</p>
+                  <p className="text-lg" style={{ color: 'var(--dark-grey)' }}>{company.name}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Domain</p>
-                  <p className="text-lg text-gray-900">{company.domain}</p>
+                  <p className="text-sm font-medium" style={{ color: 'var(--medium-grey)' }}>Domain</p>
+                  <p className="text-lg" style={{ color: 'var(--dark-grey)' }}>{company.domain}</p>
                 </div>
               </div>
             ) : (
               <div className="text-center py-8">
-                <p className="text-gray-500">Please log in to view company information</p>
+                <p style={{ color: 'var(--medium-grey)' }}>Please log in to view company information</p>
                 <Link
                   to="/login"
-                  className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                  className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white transition-colors"
+                  style={{ backgroundColor: 'var(--primary-blue)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--primary-navy)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--primary-blue)'}
                 >
                   Go to Login
                 </Link>
