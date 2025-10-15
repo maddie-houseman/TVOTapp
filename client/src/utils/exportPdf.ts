@@ -114,12 +114,20 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
       useCORS: true,
       allowTaint: true,
       logging: false,
+      foreignObjectRendering: false, // Disable iframe rendering to prevent issues
       ignoreElements: (element: Element) => {
-        // Skip elements with problematic CSS
+        // Skip elements with problematic CSS or interactive elements
         const style = window.getComputedStyle(element);
+        const tagName = element.tagName.toLowerCase();
+        
         return style.color?.includes('oklch') || 
                style.backgroundColor?.includes('oklch') ||
-               style.borderColor?.includes('oklch');
+               style.borderColor?.includes('oklch') ||
+               tagName === 'button' ||
+               tagName === 'input' ||
+               tagName === 'select' ||
+               element.hasAttribute('onclick') ||
+               element.hasAttribute('onchange');
       }
     });
     

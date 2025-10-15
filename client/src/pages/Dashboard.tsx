@@ -39,6 +39,7 @@ export default function Dashboard() {
   const [l4Data, setL4Data] = useState<L4Snapshot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasData, setHasData] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Load companies for admin users
   useEffect(() => {
@@ -49,6 +50,11 @@ export default function Dashboard() {
 
   // Load data when period or company changes
   useEffect(() => {
+    // Don't load data during PDF export to prevent API calls
+    if (isExporting) {
+      return;
+    }
+
     const loadData = async () => {
       // For admin users, use selected company; for regular users, use their own company
       const targetCompanyId = user?.role === 'ADMIN' && selectedCompanyId ? selectedCompanyId : company?.id;
@@ -83,7 +89,7 @@ export default function Dashboard() {
     };
 
     loadData();
-  }, [company?.id, selectedCompanyId, selectedPeriod, isAuthenticated, user?.role]);
+  }, [company?.id, selectedCompanyId, selectedPeriod, isAuthenticated, user?.role, isExporting]);
 
   // Get the latest snapshot for the selected period
   const currentSnapshot = l4Data.find(snapshot => 
@@ -225,10 +231,16 @@ export default function Dashboard() {
                     return;
                   }
                   
+                  // Set exporting flag to prevent API calls during export
+                  setIsExporting(true);
+                  
                   await exportElementToPdf(el, `dashboard-${selectedPeriod}.pdf`);
                 } catch (error) {
                   console.error('PDF export failed:', error);
                   alert(`PDF export failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please check the console for details.`);
+                } finally {
+                  // Clear exporting flag
+                  setIsExporting(false);
                 }
               }}
               className="ml-auto inline-flex items-center px-3 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
