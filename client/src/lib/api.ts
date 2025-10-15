@@ -247,8 +247,8 @@
         companyId: string;
         period: string;
         assumptions: SnapshotAssumptions;
-    }): Promise<{ id: string; totalCost: number; totalBenefit: number; roiPct: number; dataCount: number }> {
-        return jsonFetch<{ id: string; totalCost: number; totalBenefit: number; roiPct: number; dataCount: number }>(`/api/l4/calculate-simple`, {
+    }): Promise<{ success: boolean; result: { id: string; totalCost: number; totalBenefit: number; roiPct: number; dataCount: number }; duration: number; requestId: string }> {
+        return jsonFetch<{ success: boolean; result: { id: string; totalCost: number; totalBenefit: number; roiPct: number; dataCount: number }; duration: number; requestId: string }>(`/api/l4/calculate-simple`, {
             method: "POST",
             json: params,
             timeout: 10000, // 10 second timeout
