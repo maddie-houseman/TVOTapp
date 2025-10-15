@@ -8,13 +8,13 @@ export default function Navigation() {
 
   const navItems = [
     { path: '/', label: 'Home', icon: '🏠︎' },
-    { path: '/framework', label: 'Framework Entry', icon: '➞' },
-    { path: '/dashboard', label: 'Dashboard', icon: '☰' },
+    { path: '/framework', label: 'Framework Entry', icon: '☰' },
+    { path: '/dashboard', label: 'Dashboard', icon: '↗︎' },
     { path: '/account', label: 'Account', icon: '✶' }
   ];
 
   return (
-    <nav className="bg-white shadow-lg border-b border-slate-200" style={{ backgroundColor: 'var(--primary-navy)' }}>
+    <nav className="bg-white shadow-lg border-b border-slate-200" style={{ backgroundColor: 'var(--primary-blue)' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
