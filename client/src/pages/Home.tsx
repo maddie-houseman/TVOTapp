@@ -17,7 +17,7 @@ export default function Home() {
       title: 'L2 - Tower Allocation',
       description: 'Define resource distribution across TBM towers (App Dev, Cloud, End User, etc.) with percentage weights.',
       icon: '🏗️',
-      color: 'bg-green-500',
+      color: 'bg-cyan-500',
       link: '/framework'
     },
     {
@@ -31,7 +31,7 @@ export default function Home() {
       title: 'L4 - ROI Snapshots',
       description: 'Generate comprehensive ROI analysis with cost-benefit calculations and performance metrics.',
       icon: '📈',
-      color: 'bg-orange-500',
+      color: 'bg-sky-500',
       link: '/dashboard'
     }
   ];
