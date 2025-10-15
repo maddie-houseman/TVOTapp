@@ -107,29 +107,61 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
     preprocessElement(target);
 
     const { html2canvas, jsPDF } = await loadFromCdn();
-    // Render at higher scale for improved quality
-    const canvas = await html2canvas(target, { 
-      scale: 2, 
-      backgroundColor: '#ffffff',
-      useCORS: true,
-      allowTaint: true,
-      logging: false,
-      foreignObjectRendering: false, // Disable iframe rendering to prevent issues
-      ignoreElements: (element: Element) => {
-        // Skip elements with problematic CSS or interactive elements
-        const style = window.getComputedStyle(element);
-        const tagName = element.tagName.toLowerCase();
-        
-        return style.color?.includes('oklch') || 
-               style.backgroundColor?.includes('oklch') ||
-               style.borderColor?.includes('oklch') ||
-               tagName === 'button' ||
-               tagName === 'input' ||
-               tagName === 'select' ||
-               element.hasAttribute('onclick') ||
-               element.hasAttribute('onchange');
+    
+    // Create a clone of the element to avoid iframe issues
+    const clonedElement = target.cloneNode(true) as HTMLElement;
+    
+    // Remove all interactive elements from the clone
+    const removeInteractiveElements = (element: HTMLElement) => {
+      const interactiveSelectors = [
+        'button', 'input', 'select', 'textarea', 'a[href]',
+        '[onclick]', '[onchange]', '[onmouseover]', '[onmouseout]'
+      ];
+      
+      interactiveSelectors.forEach(selector => {
+        const elements = element.querySelectorAll(selector);
+        elements.forEach(el => el.remove());
+      });
+      
+      // Process children
+      Array.from(element.children).forEach(child => {
+        if (child instanceof HTMLElement) {
+          removeInteractiveElements(child);
+        }
+      });
+    };
+    
+    removeInteractiveElements(clonedElement);
+    
+    // Temporarily add the clone to the DOM (hidden)
+    clonedElement.style.position = 'absolute';
+    clonedElement.style.left = '-9999px';
+    clonedElement.style.top = '-9999px';
+    clonedElement.style.visibility = 'hidden';
+    document.body.appendChild(clonedElement);
+    
+    let canvas: HTMLCanvasElement;
+    try {
+      // Render the cloned element
+      canvas = await html2canvas(clonedElement, { 
+        scale: 2, 
+        backgroundColor: '#ffffff',
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+        foreignObjectRendering: false,
+        removeContainer: false
+      });
+      
+      // Remove the clone from DOM
+      document.body.removeChild(clonedElement);
+    } catch (error) {
+      // Clean up clone if error occurs
+      if (document.body.contains(clonedElement)) {
+        document.body.removeChild(clonedElement);
       }
-    });
+      throw error;
+    }
     
     // Create PDF with dimensions matching A4 portrait by default
     const pdf = new jsPDF({ orientation: 'p', unit: 'pt', format: 'a4' });
