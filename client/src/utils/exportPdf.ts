@@ -108,98 +108,36 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
 
     const { html2canvas, jsPDF } = await loadFromCdn();
     
-    // Create a clone of the element to avoid iframe issues
-    const clonedElement = target.cloneNode(true) as HTMLElement;
+    // Temporarily hide interactive elements to prevent issues
+    const interactiveElements = target.querySelectorAll('button, input, select, textarea, a[href], [onclick], [onchange]');
+    const originalStyles: string[] = [];
     
-    // Copy computed styles to the clone
-    const copyStyles = (original: HTMLElement, clone: HTMLElement) => {
-      const computedStyle = window.getComputedStyle(original);
-      const cloneStyle = clone.style;
-      
-      // Copy important styles
-      cloneStyle.width = computedStyle.width;
-      cloneStyle.height = computedStyle.height;
-      cloneStyle.backgroundColor = computedStyle.backgroundColor;
-      cloneStyle.color = computedStyle.color;
-      cloneStyle.fontFamily = computedStyle.fontFamily;
-      cloneStyle.fontSize = computedStyle.fontSize;
-      cloneStyle.fontWeight = computedStyle.fontWeight;
-      cloneStyle.padding = computedStyle.padding;
-      cloneStyle.margin = computedStyle.margin;
-      cloneStyle.border = computedStyle.border;
-      cloneStyle.borderRadius = computedStyle.borderRadius;
-      cloneStyle.display = computedStyle.display;
-      cloneStyle.flexDirection = computedStyle.flexDirection;
-      cloneStyle.justifyContent = computedStyle.justifyContent;
-      cloneStyle.alignItems = computedStyle.alignItems;
-      cloneStyle.gridTemplateColumns = computedStyle.gridTemplateColumns;
-      cloneStyle.gap = computedStyle.gap;
-      
-      // Process children
-      const originalChildren = Array.from(original.children);
-      const cloneChildren = Array.from(clone.children);
-      
-      originalChildren.forEach((originalChild, index) => {
-        const cloneChild = cloneChildren[index];
-        if (originalChild instanceof HTMLElement && cloneChild instanceof HTMLElement) {
-          copyStyles(originalChild, cloneChild);
-        }
-      });
-    };
-    
-    copyStyles(target, clonedElement);
-    
-    // Remove all interactive elements from the clone
-    const removeInteractiveElements = (element: HTMLElement) => {
-      const interactiveSelectors = [
-        'button', 'input', 'select', 'textarea', 'a[href]',
-        '[onclick]', '[onchange]', '[onmouseover]', '[onmouseout]'
-      ];
-      
-      interactiveSelectors.forEach(selector => {
-        const elements = element.querySelectorAll(selector);
-        elements.forEach(el => el.remove());
-      });
-      
-      // Process children
-      Array.from(element.children).forEach(child => {
-        if (child instanceof HTMLElement) {
-          removeInteractiveElements(child);
-        }
-      });
-    };
-    
-    removeInteractiveElements(clonedElement);
-    
-    // Temporarily add the clone to the DOM (hidden)
-    clonedElement.style.position = 'absolute';
-    clonedElement.style.left = '-9999px';
-    clonedElement.style.top = '-9999px';
-    clonedElement.style.visibility = 'hidden';
-    clonedElement.style.zIndex = '-1';
-    document.body.appendChild(clonedElement);
+    interactiveElements.forEach((element, index) => {
+      const htmlElement = element as HTMLElement;
+      originalStyles[index] = htmlElement.style.display;
+      htmlElement.style.display = 'none';
+    });
     
     let canvas: HTMLCanvasElement;
     try {
-      // Render the cloned element
-      canvas = await html2canvas(clonedElement, { 
+      // Render the original element directly
+      canvas = await html2canvas(target, { 
         scale: 2, 
         backgroundColor: '#ffffff',
         useCORS: true,
         allowTaint: true,
-        logging: false,
+        logging: true, // Enable logging to debug
         foreignObjectRendering: false,
-        removeContainer: false
+        removeContainer: false,
+        width: target.scrollWidth,
+        height: target.scrollHeight
       });
-      
-      // Remove the clone from DOM
-      document.body.removeChild(clonedElement);
-    } catch (error) {
-      // Clean up clone if error occurs
-      if (document.body.contains(clonedElement)) {
-        document.body.removeChild(clonedElement);
-      }
-      throw error;
+    } finally {
+      // Restore original styles for interactive elements
+      interactiveElements.forEach((element, index) => {
+        const htmlElement = element as HTMLElement;
+        htmlElement.style.display = originalStyles[index];
+      });
     }
     
     // Create PDF with dimensions matching A4 portrait by default
