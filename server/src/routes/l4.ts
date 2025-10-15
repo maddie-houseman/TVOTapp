@@ -71,7 +71,7 @@ function calculateL4Metrics(l1Data: any[], l2Data: any[], l3Data: any[], assumpt
 const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res) => {
   const requestId = randomUUID();
   const startTime = Date.now();
-  
+
   try {
     const { companyId, period, assumptions } = req.body;
     console.log(`[L4-SNAPSHOT-${requestId}] START - Request received at ${new Date().toISOString()}`);
@@ -116,33 +116,33 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
     const l1Start = Date.now();
     console.log(`[L4-SNAPSHOT-${requestId}] STEP 4 - Starting L1 query...`);
     const l1Data = await prisma.l1OperationalInput.findMany({
-      where: { 
-        companyId, 
-        period: new Date(normalizedPeriod)
-      }
-    });
+            where: { 
+              companyId, 
+              period: new Date(normalizedPeriod)
+            }
+          });
     console.log(`[L4-SNAPSHOT-${requestId}] STEP 4 - L1 query completed: ${l1Data.length} records (${Date.now() - l1Start}ms)`);
     
     // Fetch L2 data
     const l2Start = Date.now();
     console.log(`[L4-SNAPSHOT-${requestId}] STEP 5 - Starting L2 query...`);
     const l2Data = await prisma.l2AllocationWeight.findMany({
-      where: { 
-        companyId, 
-        period: new Date(normalizedPeriod)
-      }
-    });
+            where: { 
+              companyId, 
+              period: new Date(normalizedPeriod)
+            }
+          });
     console.log(`[L4-SNAPSHOT-${requestId}] STEP 5 - L2 query completed: ${l2Data.length} records (${Date.now() - l2Start}ms)`);
     
     // Fetch L3 data
     const l3Start = Date.now();
     console.log(`[L4-SNAPSHOT-${requestId}] STEP 6 - Starting L3 query...`);
     const l3Data = await prisma.l3BenefitWeight.findMany({
-      where: { 
-        companyId, 
-        period: new Date(normalizedPeriod)
-      }
-    });
+            where: { 
+              companyId, 
+              period: new Date(normalizedPeriod)
+            }
+          });
     console.log(`[L4-SNAPSHOT-${requestId}] STEP 6 - L3 query completed: ${l3Data.length} records (${Date.now() - l3Start}ms)`);
 
     // Calculate L4 metrics
@@ -198,14 +198,14 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
     res.json({
       success: true,
       snapshot: {
-        id: snapshot.id,
-        companyId: snapshot.companyId,
-        period: snapshot.period,
+      id: snapshot.id,
+      companyId: snapshot.companyId,
+      period: snapshot.period,
         assumptions: snapshot.assumptions ? JSON.parse(snapshot.assumptions) : null,
-        totalCost: snapshot.totalCost,
-        totalBenefit: snapshot.totalBenefit,
-        roiPct: snapshot.roiPct,
-        createdAt: snapshot.createdAt
+      totalCost: snapshot.totalCost,
+      totalBenefit: snapshot.totalBenefit,
+      roiPct: snapshot.roiPct,
+      createdAt: snapshot.createdAt
       },
       duration: totalDuration,
       requestId,
@@ -830,6 +830,45 @@ r.post('/test-ultra-simple', async (req: Request, res: Response) => {
     
   } catch (error) {
     const duration = Date.now() - startTime;
+    res.status(500).json({
+      error: error instanceof Error ? error.message : String(error),
+      duration
+    });
+  }
+});
+
+/** ===== Database connection test endpoint ===== */
+r.post('/test-db-only', async (req: Request, res: Response) => {
+  const startTime = Date.now();
+  
+  try {
+    console.log('[DB-TEST] Starting database connection test...');
+    
+    // Test basic database connection
+    const dbStart = Date.now();
+    await prisma.$connect();
+    await prisma.$queryRaw`SELECT 1 as test`;
+    console.log(`[DB-TEST] Basic connection test completed (${Date.now() - dbStart}ms)`);
+    
+    // Test simple query
+    const queryStart = Date.now();
+    const result = await prisma.company.findFirst();
+    console.log(`[DB-TEST] Simple query completed (${Date.now() - queryStart}ms)`);
+    
+    const duration = Date.now() - startTime;
+    
+    res.json({
+      success: true,
+      message: 'Database test completed',
+      duration,
+      queryTime: Date.now() - queryStart,
+      connectionTime: Date.now() - dbStart,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    console.error('[DB-TEST] Error:', error);
     res.status(500).json({
       error: error instanceof Error ? error.message : String(error),
       duration
