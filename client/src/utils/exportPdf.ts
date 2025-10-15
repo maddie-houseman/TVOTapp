@@ -79,7 +79,7 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
       throw new Error('exportElementToPdf: target element is required');
     }
 
-    // Preprocess CSS to convert unsupported color functions
+    // Preprocess CSS to convert unsupported color functions and ensure proper styling
     const preprocessElement = (element: HTMLElement) => {
       const computedStyle = window.getComputedStyle(element);
       const style = element.style;
@@ -93,6 +93,29 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
       }
       if (computedStyle.borderColor && computedStyle.borderColor.includes('oklch')) {
         style.borderColor = '#000000'; // Fallback to black
+      }
+      
+      // Ensure colored bars in L1, L2 data and graphs are visible
+      if (element.classList.contains('bg-blue-500')) {
+        style.backgroundColor = '#3b82f6'; // Ensure blue bars are visible
+      }
+      if (element.classList.contains('bg-green-500')) {
+        style.backgroundColor = '#10b981'; // Ensure green bars are visible
+      }
+      if (element.classList.contains('bg-red-500')) {
+        style.backgroundColor = '#ef4444'; // Ensure red bars are visible
+      }
+      
+      // Ensure graph elements are properly styled for export
+      if (element.style.height && element.style.height.includes('px')) {
+        // Preserve height for graph bars
+        style.height = element.style.height;
+      }
+      
+      // Ensure proper display for graph containers
+      if (element.classList.contains('flex') && element.classList.contains('items-end')) {
+        style.display = 'flex';
+        style.alignItems = 'flex-end';
       }
       
       // Process child elements

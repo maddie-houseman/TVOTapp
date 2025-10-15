@@ -40,6 +40,10 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [hasData, setHasData] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  
+  // Historical data for graphs
+  const [historicalData, setHistoricalData] = useState<L4Snapshot[]>([]);
+  const [showGraphs, setShowGraphs] = useState(false);
 
   // Load companies for admin users
   useEffect(() => {
@@ -80,6 +84,11 @@ export default function Dashboard() {
         setL2Data(l2);
         setL4Data(l4);
         setHasData(l1.length > 0 || l2.length > 0 || l4.length > 0);
+        
+        // Check if we have enough historical data for graphs (6+ consecutive months)
+        const sortedSnapshots = l4.sort((a, b) => a.period.localeCompare(b.period));
+        setHistoricalData(sortedSnapshots);
+        setShowGraphs(sortedSnapshots.length >= 6);
       } catch (error) {
         console.error('Failed to load dashboard data:', error);
         setHasData(false);
@@ -121,6 +130,30 @@ export default function Dashboard() {
     );
   }
 
+  // Show message for admin users when no company is selected
+  if (user?.role === 'ADMIN' && !selectedCompanyId) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center">
+            <div className="mx-auto h-24 w-24 text-gray-400">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+            </div>
+            <h1 className="mt-6 text-3xl font-bold text-gray-900">Select a Company</h1>
+            <p className="mt-2 text-lg text-gray-600">
+              As an admin, please select a company from the dropdown above to view its dashboard data.
+            </p>
+            <p className="mt-1 text-sm text-gray-500">
+              You can view data for any company in the system.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Show no data message if no framework data exists
   if (!hasData) {
     return (
@@ -134,19 +167,27 @@ export default function Dashboard() {
             </div>
             <h1 className="mt-6 text-3xl font-bold text-gray-900">No Framework Data</h1>
             <p className="mt-2 text-lg text-gray-600">
-              You haven't set up your TBM framework yet.
+              {user?.role === 'ADMIN' 
+                ? `No framework data found for the selected company.`
+                : `You haven't set up your TBM framework yet.`
+              }
             </p>
             <p className="mt-1 text-sm text-gray-500">
-              Complete the framework entry process to see your dashboard data.
+              {user?.role === 'ADMIN' 
+                ? `The selected company may not have completed the framework entry process.`
+                : `Complete the framework entry process to see your dashboard data.`
+              }
             </p>
-            <div className="mt-8">
-              <a
-                href="/framework"
-                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Set Up Framework
-              </a>
-            </div>
+            {user?.role !== 'ADMIN' && (
+              <div className="mt-8">
+                <a
+                  href="/framework"
+                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Set Up Framework
+                </a>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -160,7 +201,11 @@ export default function Dashboard() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">TBM Dashboard</h1>
           <p className="mt-2 text-gray-600">
-            Technology Business Management insights for {company?.name || 'your company'}
+            Technology Business Management insights for {
+              user?.role === 'ADMIN' && selectedCompanyId 
+                ? availableCompanies.find(c => c.id === selectedCompanyId)?.name || 'selected company'
+                : company?.name || 'your company'
+            }
           </p>
           
           {/* Period Selector */}
@@ -210,7 +255,7 @@ export default function Dashboard() {
                   onChange={(e) => setSelectedCompanyId(e.target.value)}
                   className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">All Companies</option>
+                  <option value="">Select a Company</option>
                   {availableCompanies.map((company) => (
                     <option key={company.id} value={company.id}>
                       {company.name}
@@ -218,6 +263,17 @@ export default function Dashboard() {
                   ))}
                 </select>
               </>
+            )}
+
+            {/* Toggle Graphs Button (only show if we have enough data) */}
+            {historicalData.length >= 6 && (
+              <button
+                type="button"
+                onClick={() => setShowGraphs(!showGraphs)}
+                className="inline-flex items-center px-3 py-2 rounded-md bg-gray-600 text-white text-sm font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              >
+                {showGraphs ? 'Hide Graphs' : 'Show Graphs'}
+              </button>
             )}
 
             {/* Export PDF Button */}
@@ -421,6 +477,101 @@ export default function Dashboard() {
             <p className="text-gray-500 text-center py-4">No ROI snapshot available for this period</p>
           )}
         </div>
+
+        {/* Revenue/Return Projection Graphs */}
+        {showGraphs && (
+          <div className="bg-white rounded-lg shadow p-6 mb-8">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Revenue & Return Projections</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Based on {historicalData.length} months of historical data
+            </p>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Revenue Projection Chart */}
+              <div>
+                <h4 className="text-md font-medium text-gray-700 mb-4">Revenue Trend</h4>
+                <div className="h-64 flex items-end justify-between space-x-2">
+                  {historicalData.map((snapshot, index) => {
+                    const maxRevenue = Math.max(...historicalData.map(s => s.totalBenefit));
+                    const height = (snapshot.totalBenefit / maxRevenue) * 200;
+                    const month = new Date(snapshot.period).toLocaleDateString('en-US', { month: 'short' });
+                    
+                    return (
+                      <div key={index} className="flex flex-col items-center flex-1">
+                        <div className="w-full bg-blue-500 rounded-t" style={{ height: `${height}px` }}></div>
+                        <div className="text-xs text-gray-600 mt-2 transform -rotate-45 origin-top-left">
+                          {month}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {formatCurrency(snapshot.totalBenefit)}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* ROI Trend Chart */}
+              <div>
+                <h4 className="text-md font-medium text-gray-700 mb-4">ROI Trend</h4>
+                <div className="h-64 flex items-end justify-between space-x-2">
+                  {historicalData.map((snapshot, index) => {
+                    const maxROI = Math.max(...historicalData.map(s => s.roiPct));
+                    const minROI = Math.min(...historicalData.map(s => s.roiPct));
+                    const range = maxROI - minROI;
+                    const normalizedROI = range > 0 ? (snapshot.roiPct - minROI) / range : 0.5;
+                    const height = normalizedROI * 200;
+                    const month = new Date(snapshot.period).toLocaleDateString('en-US', { month: 'short' });
+                    
+                    return (
+                      <div key={index} className="flex flex-col items-center flex-1">
+                        <div 
+                          className={`w-full rounded-t ${snapshot.roiPct >= 0 ? 'bg-green-500' : 'bg-red-500'}`}
+                          style={{ height: `${height}px` }}
+                        ></div>
+                        <div className="text-xs text-gray-600 mt-2 transform -rotate-45 origin-top-left">
+                          {month}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {formatPercentage(snapshot.roiPct)}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Projection Summary */}
+            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+              <h5 className="text-sm font-medium text-gray-700 mb-2">Projection Summary</h5>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-600">Average Monthly Revenue:</span>
+                  <span className="ml-2 font-medium text-gray-900">
+                    {formatCurrency(historicalData.reduce((sum, s) => sum + s.totalBenefit, 0) / historicalData.length)}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Average ROI:</span>
+                  <span className="ml-2 font-medium text-gray-900">
+                    {formatPercentage(historicalData.reduce((sum, s) => sum + s.roiPct, 0) / historicalData.length)}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Trend:</span>
+                  <span className={`ml-2 font-medium ${
+                    historicalData[historicalData.length - 1]?.roiPct > historicalData[0]?.roiPct 
+                      ? 'text-green-600' 
+                      : 'text-red-600'
+                  }`}>
+                    {historicalData[historicalData.length - 1]?.roiPct > historicalData[0]?.roiPct ? '↗ Improving' : '↘ Declining'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Authentication Notice */}
         {!isAuthenticated && (
