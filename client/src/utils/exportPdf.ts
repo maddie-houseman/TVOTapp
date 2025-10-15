@@ -79,6 +79,33 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
       throw new Error('exportElementToPdf: target element is required');
     }
 
+    // Preprocess CSS to convert unsupported color functions
+    const preprocessElement = (element: HTMLElement) => {
+      const computedStyle = window.getComputedStyle(element);
+      const style = element.style;
+      
+      // Convert oklch colors to rgb
+      if (computedStyle.color && computedStyle.color.includes('oklch')) {
+        style.color = '#000000'; // Fallback to black
+      }
+      if (computedStyle.backgroundColor && computedStyle.backgroundColor.includes('oklch')) {
+        style.backgroundColor = '#ffffff'; // Fallback to white
+      }
+      if (computedStyle.borderColor && computedStyle.borderColor.includes('oklch')) {
+        style.borderColor = '#000000'; // Fallback to black
+      }
+      
+      // Process child elements
+      Array.from(element.children).forEach(child => {
+        if (child instanceof HTMLElement) {
+          preprocessElement(child);
+        }
+      });
+    };
+
+    // Preprocess the target element and its children
+    preprocessElement(target);
+
     const { html2canvas, jsPDF } = await loadFromCdn();
     // Render at higher scale for improved quality
     const canvas = await html2canvas(target, { 
@@ -86,7 +113,14 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
       backgroundColor: '#ffffff',
       useCORS: true,
       allowTaint: true,
-      logging: false
+      logging: false,
+      ignoreElements: (element) => {
+        // Skip elements with problematic CSS
+        const style = window.getComputedStyle(element);
+        return style.color?.includes('oklch') || 
+               style.backgroundColor?.includes('oklch') ||
+               style.borderColor?.includes('oklch');
+      }
     });
     
     // Create PDF with dimensions matching A4 portrait by default
