@@ -118,7 +118,13 @@ export default function Dashboard() {
         // Check if we have enough historical data for graphs (6+ consecutive months)
         const sortedSnapshots = l4.sort((a, b) => a.period.localeCompare(b.period));
         setHistoricalData(sortedSnapshots);
-        setShowGraphs(sortedSnapshots.length >= 6);
+        // Show graphs with 2+ data points
+        setShowGraphs(sortedSnapshots.length >= 2);
+        
+        // Debug: Log graph data
+        console.log('L4 Snapshots:', sortedSnapshots);
+        console.log('Number of snapshots:', sortedSnapshots.length);
+        console.log('Should show graphs:', sortedSnapshots.length >= 2);
       } catch (error) {
         console.error('Failed to load dashboard data:', error);
         setHasData(false);
@@ -207,6 +213,8 @@ export default function Dashboard() {
             
             <div className="mt-4 text-xs text-gray-400">
               Debug: User role: {user?.role}, Loading: {loadingCompanies ? 'Yes' : 'No'}, Companies: {availableCompanies.length}
+              <br />
+              Graph Data: {historicalData.length} snapshots, Show Graphs: {showGraphs ? 'Yes' : 'No'}
             </div>
           </div>
         </div>
@@ -338,7 +346,7 @@ export default function Dashboard() {
             )}
 
             {/* Toggle Graphs Button (only show if we have enough data) */}
-            {historicalData.length >= 6 && (
+            {historicalData.length >= 2 && (
               <button
                 type="button"
                 onClick={() => setShowGraphs(!showGraphs)}
@@ -563,57 +571,183 @@ export default function Dashboard() {
             </p>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Revenue Projection Chart */}
+              {/* Revenue Trend Line Chart */}
               <div>
                 <h4 className="text-md font-medium text-gray-700 mb-4">Revenue Trend</h4>
-                <div className="h-64 flex items-end justify-between space-x-2">
-                  {historicalData.map((snapshot, index) => {
-                    const maxRevenue = Math.max(...historicalData.map(s => s.totalBenefit));
-                    const height = (snapshot.totalBenefit / maxRevenue) * 200;
-                    const month = new Date(snapshot.period).toLocaleDateString('en-US', { month: 'short' });
+                <div className="h-64 relative border-l-2 border-b-2 border-gray-300">
+                  <svg className="w-full h-full" viewBox="0 0 400 200" preserveAspectRatio="none">
+                    {/* Grid lines */}
+                    {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => (
+                      <line
+                        key={i}
+                        x1="0"
+                        y1={200 * ratio}
+                        x2="400"
+                        y2={200 * ratio}
+                        stroke="#e5e7eb"
+                        strokeWidth="1"
+                      />
+                    ))}
                     
-                    return (
-                      <div key={index} className="flex flex-col items-center flex-1">
-                        <div className="w-full bg-blue-500 rounded-t" style={{ height: `${height}px` }}></div>
-                        <div className="text-xs text-gray-600 mt-2 transform -rotate-45 origin-top-left">
-                          {month}
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          {formatCurrency(snapshot.totalBenefit)}
-                        </div>
+                    {/* Revenue line */}
+                    {historicalData.length > 1 && (() => {
+                      const maxRevenue = Math.max(...historicalData.map(s => s.totalBenefit));
+                      const minRevenue = Math.min(...historicalData.map(s => s.totalBenefit));
+                      const range = maxRevenue - minRevenue;
+                      
+                      const points = historicalData.map((snapshot, index) => {
+                        const x = (index / (historicalData.length - 1)) * 380 + 20;
+                        const y = range > 0 ? 180 - ((snapshot.totalBenefit - minRevenue) / range) * 160 : 100;
+                        return `${x},${y}`;
+                      }).join(' ');
+                      
+                      return (
+                        <>
+                          <polyline
+                            points={points}
+                            fill="none"
+                            stroke="#3b82f6"
+                            strokeWidth="3"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          {historicalData.map((snapshot, index) => {
+                            const x = (index / (historicalData.length - 1)) * 380 + 20;
+                            const y = range > 0 ? 180 - ((snapshot.totalBenefit - minRevenue) / range) * 160 : 100;
+                            return (
+                              <circle
+                                key={index}
+                                cx={x}
+                                cy={y}
+                                r="4"
+                                fill="#3b82f6"
+                                stroke="white"
+                                strokeWidth="2"
+                              />
+                            );
+                          })}
+                        </>
+                      );
+                    })()}
+                  </svg>
+                  
+                  {/* Month labels */}
+                  <div className="absolute bottom-0 left-0 right-0 flex justify-between px-2">
+                    {historicalData.map((snapshot, index) => (
+                      <div key={index} className="text-xs text-gray-600">
+                        {new Date(snapshot.period).toLocaleDateString('en-US', { month: 'short' })}
                       </div>
-                    );
-                  })}
+                    ))}
+                  </div>
+                  
+                  {/* Value labels */}
+                  <div className="absolute top-0 right-0 text-xs text-gray-500">
+                    {formatCurrency(Math.max(...historicalData.map(s => s.totalBenefit)))}
+                  </div>
+                  <div className="absolute bottom-0 right-0 text-xs text-gray-500">
+                    {formatCurrency(Math.min(...historicalData.map(s => s.totalBenefit)))}
+                  </div>
                 </div>
               </div>
 
-              {/* ROI Trend Chart */}
+              {/* ROI Trend Line Chart */}
               <div>
                 <h4 className="text-md font-medium text-gray-700 mb-4">ROI Trend</h4>
-                <div className="h-64 flex items-end justify-between space-x-2">
-                  {historicalData.map((snapshot, index) => {
-                    const maxROI = Math.max(...historicalData.map(s => s.roiPct));
-                    const minROI = Math.min(...historicalData.map(s => s.roiPct));
-                    const range = maxROI - minROI;
-                    const normalizedROI = range > 0 ? (snapshot.roiPct - minROI) / range : 0.5;
-                    const height = normalizedROI * 200;
-                    const month = new Date(snapshot.period).toLocaleDateString('en-US', { month: 'short' });
+                <div className="h-64 relative border-l-2 border-b-2 border-gray-300">
+                  <svg className="w-full h-full" viewBox="0 0 400 200" preserveAspectRatio="none">
+                    {/* Grid lines */}
+                    {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => (
+                      <line
+                        key={i}
+                        x1="0"
+                        y1={200 * ratio}
+                        x2="400"
+                        y2={200 * ratio}
+                        stroke="#e5e7eb"
+                        strokeWidth="1"
+                      />
+                    ))}
                     
-                    return (
-                      <div key={index} className="flex flex-col items-center flex-1">
-                        <div 
-                          className={`w-full rounded-t ${snapshot.roiPct >= 0 ? 'bg-green-500' : 'bg-red-500'}`}
-                          style={{ height: `${height}px` }}
-                        ></div>
-                        <div className="text-xs text-gray-600 mt-2 transform -rotate-45 origin-top-left">
-                          {month}
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          {formatPercentage(snapshot.roiPct)}
-                        </div>
+                    {/* Zero line */}
+                    <line
+                      x1="0"
+                      y1="100"
+                      x2="400"
+                      y2="100"
+                      stroke="#6b7280"
+                      strokeWidth="1"
+                      strokeDasharray="5,5"
+                    />
+                    
+                    {/* ROI line */}
+                    {historicalData.length > 1 && (() => {
+                      const maxROI = Math.max(...historicalData.map(s => s.roiPct));
+                      const minROI = Math.min(...historicalData.map(s => s.roiPct));
+                      const range = maxROI - minROI;
+                      const centerY = 100; // Zero line
+                      
+                      const points = historicalData.map((snapshot, index) => {
+                        const x = (index / (historicalData.length - 1)) * 380 + 20;
+                        let y;
+                        if (range > 0) {
+                          y = centerY - ((snapshot.roiPct - minROI) / range) * 80;
+                        } else {
+                          y = centerY;
+                        }
+                        return `${x},${y}`;
+                      }).join(' ');
+                      
+                      return (
+                        <>
+                          <polyline
+                            points={points}
+                            fill="none"
+                            stroke={historicalData[historicalData.length - 1]?.roiPct >= 0 ? "#10b981" : "#ef4444"}
+                            strokeWidth="3"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          {historicalData.map((snapshot, index) => {
+                            const x = (index / (historicalData.length - 1)) * 380 + 20;
+                            let y;
+                            if (range > 0) {
+                              y = centerY - ((snapshot.roiPct - minROI) / range) * 80;
+                            } else {
+                              y = centerY;
+                            }
+                            return (
+                              <circle
+                                key={index}
+                                cx={x}
+                                cy={y}
+                                r="4"
+                                fill={snapshot.roiPct >= 0 ? "#10b981" : "#ef4444"}
+                                stroke="white"
+                                strokeWidth="2"
+                              />
+                            );
+                          })}
+                        </>
+                      );
+                    })()}
+                  </svg>
+                  
+                  {/* Month labels */}
+                  <div className="absolute bottom-0 left-0 right-0 flex justify-between px-2">
+                    {historicalData.map((snapshot, index) => (
+                      <div key={index} className="text-xs text-gray-600">
+                        {new Date(snapshot.period).toLocaleDateString('en-US', { month: 'short' })}
                       </div>
-                    );
-                  })}
+                    ))}
+                  </div>
+                  
+                  {/* Value labels */}
+                  <div className="absolute top-0 right-0 text-xs text-gray-500">
+                    {formatPercentage(Math.max(...historicalData.map(s => s.roiPct)))}
+                  </div>
+                  <div className="absolute bottom-0 right-0 text-xs text-gray-500">
+                    {formatPercentage(Math.min(...historicalData.map(s => s.roiPct)))}
+                  </div>
                 </div>
               </div>
             </div>
