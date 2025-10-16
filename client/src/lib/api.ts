@@ -6,14 +6,12 @@
     export type Me = { id: string; email: string; name: string; role: Role; companyId: string | null };
 
     export type Department =
-    | "LABOUR"
-    | "CLOUD_SERVICES"
-    | "SOFTWARE_SAAS"
-    | "HARDWARE"
-    | "DATA_CENTRE_FACILITIES"
-    | "TELECOM"
-    | "MISC_COSTS"
-    | "INTERNAL_SERVICES";
+    | "ENGINEERING"
+    | "SALES"
+    | "FINANCE"
+    | "HR"
+    | "MARKETING"
+    | "OPERATIONS";
 
     export type Tower = "APP_DEV" | "CLOUD" | "END_USER";
 
@@ -48,6 +46,14 @@
     avgLoadedRate: number;
     };
 
+    export type BusinessInsight = {
+    type: 'success' | 'warning' | 'error' | 'info';
+    category: string;
+    title: string;
+    message: string;
+    impact: 'Low' | 'Medium' | 'High' | 'Critical';
+    };
+
     export type L4Snapshot = {
     id: string;
     companyId: string;
@@ -59,6 +65,20 @@
     assumptions: SnapshotAssumptions;
     createdAt?: string;
     updatedAt?: string;
+    // Enhanced investment metrics
+    paybackMonths?: number;
+    npv?: number;
+    irr?: number;
+    costPerEmployee?: number;
+    benefitPerEmployee?: number;
+    costEfficiencyRatio?: number;
+    benefitBreakdown?: {
+        productivity: number;
+        revenue: number;
+        riskAvoidance: number;
+    };
+    departmentCosts?: Record<string, number>;
+    insights?: BusinessInsight[];
     };
 
     // -------- Base URL --------

@@ -435,52 +435,162 @@ export default function Dashboard() {
 
         {/* Charts and Visualizations */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* L1 - Department Budget Distribution */}
+          {/* L1 - Technology Cost Foundation Analysis */}
           <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">L1 - Department Budget Distribution</h3>
+            <div className="mb-4">
+              <h3 className="text-lg font-medium text-gray-900">L1 - Technology Cost Foundation Analysis</h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Department-level IT cost allocation and efficiency metrics for technology investment planning
+              </p>
+            </div>
             {l1Data.length > 0 ? (
               <div className="space-y-4">
-                {mergeSort([...l1Data], (a, b) => Number(b.budget) - Number(a.budget)).map((dept, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-600">{dept.department}</span>
-                    <div className="flex items-center space-x-4">
-                      <span className="text-sm text-gray-900">{formatCurrency(Number(dept.budget))}</span>
-                      <div className="w-32 bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-blue-500 h-2 rounded-full"
-                          style={{
-                            width: `${(Number(dept.budget) / Math.max(...l1Data.map(d => Number(d.budget)))) * 100}%`
-                          }}
-                        ></div>
+                {mergeSort([...l1Data], (a, b) => Number(b.budget) - Number(a.budget)).map((dept, index) => {
+                  const costPerEmployee = dept.employees > 0 ? Number(dept.budget) / dept.employees : 0;
+                  const percentageOfTotal = l1Data.reduce((sum, d) => sum + Number(d.budget), 0) > 0 ? 
+                    (Number(dept.budget) / l1Data.reduce((sum, d) => sum + Number(d.budget), 0)) * 100 : 0;
+                  
+                  return (
+                    <div key={index} className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-gray-900">{dept.department.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                        <span className="text-sm font-bold text-blue-600">{formatCurrency(Number(dept.budget))}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 text-xs text-gray-600">
+                        <div>
+                          <span className="font-medium">Headcount:</span> {dept.employees} employees
+                        </div>
+                        <div>
+                          <span className="font-medium">Cost per Employee:</span> {formatCurrency(costPerEmployee)}
+                        </div>
+                        <div>
+                          <span className="font-medium">% of Total IT Spend:</span> {percentageOfTotal.toFixed(1)}%
+                        </div>
+                        <div>
+                          <span className="font-medium">Efficiency Rating:</span> 
+                          <span className={`ml-1 font-medium ${
+                            costPerEmployee < 10000 ? 'text-green-600' :
+                            costPerEmployee < 20000 ? 'text-yellow-600' : 'text-red-600'
+                          }`}>
+                            {costPerEmployee < 10000 ? 'High' : costPerEmployee < 20000 ? 'Medium' : 'Low'}
+                          </span>
+                        </div>
                       </div>
                     </div>
+                  );
+                })}
+                <div className="border-t pt-4 bg-gray-50 rounded-lg p-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="text-sm font-bold text-gray-900 mb-1">Total IT Investment</div>
+                      <div className="text-lg font-bold text-blue-600">{formatCurrency(l1Data.reduce((sum, dept) => sum + Number(dept.budget), 0))}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-gray-900 mb-1">Total Headcount</div>
+                      <div className="text-lg font-bold text-green-600">{l1Data.reduce((sum, dept) => sum + dept.employees, 0)} employees</div>
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-gray-900 mb-1">Average Cost per Employee</div>
+                      <div className="text-lg font-bold text-purple-600">
+                        {formatCurrency(l1Data.reduce((sum, dept) => sum + Number(dept.budget), 0) / l1Data.reduce((sum, dept) => sum + dept.employees, 0))}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-gray-900 mb-1">Departments</div>
+                      <div className="text-lg font-bold text-orange-600">{l1Data.length} cost centers</div>
+                    </div>
                   </div>
-                ))}
+                </div>
               </div>
             ) : (
               <p className="text-gray-500 text-center py-4">No L1 data available for this period</p>
             )}
           </div>
 
-          {/* L2 - Tower Allocation */}
+          {/* L2 - Technology Resource Allocation Analysis */}
           <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">L2 - Tower Allocation</h3>
+            <div className="mb-4">
+              <h3 className="text-lg font-medium text-gray-900">L2 - Technology Resource Allocation Analysis</h3>
+              <p className="text-sm text-gray-600 mt-1">
+                IT resource distribution across technology towers for strategic investment planning and optimization
+              </p>
+            </div>
             {l2Data.length > 0 ? (
               <div className="space-y-4">
-                {l2Data.map((tower, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-600">{tower.tower}</span>
-                    <div className="flex items-center space-x-4">
-                      <span className="text-sm text-gray-900">{formatPercentage(tower.weightPct * 100)}</span>
-                      <div className="w-32 bg-gray-200 rounded-full h-2">
+                {mergeSort([...l2Data], (a, b) => b.weightPct - a.weightPct).map((tower, index) => {
+                  const totalBudget = l1Data.reduce((sum, dept) => sum + Number(dept.budget), 0);
+                  const allocatedAmount = totalBudget * tower.weightPct;
+                  const efficiencyRating = tower.weightPct > 0.4 ? 'High Focus' : tower.weightPct > 0.2 ? 'Balanced' : 'Low Focus';
+                  
+                  return (
+                    <div key={index} className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-gray-900">{tower.tower.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm font-bold text-blue-600">{formatPercentage(tower.weightPct * 100)}</span>
+                          <span className="text-xs text-gray-500">({formatCurrency(allocatedAmount)})</span>
+                        </div>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                         <div
-                          className="bg-blue-500 h-2 rounded-full"
+                          className="bg-blue-500 h-2 rounded-full transition-all duration-300"
                           style={{ width: `${tower.weightPct * 100}%` }}
                         ></div>
                       </div>
+                      <div className="grid grid-cols-2 gap-4 text-xs text-gray-600">
+                        <div>
+                          <span className="font-medium">Allocated Budget:</span> {formatCurrency(allocatedAmount)}
+                        </div>
+                        <div>
+                          <span className="font-medium">Investment Priority:</span> 
+                          <span className={`ml-1 font-medium ${
+                            tower.weightPct > 0.4 ? 'text-green-600' :
+                            tower.weightPct > 0.2 ? 'text-yellow-600' : 'text-red-600'
+                          }`}>
+                            {efficiencyRating}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="font-medium">Department:</span> {tower.department.replace(/_/g, ' ')}
+                        </div>
+                        <div>
+                          <span className="font-medium">Strategic Focus:</span> 
+                          <span className={`ml-1 font-medium ${
+                            tower.weightPct > 0.3 ? 'text-blue-600' : 'text-gray-600'
+                          }`}>
+                            {tower.weightPct > 0.3 ? 'Core' : 'Supporting'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                <div className="border-t pt-4 bg-gray-50 rounded-lg p-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="text-sm font-bold text-gray-900 mb-1">Total Allocation</div>
+                      <div className="text-lg font-bold text-blue-600">{formatPercentage(l2Data.reduce((sum, tower) => sum + tower.weightPct, 0) * 100)}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-gray-900 mb-1">Technology Towers</div>
+                      <div className="text-lg font-bold text-green-600">{l2Data.length} active towers</div>
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-gray-900 mb-1">Highest Investment</div>
+                      <div className="text-lg font-bold text-purple-600">
+                        {l2Data.length > 0 ? l2Data.reduce((max, tower) => tower.weightPct > max.weightPct ? tower : max).tower.replace(/_/g, ' ') : 'N/A'}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-gray-900 mb-1">Allocation Balance</div>
+                      <div className="text-lg font-bold text-orange-600">
+                        {l2Data.length > 0 ? 
+                          (Math.max(...l2Data.map(t => t.weightPct)) - Math.min(...l2Data.map(t => t.weightPct)) < 0.3 ? 'Balanced' : 'Concentrated') : 
+                          'N/A'}
+                      </div>
                     </div>
                   </div>
-                ))}
+                </div>
               </div>
             ) : (
               <p className="text-gray-500 text-center py-4">No L2 data available for this period</p>
@@ -488,50 +598,160 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* L4 - ROI Analysis */}
+        {/* L4 - Technology Investment ROI Analysis */}
         <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">L4 - ROI Analysis</h3>
+          <div className="mb-4">
+            <h3 className="text-lg font-medium text-gray-900">L4 - Technology Investment ROI Analysis</h3>
+            <p className="text-sm text-gray-600 mt-1">
+              Comprehensive financial analysis for technology investment decisions including ROI, NPV, IRR, and payback period calculations
+            </p>
+          </div>
+          
           {currentSnapshot ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <h4 className="text-md font-medium text-gray-700 mb-3">Financial Summary</h4>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Total Cost:</span>
-                    <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.totalCost)}</span>
+            <div className="space-y-8">
+              {/* Core Financial Metrics */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h4 className="text-sm font-medium text-blue-900 mb-2">Return on Investment</h4>
+                  <div className="text-2xl font-bold text-blue-600">{formatPercentage(currentSnapshot.roiPct)}</div>
+                  <p className="text-xs text-blue-700 mt-1">Annual return on technology investment</p>
+                </div>
+                
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <h4 className="text-sm font-medium text-green-900 mb-2">Net Present Value</h4>
+                  <div className="text-2xl font-bold text-green-600">
+                    {currentSnapshot.npv ? formatCurrency(currentSnapshot.npv) : 'N/A'}
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Total Benefit:</span>
-                    <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.totalBenefit)}</span>
+                  <p className="text-xs text-green-700 mt-1">3-year discounted cash flow value</p>
+                </div>
+                
+                <div className="bg-purple-50 p-4 rounded-lg">
+                  <h4 className="text-sm font-medium text-purple-900 mb-2">Payback Period</h4>
+                  <div className="text-2xl font-bold text-purple-600">
+                    {currentSnapshot.paybackMonths ? `${currentSnapshot.paybackMonths.toFixed(1)} months` : 'N/A'}
                   </div>
-                  <div className="flex justify-between border-t pt-2">
-                    <span className="text-sm font-medium text-gray-900">Net Benefit:</span>
-                    <span className="text-sm font-bold text-green-600">{formatCurrency(currentSnapshot.totalBenefit - currentSnapshot.totalCost)}</span>
+                  <p className="text-xs text-purple-700 mt-1">Time to recover initial investment</p>
+                </div>
+                
+                <div className="bg-orange-50 p-4 rounded-lg">
+                  <h4 className="text-sm font-medium text-orange-900 mb-2">Internal Rate of Return</h4>
+                  <div className="text-2xl font-bold text-orange-600">
+                    {currentSnapshot.irr ? `${currentSnapshot.irr.toFixed(1)}%` : 'N/A'}
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">ROI:</span>
-                    <span className="text-sm font-bold text-blue-600">{formatPercentage(currentSnapshot.roiPct)}</span>
+                  <p className="text-xs text-orange-700 mt-1">Annualized return rate</p>
+                </div>
+              </div>
+
+              {/* Detailed Financial Breakdown */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                  <h4 className="text-md font-medium text-gray-700 mb-3">Investment Analysis</h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Total Investment:</span>
+                      <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.totalCost)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Total Benefits:</span>
+                      <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.totalBenefit)}</span>
+                    </div>
+                    <div className="flex justify-between border-t pt-2">
+                      <span className="text-sm font-medium text-gray-900">Net Benefit:</span>
+                      <span className="text-sm font-bold text-green-600">{formatCurrency(currentSnapshot.totalBenefit - currentSnapshot.totalCost)}</span>
+                    </div>
+                    {currentSnapshot.costPerEmployee && (
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Cost per Employee:</span>
+                        <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.costPerEmployee)}</span>
+                      </div>
+                    )}
+                    {currentSnapshot.benefitPerEmployee && (
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Benefit per Employee:</span>
+                        <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.benefitPerEmployee)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="text-md font-medium text-gray-700 mb-3">Benefit Breakdown</h4>
+                  <div className="space-y-3">
+                    {currentSnapshot.benefitBreakdown ? (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-600">Productivity Gains:</span>
+                          <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.benefitBreakdown.productivity)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-600">Revenue Uplift:</span>
+                          <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.benefitBreakdown.revenue)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-600">Risk Avoidance:</span>
+                          <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.benefitBreakdown.riskAvoidance)}</span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-600">Revenue Uplift:</span>
+                          <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.assumptions.revenueUplift)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-600">Productivity Hours:</span>
+                          <span className="text-sm font-medium text-gray-900">{currentSnapshot.assumptions.productivityGainHours.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-600">Loaded Rate:</span>
+                          <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.assumptions.avgLoadedRate)}</span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
-              
-              <div>
-                <h4 className="text-md font-medium text-gray-700 mb-3">Assumptions</h4>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Revenue Uplift:</span>
-                    <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.assumptions.revenueUplift)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Productivity Hours:</span>
-                    <span className="text-sm font-medium text-gray-900">{currentSnapshot.assumptions.productivityGainHours.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Loaded Rate:</span>
-                    <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.assumptions.avgLoadedRate)}</span>
+
+              {/* Business Insights */}
+              {currentSnapshot.insights && currentSnapshot.insights.length > 0 && (
+                <div>
+                  <h4 className="text-md font-medium text-gray-700 mb-4">Investment Recommendations</h4>
+                  <div className="space-y-4">
+                    {currentSnapshot.insights.map((insight, index) => (
+                      <div key={index} className={`p-4 rounded-lg border-l-4 ${
+                        insight.type === 'success' ? 'bg-green-50 border-green-400' :
+                        insight.type === 'warning' ? 'bg-yellow-50 border-yellow-400' :
+                        insight.type === 'error' ? 'bg-red-50 border-red-400' :
+                        'bg-blue-50 border-blue-400'
+                      }`}>
+                        <div className="flex items-start">
+                          <div className="flex-shrink-0">
+                            {insight.type === 'success' && <span className="text-green-400">✓</span>}
+                            {insight.type === 'warning' && <span className="text-yellow-400">⚠</span>}
+                            {insight.type === 'error' && <span className="text-red-400">✗</span>}
+                            {insight.type === 'info' && <span className="text-blue-400">ℹ</span>}
+                          </div>
+                          <div className="ml-3">
+                            <div className="flex items-center">
+                              <h5 className="text-sm font-medium text-gray-900">{insight.title}</h5>
+                              <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                insight.impact === 'Critical' ? 'bg-red-100 text-red-800' :
+                                insight.impact === 'High' ? 'bg-orange-100 text-orange-800' :
+                                insight.impact === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {insight.impact}
+                              </span>
+                            </div>
+                            <p className="mt-1 text-sm text-gray-600">{insight.message}</p>
+                            <p className="mt-1 text-xs text-gray-500">{insight.category}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           ) : (
             <p className="text-gray-500 text-center py-4">No ROI snapshot available for this period</p>
