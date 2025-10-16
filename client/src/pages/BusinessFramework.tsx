@@ -5,19 +5,13 @@ import {
   type BusinessUnitModel, 
   type Service, 
   type ItTowerModel, 
-  type CostPoolModel, 
-  type BusinessInsight,
-  type FrameworkOverview,
-  type BusinessUnit,
-  type ServiceType,
-  type ItTower,
-  type CostPool
+  type CostPoolModel
 } from '../lib/api';
 import BusinessInsights from '../components/BusinessInsights';
 import FrameworkOverviewComponent from '../components/FrameworkOverview';
 
 export default function BusinessFramework() {
-  const { user, company } = useAuth();
+  const { user } = useAuth();
   
   // Period selection
   const [period, setPeriod] = useState<string>(new Date().toISOString().slice(0, 7));
@@ -26,21 +20,14 @@ export default function BusinessFramework() {
   const [currentView, setCurrentView] = useState<'overview' | 'business-units' | 'services' | 'it-towers' | 'cost-pools' | 'insights'>('overview');
   
   // Data state
-  const [overview, setOverview] = useState<FrameworkOverview | null>(null);
   const [businessUnits, setBusinessUnits] = useState<BusinessUnitModel[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [itTowers, setItTowers] = useState<ItTowerModel[]>([]);
   const [costPools, setCostPools] = useState<CostPoolModel[]>([]);
-  const [insights, setInsights] = useState<BusinessInsight[]>([]);
   
   // Loading and error states
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
-  const [successMessage, setSuccessMessage] = useState<string>('');
-
-  // Form states for creating new items
-  const [showCreateForm, setShowCreateForm] = useState<boolean>(false);
-  const [createType, setCreateType] = useState<'business-unit' | 'service' | 'it-tower' | 'cost-pool' | null>(null);
 
   if (!user) return <div className="text-sm">Please login.</div>;
 
@@ -69,10 +56,6 @@ export default function BusinessFramework() {
         const fullPeriod = `${period}-01`;
         
         switch (currentView) {
-          case 'overview':
-            const overviewData = await api.getFrameworkOverview(companyId, fullPeriod);
-            setOverview(overviewData);
-            break;
           case 'business-units':
             const businessUnitsData = await api.getBusinessUnits(companyId, fullPeriod);
             setBusinessUnits(businessUnitsData);
@@ -89,10 +72,6 @@ export default function BusinessFramework() {
             const costPoolsData = await api.getCostPools(companyId, fullPeriod);
             setCostPools(costPoolsData);
             break;
-          case 'insights':
-            const insightsData = await api.getBusinessInsights(companyId, fullPeriod);
-            setInsights(insightsData);
-            break;
         }
       } catch (error) {
         setErrorMessage(error instanceof Error ? error.message : 'Failed to load data');
@@ -103,26 +82,6 @@ export default function BusinessFramework() {
 
     loadData();
   }, [companyId, period, currentView]);
-
-  // Generate insights
-  const handleGenerateInsights = async () => {
-    if (!companyId) return;
-    
-    setIsLoading(true);
-    setErrorMessage('');
-    setSuccessMessage('');
-    
-    try {
-      const fullPeriod = `${period}-01`;
-      const newInsights = await api.generateBusinessInsights(companyId, fullPeriod);
-      setInsights(newInsights);
-      setSuccessMessage(`Generated ${newInsights.length} new business insights!`);
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to generate insights');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -135,29 +94,6 @@ export default function BusinessFramework() {
 
   const formatPercentage = (value: number) => {
     return `${value.toFixed(1)}%`;
-  };
-
-  const getImpactColor = (impact?: string) => {
-    switch (impact?.toLowerCase()) {
-      case 'high': return 'text-red-600 bg-red-50';
-      case 'medium': return 'text-yellow-600 bg-yellow-50';
-      case 'low': return 'text-green-600 bg-green-50';
-      default: return 'text-gray-600 bg-gray-50';
-    }
-  };
-
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'COST_OPTIMIZATION': return '💰';
-      case 'PERFORMANCE_ANALYSIS': return '📊';
-      case 'CAPACITY_PLANNING': return '📈';
-      case 'RISK_ASSESSMENT': return '⚠️';
-      case 'STRATEGIC_ALIGNMENT': return '🎯';
-      case 'ROI_ANALYSIS': return '💹';
-      case 'BENCHMARKING': return '📋';
-      case 'TREND_ANALYSIS': return '📉';
-      default: return '💡';
-    }
   };
 
   return (
@@ -242,18 +178,6 @@ export default function BusinessFramework() {
             </div>
           )}
 
-          {successMessage && (
-            <div className="p-6 bg-green-50 border-l-4 border-green-400">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <span className="text-green-400">✓</span>
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm text-green-800">{successMessage}</p>
-                </div>
-              </div>
-            </div>
-          )}
 
           {!isLoading && !errorMessage && (
             <div className="p-6">
@@ -274,8 +198,7 @@ export default function BusinessFramework() {
                     <h2 className="text-xl font-semibold text-gray-900">Business Units</h2>
                     <button
                       onClick={() => {
-                        setCreateType('business-unit');
-                        setShowCreateForm(true);
+                        // TODO: Implement business unit creation
                       }}
                       className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                     >
@@ -320,8 +243,7 @@ export default function BusinessFramework() {
                     <h2 className="text-xl font-semibold text-gray-900">Services</h2>
                     <button
                       onClick={() => {
-                        setCreateType('service');
-                        setShowCreateForm(true);
+                        // TODO: Implement service creation
                       }}
                       className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                     >
@@ -368,8 +290,7 @@ export default function BusinessFramework() {
                     <h2 className="text-xl font-semibold text-gray-900">IT Towers</h2>
                     <button
                       onClick={() => {
-                        setCreateType('it-tower');
-                        setShowCreateForm(true);
+                        // TODO: Implement IT tower creation
                       }}
                       className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                     >
@@ -418,8 +339,7 @@ export default function BusinessFramework() {
                     <h2 className="text-xl font-semibold text-gray-900">Cost Pools</h2>
                     <button
                       onClick={() => {
-                        setCreateType('cost-pool');
-                        setShowCreateForm(true);
+                        // TODO: Implement cost pool creation
                       }}
                       className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                     >

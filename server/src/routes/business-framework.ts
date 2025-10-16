@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { authenticateToken } from '../middleware/auth';
-import { requireRole } from '../middleware/rbac';
+import { auth } from '../middleware/auth.js';
+import { requireAdmin, restrictToCompany } from '../middleware/rbac.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -9,7 +9,7 @@ const prisma = new PrismaClient();
 // ===== BUSINESS UNITS (Layer 1) =====
 
 // Get all business units for a company
-router.get('/business-units', authenticateToken, async (req, res) => {
+router.get('/business-units', auth(), async (req, res) => {
   try {
     const { companyId, period } = req.query;
     
@@ -44,10 +44,10 @@ router.get('/business-units', authenticateToken, async (req, res) => {
 });
 
 // Create or update business unit
-router.post('/business-units', authenticateToken, async (req, res) => {
+router.post('/business-units', auth(), async (req, res) => {
   try {
     const { companyId, name, type, description, budget, employees, period } = req.body;
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
 
     if (!companyId || !name || !type || !budget || !employees || !period) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -90,7 +90,7 @@ router.post('/business-units', authenticateToken, async (req, res) => {
 // ===== SERVICES (Layer 2) =====
 
 // Get all services for a company
-router.get('/services', authenticateToken, async (req, res) => {
+router.get('/services', auth(), async (req, res) => {
   try {
     const { companyId, period, businessUnitId } = req.query;
     
@@ -123,7 +123,7 @@ router.get('/services', authenticateToken, async (req, res) => {
 });
 
 // Create or update service
-router.post('/services', authenticateToken, async (req, res) => {
+router.post('/services', auth(), async (req, res) => {
   try {
     const { 
       companyId, 
@@ -137,7 +137,7 @@ router.post('/services', authenticateToken, async (req, res) => {
       period,
       itTowerAllocations 
     } = req.body;
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
 
     if (!companyId || !businessUnitId || !name || !type || !cost || !period) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -203,7 +203,7 @@ router.post('/services', authenticateToken, async (req, res) => {
 // ===== IT TOWERS (Layer 3) =====
 
 // Get all IT towers for a company
-router.get('/it-towers', authenticateToken, async (req, res) => {
+router.get('/it-towers', auth(), async (req, res) => {
   try {
     const { companyId, period } = req.query;
     
@@ -239,7 +239,7 @@ router.get('/it-towers', authenticateToken, async (req, res) => {
 });
 
 // Create or update IT tower
-router.post('/it-towers', authenticateToken, async (req, res) => {
+router.post('/it-towers', auth(), async (req, res) => {
   try {
     const { 
       companyId, 
@@ -252,7 +252,7 @@ router.post('/it-towers', authenticateToken, async (req, res) => {
       period,
       costPoolAllocations 
     } = req.body;
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
 
     if (!companyId || !name || !type || !cost || !period) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -316,7 +316,7 @@ router.post('/it-towers', authenticateToken, async (req, res) => {
 // ===== COST POOLS (Layer 4) =====
 
 // Get all cost pools for a company
-router.get('/cost-pools', authenticateToken, async (req, res) => {
+router.get('/cost-pools', auth(), async (req, res) => {
   try {
     const { companyId, period } = req.query;
     
@@ -347,10 +347,10 @@ router.get('/cost-pools', authenticateToken, async (req, res) => {
 });
 
 // Create or update cost pool
-router.post('/cost-pools', authenticateToken, async (req, res) => {
+router.post('/cost-pools', auth(), async (req, res) => {
   try {
     const { companyId, name, type, description, amount, period } = req.body;
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
 
     if (!companyId || !name || !type || !amount || !period) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -391,7 +391,7 @@ router.post('/cost-pools', authenticateToken, async (req, res) => {
 // ===== BUSINESS INSIGHTS =====
 
 // Get business insights for a company
-router.get('/insights', authenticateToken, async (req, res) => {
+router.get('/insights', auth(), async (req, res) => {
   try {
     const { companyId, period, category } = req.query;
     
@@ -416,10 +416,10 @@ router.get('/insights', authenticateToken, async (req, res) => {
 });
 
 // Generate business insights
-router.post('/insights/generate', authenticateToken, async (req, res) => {
+router.post('/insights/generate', auth(), async (req, res) => {
   try {
     const { companyId, period } = req.body;
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
 
     if (!companyId || !period) {
       return res.status(400).json({ error: 'Company ID and period are required' });
@@ -524,8 +524,15 @@ router.post('/insights/generate', authenticateToken, async (req, res) => {
       insights.map(insight => 
         prisma.businessInsight.create({
           data: {
-            ...insight,
             companyId,
+            title: insight.title,
+            category: insight.category as any,
+            description: insight.description,
+            insight: insight.insight,
+            impact: insight.impact,
+            confidence: insight.confidence,
+            period: insight.period,
+            data: insight.data,
             createdById: userId
           }
         })
@@ -542,7 +549,7 @@ router.post('/insights/generate', authenticateToken, async (req, res) => {
 // ===== FRAMEWORK OVERVIEW =====
 
 // Get complete framework overview
-router.get('/overview', authenticateToken, async (req, res) => {
+router.get('/overview', auth(), async (req, res) => {
   try {
     const { companyId, period } = req.query;
     

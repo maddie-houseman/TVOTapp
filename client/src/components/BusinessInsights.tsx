@@ -3,10 +3,6 @@ import {
   api, 
   type BusinessInsight, 
   type FrameworkOverview,
-  type BusinessUnitModel,
-  type Service,
-  type ItTowerModel,
-  type CostPoolModel,
   type InsightCategory
 } from '../lib/api';
 
