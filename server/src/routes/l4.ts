@@ -323,18 +323,15 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
     }
 
     res.json({
-      success: true,
-      snapshot: {
-        id: snapshot.id,
-        companyId: snapshot.companyId,
-        period: snapshot.period,
-        assumptions: snapshot.assumptions ? JSON.parse(snapshot.assumptions) : null,
-        totalCost: snapshot.totalCost,
-        totalBenefit: snapshot.totalBenefit,
-        roiPct: snapshot.roiPct,
-        createdAt: snapshot.createdAt
-      },
-      dataCount: l4Metrics.dataCount
+      id: snapshot.id,
+      companyId: snapshot.companyId,
+      period: snapshot.period,
+      assumptions: snapshot.assumptions ? JSON.parse(snapshot.assumptions) : null,
+      totalCost: snapshot.totalCost,
+      totalBenefit: snapshot.totalBenefit,
+      net: snapshot.totalBenefit - snapshot.totalCost,
+      roiPct: snapshot.roiPct,
+      createdAt: snapshot.createdAt
     });
 
   } catch (error) {
