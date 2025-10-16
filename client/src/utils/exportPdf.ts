@@ -141,7 +141,7 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
         backgroundColor: '#ffffff',
         useCORS: true,
         allowTaint: true,
-        logging: false
+        logging: false,
         foreignObjectRendering: false,
         removeContainer: false,
         width: target.scrollWidth,
