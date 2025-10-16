@@ -111,12 +111,12 @@ export default function Account() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-black">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h1 className="text-2xl font-bold text-gray-900">Account Settings</h1>
-            <p className="mt-1 text-sm text-gray-600">
+        <div className="bg-gray-800 rounded-lg shadow border border-gray-700">
+          <div className="px-6 py-4 border-b border-gray-600">
+            <h1 className="text-2xl font-bold text-white">Account Settings</h1>
+            <p className="mt-1 text-sm text-gray-300">
               Manage your account and company information
             </p>
           </div>
@@ -125,7 +125,7 @@ export default function Account() {
             {/* User Information */}
             <div>
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium text-gray-900">User Information</h3>
+                <h3 className="text-lg font-medium text-white">User Information</h3>
                 {!isEditingProfile && (
                   <button
                     onClick={handleProfileEdit}
@@ -138,45 +138,45 @@ export default function Account() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Name</label>
                   {isEditingProfile ? (
                     <input
                       type="text"
                       value={profileForm.name}
                       onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full border border-gray-600 rounded-md px-3 py-2 bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   ) : (
                     <input
                       type="text"
                       value={user?.name || ''}
                       disabled
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50 text-gray-900"
+                      className="w-full border border-gray-600 rounded-md px-3 py-2 bg-gray-700 text-gray-300"
                     />
                   )}
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
                   {isEditingProfile ? (
                     <input
                       type="email"
                       value={profileForm.email}
                       onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full border border-gray-600 rounded-md px-3 py-2 bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   ) : (
                     <input
                       type="email"
                       value={user?.email || ''}
                       disabled
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50 text-gray-900"
+                      className="w-full border border-gray-600 rounded-md px-3 py-2 bg-gray-700 text-gray-300"
                     />
                   )}
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Role</label>
                   <input
                     type="text"
                     value={user?.role || ''}
@@ -186,7 +186,7 @@ export default function Account() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">User ID</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">User ID</label>
                   <input
                     type="text"
                     value={user?.id || ''}
@@ -200,7 +200,7 @@ export default function Account() {
                 <div className="mt-6 flex justify-end space-x-4">
                   <button
                     onClick={handleCancel}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    className="px-4 py-2 border border-gray-600 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700"
                   >
                     Cancel
                   </button>
@@ -217,10 +217,10 @@ export default function Account() {
 
             {/* Company Information */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Company Information</h3>
+              <h3 className="text-lg font-medium text-white mb-4">Company Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Company Name</label>
                   <input
                     type="text"
                     value={company?.name || ''}
@@ -230,7 +230,7 @@ export default function Account() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Domain</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Domain</label>
                   <input
                     type="text"
                     value={company?.domain || ''}
@@ -240,7 +240,7 @@ export default function Account() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Company ID</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Company ID</label>
                   <input
                     type="text"
                     value={company?.id || ''}
@@ -254,7 +254,7 @@ export default function Account() {
             {/* Password Change Section */}
             <div>
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium text-gray-900">Security</h3>
+                <h3 className="text-lg font-medium text-white">Security</h3>
                 {!isChangingPassword && (
                   <button
                     onClick={handlePasswordChange}
@@ -266,41 +266,41 @@ export default function Account() {
               </div>
 
               {isChangingPassword && (
-                <div className="bg-gray-50 rounded-lg p-6">
-                  <h4 className="text-md font-medium text-gray-900 mb-4">Change Password</h4>
+                <div className="bg-gray-700 rounded-lg p-6">
+                  <h4 className="text-md font-medium text-white mb-4">Change Password</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Current Password</label>
                       <input
                         type="password"
                         value={passwordForm.currentPassword}
                         onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-gray-600 rounded-md px-3 py-2 bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">New Password</label>
                       <input
                         type="password"
                         value={passwordForm.newPassword}
                         onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-gray-600 rounded-md px-3 py-2 bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Confirm New Password</label>
                       <input
                         type="password"
                         value={passwordForm.confirmPassword}
                         onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-gray-600 rounded-md px-3 py-2 bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                   </div>
                   <div className="mt-6 flex justify-end space-x-4">
                     <button
                       onClick={handleCancel}
-                      className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                      className="px-4 py-2 border border-gray-600 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700"
                     >
                       Cancel
                     </button>
@@ -320,8 +320,8 @@ export default function Account() {
             {message && (
               <div className={`rounded-md p-4 ${
                 message.type === 'success' 
-                  ? 'bg-green-50 border border-green-200' 
-                  : 'bg-red-50 border border-red-200'
+                  ? 'bg-gray-800 border border-green-400' 
+                  : 'bg-gray-800 border border-red-400'
               }`}>
                 <div className="flex">
                   <div className="flex-shrink-0">
@@ -331,7 +331,7 @@ export default function Account() {
                   </div>
                   <div className="ml-3">
                     <p className={`text-sm ${
-                      message.type === 'success' ? 'text-green-700' : 'text-red-700'
+                      message.type === 'success' ? 'text-green-400' : 'text-red-400'
                     }`}>
                       {message.text}
                     </p>

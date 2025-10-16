@@ -243,19 +243,19 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-black">
       <div id="dashboard-root" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">TBM Dashboard</h1>
-          <p className="mt-2 text-gray-600">
+          <h1 className="text-3xl font-bold text-white">TBM Dashboard</h1>
+          <p className="mt-2 text-gray-300">
             Technology Business Management insights for {
               user?.role === 'ADMIN' && selectedCompanyId 
                 ? availableCompanies.find(c => c.id === selectedCompanyId)?.name || 'selected company'
                 : company?.name || 'your company'
             }
           </p>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-gray-400">
             Period: {new Date(parseInt(selectedYear), parseInt(selectedMonth) - 1).toLocaleDateString('en-US', { 
               month: 'long', 
               year: 'numeric' 
@@ -267,7 +267,7 @@ export default function Dashboard() {
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="border border-gray-600 rounded-md px-3 py-2 text-sm bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {Array.from({ length: 10 }, (_, i) => {
                 const year = new Date().getFullYear() - 5 + i;
@@ -282,7 +282,7 @@ export default function Dashboard() {
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="border border-gray-600 rounded-md px-3 py-2 text-sm bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="01">January</option>
               <option value="02">February</option>
@@ -301,14 +301,14 @@ export default function Dashboard() {
             {/* Company Selector for Admin Users */}
             {user?.role === 'ADMIN' && (
               <>
-                <label className="text-sm font-medium text-gray-700">Company:</label>
+                <label className="text-sm font-medium text-gray-300">Company:</label>
                 {loadingCompanies ? (
-                  <div className="text-sm text-gray-500">Loading companies...</div>
+                  <div className="text-sm text-gray-400">Loading companies...</div>
                 ) : (
                   <select
                     value={selectedCompanyId}
                     onChange={(e) => setSelectedCompanyId(e.target.value)}
-                    className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="border border-gray-600 rounded-md px-3 py-2 text-sm bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Select a Company</option>
                     {availableCompanies.map((company) => (
@@ -326,7 +326,7 @@ export default function Dashboard() {
               <button
                 type="button"
                 onClick={() => setShowGraphs(!showGraphs)}
-                className="inline-flex items-center px-3 py-2 rounded-md bg-gray-600 text-white text-sm font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                className="inline-flex items-center px-3 py-2 rounded-md bg-gray-700 text-white text-sm font-medium hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
               >
                 {showGraphs ? 'Hide Graphs' : 'Show Graphs'}
               </button>
@@ -368,7 +368,7 @@ export default function Dashboard() {
 
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-gray-800 rounded-lg shadow p-6 border border-gray-700">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <div className="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
@@ -376,15 +376,15 @@ export default function Dashboard() {
                 </div>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Total Budget</p>
-                <p className="text-2xl font-semibold text-gray-900">
+                <p className="text-sm font-medium text-gray-300">Total Budget</p>
+                <p className="text-2xl font-semibold text-white">
                   {formatCurrency(l1Data.reduce((sum, dept) => sum + Number(dept.budget), 0))}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-gray-800 rounded-lg shadow p-6 border border-gray-700">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <div className="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
@@ -392,15 +392,15 @@ export default function Dashboard() {
                 </div>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Total Headcount</p>
-                <p className="text-2xl font-semibold text-gray-900">
+                <p className="text-sm font-medium text-gray-300">Total Headcount</p>
+                <p className="text-2xl font-semibold text-white">
                   {l1Data.reduce((sum, dept) => sum + dept.employees, 0)}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-gray-800 rounded-lg shadow p-6 border border-gray-700">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <div className="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
@@ -408,15 +408,15 @@ export default function Dashboard() {
                 </div>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">ROI</p>
-                <p className="text-2xl font-semibold text-gray-900">
+                <p className="text-sm font-medium text-gray-300">ROI</p>
+                <p className="text-2xl font-semibold text-white">
                   {currentSnapshot ? formatPercentage(currentSnapshot.roiPct) : 'N/A'}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-gray-800 rounded-lg shadow p-6 border border-gray-700">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <div className="w-8 h-8 bg-orange-500 rounded-md flex items-center justify-center">
@@ -424,8 +424,8 @@ export default function Dashboard() {
                 </div>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Net Benefit</p>
-                <p className="text-2xl font-semibold text-gray-900">
+                <p className="text-sm font-medium text-gray-300">Net Benefit</p>
+                <p className="text-2xl font-semibold text-white">
                   {currentSnapshot ? formatCurrency(currentSnapshot.totalBenefit - currentSnapshot.totalCost) : 'N/A'}
                 </p>
               </div>
@@ -436,16 +436,16 @@ export default function Dashboard() {
         {/* Charts and Visualizations */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* L1 - Department Budget Distribution */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">L1 - Department Budget Distribution</h3>
+          <div className="bg-gray-800 rounded-lg shadow p-6 border border-gray-700">
+            <h3 className="text-lg font-medium text-white mb-4">L1 - Department Budget Distribution</h3>
             {l1Data.length > 0 ? (
               <div className="space-y-4">
                 {mergeSort([...l1Data], (a, b) => Number(b.budget) - Number(a.budget)).map((dept, index) => (
                   <div key={index} className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-600">{dept.department}</span>
+                    <span className="text-sm font-medium text-gray-300">{dept.department}</span>
                     <div className="flex items-center space-x-4">
-                      <span className="text-sm text-gray-900">{formatCurrency(Number(dept.budget))}</span>
-                      <div className="w-32 bg-gray-200 rounded-full h-2">
+                      <span className="text-sm text-white">{formatCurrency(Number(dept.budget))}</span>
+                      <div className="w-32 bg-gray-600 rounded-full h-2">
                         <div
                           className="bg-blue-500 h-2 rounded-full"
                           style={{
@@ -458,21 +458,21 @@ export default function Dashboard() {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 text-center py-4">No L1 data available for this period</p>
+              <p className="text-gray-400 text-center py-4">No L1 data available for this period</p>
             )}
           </div>
 
           {/* L2 - Tower Allocation */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">L2 - Tower Allocation</h3>
+          <div className="bg-gray-800 rounded-lg shadow p-6 border border-gray-700">
+            <h3 className="text-lg font-medium text-white mb-4">L2 - Tower Allocation</h3>
             {l2Data.length > 0 ? (
               <div className="space-y-4">
                 {l2Data.map((tower, index) => (
                   <div key={index} className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-600">{tower.tower}</span>
+                    <span className="text-sm font-medium text-gray-300">{tower.tower}</span>
                     <div className="flex items-center space-x-4">
-                      <span className="text-sm text-gray-900">{formatPercentage(tower.weightPct * 100)}</span>
-                      <div className="w-32 bg-gray-200 rounded-full h-2">
+                      <span className="text-sm text-white">{formatPercentage(tower.weightPct * 100)}</span>
+                      <div className="w-32 bg-gray-600 rounded-full h-2">
                         <div
                           className="bg-blue-500 h-2 rounded-full"
                           style={{ width: `${tower.weightPct * 100}%` }}
@@ -483,74 +483,74 @@ export default function Dashboard() {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 text-center py-4">No L2 data available for this period</p>
+              <p className="text-gray-400 text-center py-4">No L2 data available for this period</p>
             )}
           </div>
         </div>
 
         {/* L4 - ROI Analysis */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">L4 - ROI Analysis</h3>
+        <div className="bg-gray-800 rounded-lg shadow p-6 mb-8 border border-gray-700">
+          <h3 className="text-lg font-medium text-white mb-4">L4 - ROI Analysis</h3>
           {currentSnapshot ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
-                <h4 className="text-md font-medium text-gray-700 mb-3">Financial Summary</h4>
+                <h4 className="text-md font-medium text-gray-300 mb-3">Financial Summary</h4>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Total Cost:</span>
-                    <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.totalCost)}</span>
+                    <span className="text-sm text-gray-300">Total Cost:</span>
+                    <span className="text-sm font-medium text-white">{formatCurrency(currentSnapshot.totalCost)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Total Benefit:</span>
-                    <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.totalBenefit)}</span>
+                    <span className="text-sm text-gray-300">Total Benefit:</span>
+                    <span className="text-sm font-medium text-white">{formatCurrency(currentSnapshot.totalBenefit)}</span>
                   </div>
-                  <div className="flex justify-between border-t pt-2">
-                    <span className="text-sm font-medium text-gray-900">Net Benefit:</span>
-                    <span className="text-sm font-bold text-green-600">{formatCurrency(currentSnapshot.totalBenefit - currentSnapshot.totalCost)}</span>
+                  <div className="flex justify-between border-t border-gray-600 pt-2">
+                    <span className="text-sm font-medium text-white">Net Benefit:</span>
+                    <span className="text-sm font-bold text-green-400">{formatCurrency(currentSnapshot.totalBenefit - currentSnapshot.totalCost)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">ROI:</span>
-                    <span className="text-sm font-bold text-blue-600">{formatPercentage(currentSnapshot.roiPct)}</span>
+                    <span className="text-sm text-gray-300">ROI:</span>
+                    <span className="text-sm font-bold text-blue-400">{formatPercentage(currentSnapshot.roiPct)}</span>
                   </div>
                 </div>
               </div>
               
               <div>
-                <h4 className="text-md font-medium text-gray-700 mb-3">Assumptions</h4>
+                <h4 className="text-md font-medium text-gray-300 mb-3">Assumptions</h4>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Revenue Uplift:</span>
-                    <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.assumptions.revenueUplift)}</span>
+                    <span className="text-sm text-gray-300">Revenue Uplift:</span>
+                    <span className="text-sm font-medium text-white">{formatCurrency(currentSnapshot.assumptions.revenueUplift)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Productivity Hours:</span>
-                    <span className="text-sm font-medium text-gray-900">{currentSnapshot.assumptions.productivityGainHours.toLocaleString()}</span>
+                    <span className="text-sm text-gray-300">Productivity Hours:</span>
+                    <span className="text-sm font-medium text-white">{currentSnapshot.assumptions.productivityGainHours.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Loaded Rate:</span>
-                    <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.assumptions.avgLoadedRate)}</span>
+                    <span className="text-sm text-gray-300">Loaded Rate:</span>
+                    <span className="text-sm font-medium text-white">{formatCurrency(currentSnapshot.assumptions.avgLoadedRate)}</span>
                   </div>
                 </div>
               </div>
             </div>
           ) : (
-            <p className="text-gray-500 text-center py-4">No ROI snapshot available for this period</p>
+            <p className="text-gray-400 text-center py-4">No ROI snapshot available for this period</p>
           )}
         </div>
 
         {/* Revenue/Return Projection Graphs */}
         {showGraphs && (
-          <div className="bg-white rounded-lg shadow p-6 mb-8">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Revenue & Return Projections</h3>
-            <p className="text-sm text-gray-600 mb-6">
+          <div className="bg-gray-800 rounded-lg shadow p-6 mb-8 border border-gray-700">
+            <h3 className="text-lg font-medium text-white mb-4">Revenue & Return Projections</h3>
+            <p className="text-sm text-gray-300 mb-6">
               Based on {historicalData.length} months of historical data
             </p>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Revenue Trend Line Chart */}
               <div>
-                <h4 className="text-md font-medium text-gray-700 mb-4">Revenue Trend</h4>
-                <div className="h-64 relative border-l-2 border-b-2 border-gray-300">
+                <h4 className="text-md font-medium text-gray-300 mb-4">Revenue Trend</h4>
+                <div className="h-64 relative border-l-2 border-b-2 border-gray-600">
                   <svg className="w-full h-full" viewBox="0 0 400 200" preserveAspectRatio="none">
                     {/* Grid lines */}
                     {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => (
@@ -610,17 +610,17 @@ export default function Dashboard() {
                   {/* Month labels */}
                   <div className="absolute bottom-0 left-0 right-0 flex justify-between px-2">
                     {historicalData.map((snapshot, index) => (
-                      <div key={index} className="text-xs text-gray-600">
+                      <div key={index} className="text-xs text-gray-300">
                         {new Date(snapshot.period).toLocaleDateString('en-US', { month: 'short' })}
                       </div>
                     ))}
                   </div>
                   
                   {/* Value labels */}
-                  <div className="absolute top-0 right-0 text-xs text-gray-500">
+                  <div className="absolute top-0 right-0 text-xs text-gray-400">
                     {formatCurrency(Math.max(...historicalData.map(s => s.totalBenefit)))}
                   </div>
-                  <div className="absolute bottom-0 right-0 text-xs text-gray-500">
+                  <div className="absolute bottom-0 right-0 text-xs text-gray-400">
                     {formatCurrency(Math.min(...historicalData.map(s => s.totalBenefit)))}
                   </div>
                 </div>
@@ -628,8 +628,8 @@ export default function Dashboard() {
 
               {/* ROI Trend Line Chart */}
               <div>
-                <h4 className="text-md font-medium text-gray-700 mb-4">ROI Trend</h4>
-                <div className="h-64 relative border-l-2 border-b-2 border-gray-300">
+                <h4 className="text-md font-medium text-gray-300 mb-4">ROI Trend</h4>
+                <div className="h-64 relative border-l-2 border-b-2 border-gray-600">
                   <svg className="w-full h-full" viewBox="0 0 400 200" preserveAspectRatio="none">
                     {/* Grid lines */}
                     {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => (
@@ -711,17 +711,17 @@ export default function Dashboard() {
                   {/* Month labels */}
                   <div className="absolute bottom-0 left-0 right-0 flex justify-between px-2">
                     {historicalData.map((snapshot, index) => (
-                      <div key={index} className="text-xs text-gray-600">
+                      <div key={index} className="text-xs text-gray-300">
                         {new Date(snapshot.period).toLocaleDateString('en-US', { month: 'short' })}
                       </div>
                     ))}
                   </div>
                   
                   {/* Value labels */}
-                  <div className="absolute top-0 right-0 text-xs text-gray-500">
+                  <div className="absolute top-0 right-0 text-xs text-gray-400">
                     {formatPercentage(Math.max(...historicalData.map(s => s.roiPct)))}
                   </div>
-                  <div className="absolute bottom-0 right-0 text-xs text-gray-500">
+                  <div className="absolute bottom-0 right-0 text-xs text-gray-400">
                     {formatPercentage(Math.min(...historicalData.map(s => s.roiPct)))}
                   </div>
                 </div>
@@ -729,27 +729,27 @@ export default function Dashboard() {
             </div>
 
             {/* Projection Summary */}
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <h5 className="text-sm font-medium text-gray-700 mb-2">Projection Summary</h5>
+            <div className="mt-6 p-4 bg-gray-700 rounded-lg">
+              <h5 className="text-sm font-medium text-gray-300 mb-2">Projection Summary</h5>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                 <div>
-                  <span className="text-gray-600">Average Monthly Revenue:</span>
-                  <span className="ml-2 font-medium text-gray-900">
+                  <span className="text-gray-300">Average Monthly Revenue:</span>
+                  <span className="ml-2 font-medium text-white">
                     {formatCurrency(historicalData.reduce((sum, s) => sum + s.totalBenefit, 0) / historicalData.length)}
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Average ROI:</span>
-                  <span className="ml-2 font-medium text-gray-900">
+                  <span className="text-gray-300">Average ROI:</span>
+                  <span className="ml-2 font-medium text-white">
                     {formatPercentage(historicalData.reduce((sum, s) => sum + s.roiPct, 0) / historicalData.length)}
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Trend:</span>
+                  <span className="text-gray-300">Trend:</span>
                   <span className={`ml-2 font-medium ${
                     historicalData[historicalData.length - 1]?.roiPct > historicalData[0]?.roiPct 
-                      ? 'text-green-600' 
-                      : 'text-red-600'
+                      ? 'text-green-400' 
+                      : 'text-red-400'
                   }`}>
                     {historicalData[historicalData.length - 1]?.roiPct > historicalData[0]?.roiPct ? '↗ Improving' : '↘ Declining'}
                   </span>
@@ -761,13 +761,13 @@ export default function Dashboard() {
 
         {/* Authentication Notice */}
         {!isAuthenticated && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="bg-gray-800 border border-gray-600 rounded-lg p-4">
             <div className="flex">
               <div className="flex-shrink-0">
                 <span className="text-blue-400">ℹ️</span>
               </div>
               <div className="ml-3">
-                <p className="text-sm text-blue-700">
+                <p className="text-sm text-white">
                   <strong>Authentication Required:</strong> Please log in to view your TBM framework data.
                 </p>
               </div>

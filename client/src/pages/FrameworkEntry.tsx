@@ -58,10 +58,10 @@ export default function FrameworkEntry() {
   // For non-admin users, check if they have a company
   if (user.role !== 'ADMIN' && !user.companyId) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">No Company Assigned</h1>
-          <p className="text-gray-600">You are not assigned to any company. Please contact your administrator.</p>
+          <h1 className="text-2xl font-bold text-white mb-4">No Company Assigned</h1>
+          <p className="text-gray-300">You are not assigned to any company. Please contact your administrator.</p>
         </div>
       </div>
     );
@@ -197,12 +197,12 @@ export default function FrameworkEntry() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-black">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">TBM Framework Entry</h1>
-          <p className="mt-2 text-gray-600">
+          <h1 className="text-3xl font-bold text-white">TBM Framework Entry</h1>
+          <p className="mt-2 text-gray-300">
             Set up your Technology Business Management framework step by step
           </p>
         </div>
@@ -215,11 +215,11 @@ export default function FrameworkEntry() {
                 <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
                   step <= currentStep 
                     ? 'bg-blue-600 border-blue-600 text-white' 
-                    : 'bg-white border-gray-300 text-gray-500'
+                    : 'bg-gray-800 border-gray-600 text-gray-400'
                 }`}>
                   {step}
                 </div>
-                <div className="ml-2 text-sm font-medium text-gray-700">
+                <div className="ml-2 text-sm font-medium text-gray-300">
                   {step === 1 && 'L1: Operational Inputs'}
                   {step === 2 && 'L2: Allocation Weights'}
                   {step === 3 && 'L3: Benefit Weights'}
@@ -227,7 +227,7 @@ export default function FrameworkEntry() {
                 </div>
                 {step < 4 && (
                   <div className={`w-16 h-0.5 mx-4 ${
-                    step < currentStep ? 'bg-blue-600' : 'bg-gray-300'
+                    step < currentStep ? 'bg-blue-600' : 'bg-gray-600'
                   }`} />
                 )}
               </div>
@@ -236,34 +236,34 @@ export default function FrameworkEntry() {
         </div>
 
         {/* Period Selection */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Reporting Period</h3>
+        <div className="bg-gray-800 rounded-lg shadow p-6 mb-6 border border-gray-700">
+          <h3 className="text-lg font-medium text-white mb-4">Reporting Period</h3>
           <div className="max-w-xs">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-300 mb-2">
               Select Period (YYYY-MM)
             </label>
             <input
               type="month"
               value={period}
               onChange={(e) => setPeriod(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-600 rounded-md px-3 py-2 bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
 
         {/* Company Selection for Admin Users Only */}
         {user.role === 'ADMIN' && (
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Company Selection</h3>
-            <p className="text-sm text-gray-600 mb-4">As an admin, you can enter data for any company.</p>
+          <div className="bg-gray-800 rounded-lg shadow p-6 mb-6 border border-gray-700">
+            <h3 className="text-lg font-medium text-white mb-4">Company Selection</h3>
+            <p className="text-sm text-gray-300 mb-4">As an admin, you can enter data for any company.</p>
             <div className="max-w-md">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
                 Select Company
               </label>
               <select
                 value={selectedCompanyId}
                 onChange={(e) => setSelectedCompanyId(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-600 rounded-md px-3 py-2 bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Select a company...</option>
                 {availableCompanies.map((company) => (
@@ -279,31 +279,31 @@ export default function FrameworkEntry() {
 
         {/* Company Info for Regular Users */}
         {user.role !== 'ADMIN' && company && (
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Company Information</h3>
-            <p className="text-sm text-gray-600 mb-2">You are entering data for:</p>
-            <div className="bg-gray-50 rounded-md p-3">
-              <p className="font-medium text-gray-900">{company.name}</p>
-              {company.domain && <p className="text-sm text-gray-600">{company.domain}</p>}
+          <div className="bg-gray-800 rounded-lg shadow p-6 mb-6 border border-gray-700">
+            <h3 className="text-lg font-medium text-white mb-4">Company Information</h3>
+            <p className="text-sm text-gray-300 mb-2">You are entering data for:</p>
+            <div className="bg-gray-700 rounded-md p-3">
+              <p className="font-medium text-white">{company.name}</p>
+              {company.domain && <p className="text-sm text-gray-300">{company.domain}</p>}
             </div>
           </div>
         )}
 
         {/* Step Content */}
-        <div className="bg-white rounded-lg shadow">
+        <div className="bg-gray-800 rounded-lg shadow border border-gray-700">
           {/* L1 Step */}
           {currentStep === 1 && (
             <div className="p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">L1 - Operational Inputs</h3>
-              <p className="text-gray-600 mb-6">Enter your department's operational data for the selected period.</p>
+              <h3 className="text-xl font-semibold text-white mb-4">L1 - Operational Inputs</h3>
+              <p className="text-gray-300 mb-6">Enter your department's operational data for the selected period.</p>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Department</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Department</label>
                   <select
                     value={dept}
                     onChange={(e) => setDept(e.target.value as Department)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-600 rounded-md px-3 py-2 bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {(['ENGINEERING', 'SALES', 'FINANCE', 'HR', 'MARKETING', 'OPERATIONS'] as Department[]).map(
                       (d) => (
@@ -316,24 +316,24 @@ export default function FrameworkEntry() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Number of Employees</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Number of Employees</label>
                   <input
                     type="number"
                     min={0}
                     value={employees}
                     onChange={(e) => setEmployees(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-600 rounded-md px-3 py-2 bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Budget ($)</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Budget ($)</label>
                   <input
                     type="number"
                     min={0}
                     value={budget}
                     onChange={(e) => setBudget(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-600 rounded-md px-3 py-2 bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -353,12 +353,12 @@ export default function FrameworkEntry() {
           {/* L2 Step */}
           {currentStep === 2 && (
             <div className="p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">L2 - Allocation Weights</h3>
-              <p className="text-gray-600 mb-6">Define how your budget is allocated across technology towers. Weights must sum to 1.0.</p>
+              <h3 className="text-xl font-semibold text-white mb-4">L2 - Allocation Weights</h3>
+              <p className="text-gray-300 mb-6">Define how your budget is allocated across technology towers. Weights must sum to 1.0.</p>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Application Development</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Application Development</label>
                   <input
                     type="number"
                     step="0.01"
@@ -366,11 +366,11 @@ export default function FrameworkEntry() {
                     max={1}
                     value={appDev}
                     onChange={(e) => setAppDev(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-600 rounded-md px-3 py-2 bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Cloud Services</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Cloud Services</label>
                   <input
                     type="number"
                     step="0.01"
@@ -378,11 +378,11 @@ export default function FrameworkEntry() {
                     max={1}
                     value={cloud}
                     onChange={(e) => setCloud(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-600 rounded-md px-3 py-2 bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">End User Computing</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">End User Computing</label>
                   <input
                     type="number"
                     step="0.01"
@@ -390,29 +390,29 @@ export default function FrameworkEntry() {
                     max={1}
                     value={endUser}
                     onChange={(e) => setEndUser(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-600 rounded-md px-3 py-2 bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
               
-              <div className="mt-4 p-4 bg-gray-50 rounded-md">
+              <div className="mt-4 p-4 bg-gray-700 rounded-md">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-gray-700">Total Weight:</span>
+                  <span className="text-sm font-medium text-gray-300">Total Weight:</span>
                   <span className={`text-sm font-bold ${
-                    Math.abs((appDev + cloud + endUser) - 1) < 0.01 ? 'text-green-600' : 'text-red-600'
+                    Math.abs((appDev + cloud + endUser) - 1) < 0.01 ? 'text-green-400' : 'text-red-400'
                   }`}>
                     {(appDev + cloud + endUser).toFixed(3)}
                   </span>
                 </div>
                 {Math.abs((appDev + cloud + endUser) - 1) >= 0.01 && (
-                  <p className="text-xs text-red-600 mt-1">Weights must sum to 1.0</p>
+                  <p className="text-xs text-red-400 mt-1">Weights must sum to 1.0</p>
                 )}
               </div>
 
               <div className="mt-6 flex justify-between">
                 <button
                   onClick={prevStep}
-                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                  className="px-6 py-2 border border-gray-600 text-gray-300 rounded-md hover:bg-gray-700"
                 >
                   Previous
                 </button>
@@ -430,12 +430,12 @@ export default function FrameworkEntry() {
           {/* L3 Step */}
           {currentStep === 3 && (
             <div className="p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">L3 - Benefit Weights</h3>
-              <p className="text-gray-600 mb-6">Define the expected benefit categories. Weights must sum to 1.0.</p>
+              <h3 className="text-xl font-semibold text-white mb-4">L3 - Benefit Weights</h3>
+              <p className="text-gray-300 mb-6">Define the expected benefit categories. Weights must sum to 1.0.</p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Productivity Gains</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Productivity Gains</label>
                   <input
                     type="number"
                     step="0.01"
@@ -443,11 +443,11 @@ export default function FrameworkEntry() {
                     max={1}
                     value={prod}
                     onChange={(e) => setProd(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-600 rounded-md px-3 py-2 bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Revenue Uplift</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Revenue Uplift</label>
                   <input
                     type="number"
                     step="0.01"
@@ -455,29 +455,29 @@ export default function FrameworkEntry() {
                     max={1}
                     value={rev}
                     onChange={(e) => setRev(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-600 rounded-md px-3 py-2 bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
               
-              <div className="mt-4 p-4 bg-gray-50 rounded-md">
+              <div className="mt-4 p-4 bg-gray-700 rounded-md">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-gray-700">Total Weight:</span>
+                  <span className="text-sm font-medium text-gray-300">Total Weight:</span>
                   <span className={`text-sm font-bold ${
-                    Math.abs((prod + rev) - 1) < 0.01 ? 'text-green-600' : 'text-red-600'
+                    Math.abs((prod + rev) - 1) < 0.01 ? 'text-green-400' : 'text-red-400'
                   }`}>
                     {(prod + rev).toFixed(3)}
                   </span>
                 </div>
                 {Math.abs((prod + rev) - 1) >= 0.01 && (
-                  <p className="text-xs text-red-600 mt-1">Weights must sum to 1.0</p>
+                  <p className="text-xs text-red-400 mt-1">Weights must sum to 1.0</p>
                 )}
               </div>
 
               <div className="mt-6 flex justify-between">
                 <button
                   onClick={prevStep}
-                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                  className="px-6 py-2 border border-gray-600 text-gray-300 rounded-md hover:bg-gray-700"
                 >
                   Previous
                 </button>
@@ -495,38 +495,38 @@ export default function FrameworkEntry() {
           {/* L4 Step */}
           {currentStep === 4 && (
             <div className="p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">L4 - ROI Assumptions</h3>
-              <p className="text-gray-600 mb-6">Enter your assumptions for calculating ROI and benefits.</p>
+              <h3 className="text-xl font-semibold text-white mb-4">L4 - ROI Assumptions</h3>
+              <p className="text-gray-300 mb-6">Enter your assumptions for calculating ROI and benefits.</p>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Revenue Uplift ($)</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Revenue Uplift ($)</label>
                   <input
                     type="number"
                     min={0}
                     value={uplift}
                     onChange={(e) => setUplift(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-600 rounded-md px-3 py-2 bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Productivity Gain (Hours)</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Productivity Gain (Hours)</label>
                   <input
                     type="number"
                     min={0}
                     value={hours}
                     onChange={(e) => setHours(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-600 rounded-md px-3 py-2 bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Average Loaded Rate ($)</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Average Loaded Rate ($)</label>
                   <input
                     type="number"
                     min={0}
                     value={rate}
                     onChange={(e) => setRate(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-600 rounded-md px-3 py-2 bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -534,7 +534,7 @@ export default function FrameworkEntry() {
               <div className="mt-6 flex justify-between">
                 <button
                   onClick={prevStep}
-                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                  className="px-6 py-2 border border-gray-600 text-gray-300 rounded-md hover:bg-gray-700"
                 >
                   Previous
                 </button>
@@ -552,26 +552,26 @@ export default function FrameworkEntry() {
 
         {/* Messages */}
         {successMessage && (
-          <div className="mt-6 bg-green-50 border border-green-200 rounded-md p-4">
+          <div className="mt-6 bg-gray-800 border border-green-400 rounded-md p-4">
             <div className="flex">
               <div className="flex-shrink-0">
                 <span className="text-green-400">✓</span>
               </div>
               <div className="ml-3">
-                <p className="text-sm text-green-700">{successMessage}</p>
+                <p className="text-sm text-green-400">{successMessage}</p>
               </div>
             </div>
           </div>
         )}
 
         {errorMessage && (
-          <div className="mt-6 bg-red-50 border border-red-200 rounded-md p-4">
+          <div className="mt-6 bg-gray-800 border border-red-400 rounded-md p-4">
             <div className="flex">
               <div className="flex-shrink-0">
                 <span className="text-red-400">✗</span>
               </div>
               <div className="ml-3">
-                <p className="text-sm text-red-700">{errorMessage}</p>
+                <p className="text-sm text-red-400">{errorMessage}</p>
               </div>
             </div>
           </div>
