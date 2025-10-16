@@ -599,160 +599,54 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* L4 - Technology Investment ROI Analysis */}
+        {/* L4 - ROI Analysis */}
         <div className="bg-white rounded-lg shadow p-6 mb-8">
           <div className="mb-4">
-            <h3 className="text-lg font-medium text-gray-900">L4 - Technology Investment ROI Analysis</h3>
+            <h3 className="text-lg font-medium text-gray-900">L4 - ROI Analysis</h3>
             <p className="text-sm text-gray-600 mt-1">
-              Comprehensive financial analysis for technology investment decisions including ROI, NPV, IRR, and payback period calculations
+              Return on investment calculation based on L1 costs and L4 revenue assumptions
             </p>
           </div>
           
           {currentSnapshot ? (
-            <div className="space-y-8">
-              {/* Core Financial Metrics */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="space-y-6">
+              {/* Core ROI Metrics */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <h4 className="text-sm font-medium text-blue-900 mb-2">Return on Investment</h4>
                   <div className="text-2xl font-bold text-blue-600">{formatPercentage(currentSnapshot.roiPct)}</div>
-                  <p className="text-xs text-blue-700 mt-1">Annual return on technology investment</p>
+                  <p className="text-xs text-blue-700 mt-1">ROI percentage</p>
                 </div>
                 
                 <div className="bg-green-50 p-4 rounded-lg">
-                  <h4 className="text-sm font-medium text-green-900 mb-2">Net Present Value</h4>
-                  <div className="text-2xl font-bold text-green-600">
-                    {currentSnapshot.npv ? formatCurrency(currentSnapshot.npv) : 'N/A'}
-                  </div>
-                  <p className="text-xs text-green-700 mt-1">3-year discounted cash flow value</p>
+                  <h4 className="text-sm font-medium text-green-900 mb-2">Total Investment</h4>
+                  <div className="text-2xl font-bold text-green-600">{formatCurrency(currentSnapshot.totalCost)}</div>
+                  <p className="text-xs text-green-700 mt-1">From L1 data</p>
                 </div>
                 
                 <div className="bg-purple-50 p-4 rounded-lg">
-                  <h4 className="text-sm font-medium text-purple-900 mb-2">Payback Period</h4>
-                  <div className="text-2xl font-bold text-purple-600">
-                    {currentSnapshot.paybackMonths ? `${currentSnapshot.paybackMonths.toFixed(1)} months` : 'N/A'}
-                  </div>
-                  <p className="text-xs text-purple-700 mt-1">Time to recover initial investment</p>
-                </div>
-                
-                <div className="bg-orange-50 p-4 rounded-lg">
-                  <h4 className="text-sm font-medium text-orange-900 mb-2">Internal Rate of Return</h4>
-                  <div className="text-2xl font-bold text-orange-600">
-                    {currentSnapshot.irr ? `${currentSnapshot.irr.toFixed(1)}%` : 'N/A'}
-                  </div>
-                  <p className="text-xs text-orange-700 mt-1">Annualized return rate</p>
+                  <h4 className="text-sm font-medium text-purple-900 mb-2">Expected Benefits</h4>
+                  <div className="text-2xl font-bold text-purple-600">{formatCurrency(currentSnapshot.totalBenefit)}</div>
+                  <p className="text-xs text-purple-700 mt-1">From L4 assumptions</p>
                 </div>
               </div>
 
-              {/* Detailed Financial Breakdown */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div>
-                  <h4 className="text-md font-medium text-gray-700 mb-3">Investment Analysis</h4>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Total Investment:</span>
-                      <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.totalCost)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Total Benefits:</span>
-                      <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.totalBenefit)}</span>
-                    </div>
-                    <div className="flex justify-between border-t pt-2">
-                      <span className="text-sm font-medium text-gray-900">Net Benefit:</span>
-                      <span className="text-sm font-bold text-green-600">{formatCurrency(currentSnapshot.totalBenefit - currentSnapshot.totalCost)}</span>
-                    </div>
-                    {currentSnapshot.costPerEmployee && (
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Cost per Employee:</span>
-                        <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.costPerEmployee)}</span>
-                      </div>
-                    )}
-                    {currentSnapshot.benefitPerEmployee && (
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Benefit per Employee:</span>
-                        <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.benefitPerEmployee)}</span>
-                      </div>
-                    )}
+              {/* Simple Breakdown */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-md font-medium text-gray-700 mb-3">Investment Summary</h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Net Benefit:</span>
+                    <span className={`text-sm font-bold ${(currentSnapshot.totalBenefit - currentSnapshot.totalCost) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {formatCurrency(currentSnapshot.totalBenefit - currentSnapshot.totalCost)}
+                    </span>
                   </div>
-                </div>
-                
-                <div>
-                  <h4 className="text-md font-medium text-gray-700 mb-3">Benefit Breakdown</h4>
-                  <div className="space-y-3">
-                    {currentSnapshot.benefitBreakdown ? (
-                      <>
-                        <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Productivity Gains:</span>
-                          <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.benefitBreakdown.productivity)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Revenue Uplift:</span>
-                          <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.benefitBreakdown.revenue)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Risk Avoidance:</span>
-                          <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.benefitBreakdown.riskAvoidance)}</span>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Revenue Uplift:</span>
-                          <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.assumptions.revenueUplift)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Productivity Hours:</span>
-                          <span className="text-sm font-medium text-gray-900">{currentSnapshot.assumptions.productivityGainHours.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Loaded Rate:</span>
-                          <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.assumptions.avgLoadedRate)}</span>
-                        </div>
-                      </>
-                    )}
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Revenue Uplift (L4):</span>
+                    <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.assumptions.revenueUplift)}</span>
                   </div>
                 </div>
               </div>
-
-              {/* Business Insights */}
-              {currentSnapshot.insights && currentSnapshot.insights.length > 0 && (
-                <div>
-                  <h4 className="text-md font-medium text-gray-700 mb-4">Investment Recommendations</h4>
-                  <div className="space-y-4">
-                    {currentSnapshot.insights.map((insight, index) => (
-                      <div key={index} className={`p-4 rounded-lg border-l-4 ${
-                        insight.type === 'success' ? 'bg-green-50 border-green-400' :
-                        insight.type === 'warning' ? 'bg-yellow-50 border-yellow-400' :
-                        insight.type === 'error' ? 'bg-red-50 border-red-400' :
-                        'bg-blue-50 border-blue-400'
-                      }`}>
-                        <div className="flex items-start">
-                          <div className="flex-shrink-0">
-                            {insight.type === 'success' && <span className="text-green-400">✓</span>}
-                            {insight.type === 'warning' && <span className="text-yellow-400">⚠</span>}
-                            {insight.type === 'error' && <span className="text-red-400">✗</span>}
-                            {insight.type === 'info' && <span className="text-blue-400">ℹ</span>}
-                          </div>
-                          <div className="ml-3">
-                            <div className="flex items-center">
-                              <h5 className="text-sm font-medium text-gray-900">{insight.title}</h5>
-                              <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                insight.impact === 'Critical' ? 'bg-red-100 text-red-800' :
-                                insight.impact === 'High' ? 'bg-orange-100 text-orange-800' :
-                                insight.impact === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-gray-100 text-gray-800'
-                              }`}>
-                                {insight.impact}
-                              </span>
-                            </div>
-                            <p className="mt-1 text-sm text-gray-600">{insight.message}</p>
-                            <p className="mt-1 text-xs text-gray-500">{insight.category}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           ) : (
             <p className="text-gray-500 text-center py-4">No ROI snapshot available for this period</p>
