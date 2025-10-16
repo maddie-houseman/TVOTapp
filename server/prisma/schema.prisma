@@ -14,6 +14,68 @@ enum Role {
   ADMIN
 }
 
+// Business Units/Capabilities (Layer 1 - Business View)
+enum BusinessUnit {
+  SALES_MARKETING
+  PRODUCT_DEVELOPMENT
+  CUSTOMER_SERVICE
+  FINANCE_ACCOUNTING
+  HUMAN_RESOURCES
+  OPERATIONS
+  STRATEGY_LEADERSHIP
+  OTHER
+}
+
+// Services (Layer 2 - Business/IT View)
+enum ServiceType {
+  END_USER_SERVICES
+  BUSINESS_APPLICATION_SERVICES
+  DELIVERY_SERVICES
+  PLATFORM_SERVICES
+  INFRASTRUCTURE_SERVICES
+  EMERGING_SERVICES
+}
+
+// IT Towers (Layer 3 - IT View)
+enum ItTower {
+  DATA_CENTER
+  COMPUTE
+  STORAGE
+  NETWORK
+  OUTPUT
+  END_USER
+  APPLICATION
+  DELIVERY
+  SECURITY_COMPLIANCE
+  IT_MANAGEMENT
+}
+
+// Cost Pools (Layer 4 - Finance View)
+enum CostPool {
+  INTERNAL_LABOR
+  EXTERNAL_LABOR
+  OUTSIDE_SERVICES
+  HARDWARE
+  SOFTWARE
+  FACILITIES_POWER
+  TELECOM
+  OTHER
+  INTERNAL_SERVICES
+}
+
+// Business Insights Categories
+enum InsightCategory {
+  COST_OPTIMIZATION
+  PERFORMANCE_ANALYSIS
+  CAPACITY_PLANNING
+  RISK_ASSESSMENT
+  STRATEGIC_ALIGNMENT
+  ROI_ANALYSIS
+  BENCHMARKING
+  TREND_ANALYSIS
+}
+
+// Legacy enums (to be phased out)
 enum Department {
   ENGINEERING
   SALES
@@ -48,10 +110,20 @@ model Company {
   name      String               @unique
   domain    String?              @unique
   users     User[]
+  
+  // New framework models
+  businessUnits     BusinessUnitModel[]
+  services          Service[]
+  itTowers          ItTowerModel[]
+  costPools         CostPoolModel[]
+  businessInsights  BusinessInsight[]
+  
+  // Legacy models (to be phased out)
   l1Inputs  L1OperationalInput[]
   l2Weights L2AllocationWeight[]
   l3Weights L3BenefitWeight[]
   l4Snaps   L4RoiSnapshot[]
+  
   createdAt DateTime             @default(now())
 }
 
@@ -65,7 +137,14 @@ model User {
   company      Company? @relation(fields: [companyId], references: [id])
   createdAt    DateTime @default(now())
 
-  // Back-relations for createdBy on other models
+  // New framework relationships
+  businessUnits     BusinessUnitModel[]     @relation("UserCreatedBusinessUnit")
+  services          Service[]          @relation("UserCreatedService")
+  itTowers          ItTowerModel[]          @relation("UserCreatedItTower")
+  costPools         CostPoolModel[]         @relation("UserCreatedCostPool")
+  businessInsights  BusinessInsight[]  @relation("UserCreatedBusinessInsight")
+
+  // Legacy relationships (to be phased out)
   l1OperationalInputs L1OperationalInput[] @relation("UserCreatedL1OperationalInput")
   l2AllocationWeights L2AllocationWeight[] @relation("UserCreatedL2AllocationWeight")
   l3BenefitWeights    L3BenefitWeight[]    @relation("UserCreatedL3BenefitWeight")
@@ -140,4 +219,149 @@ model L4RoiSnapshot {
 
   @@unique([companyId, period])
   @@index([companyId, period])
+}
+
+// ===== NEW FRAMEWORK MODELS =====
+
+// Layer 1: Business Units/Capabilities (Business View)
+model BusinessUnitModel {
+  id          String   @id @default(cuid())
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+  name        String
+  type        BusinessUnit
+  description String?
+  budget      Decimal  @db.Decimal(18, 2)
+  employees   Int
+  period      DateTime
+  
+  // Relationships to services
+  services    Service[]
+  
+  createdById String?
+  createdBy   User?    @relation("UserCreatedBusinessUnit", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+  
+  @@unique([companyId, period, name])
+  @@index([companyId, period])
+}
+
+// Layer 2: Services (Business/IT View)
+model Service {
+  id            String      @id @default(cuid())
+  companyId     String
+  company       Company     @relation(fields: [companyId], references: [id])
+  businessUnitId String
+  businessUnit  BusinessUnitModel @relation(fields: [businessUnitId], references: [id])
+  name          String
+  type          ServiceType
+  description   String?
+  cost          Decimal     @db.Decimal(18, 2)
+  slaLevel      String?     // Service Level Agreement
+  utilization   Decimal?    @db.Decimal(5, 2) // 0-100%
+  period        DateTime
+  
+  // Relationships to IT towers
+  itTowers      ServiceItTower[]
+  
+  createdById   String?
+  createdBy     User?    @relation("UserCreatedService", fields: [createdById], references: [id])
+  createdAt     DateTime @default(now())
+  
+  @@unique([companyId, period, name])
+  @@index([companyId, period])
+}
+
+// Layer 3: IT Towers (IT View)
+model ItTowerModel {
+  id          String   @id @default(cuid())
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+  name        String
+  type        ItTower
+  description String?
+  cost        Decimal  @db.Decimal(18, 2)
+  capacity    Decimal? @db.Decimal(18, 2) // e.g., CPU cores, storage GB
+  utilization Decimal? @db.Decimal(5, 2)  // 0-100%
+  period      DateTime
+  
+  // Relationships to cost pools
+  costPools   ItTowerCostPool[]
+  
+  // Many-to-many with services
+  services    ServiceItTower[]
+  
+  createdById String?
+  createdBy   User?    @relation("UserCreatedItTower", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+  
+  @@unique([companyId, period, name])
+  @@index([companyId, period])
+}
+
+// Layer 4: Cost Pools (Finance View)
+model CostPoolModel {
+  id          String   @id @default(cuid())
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+  name        String
+  type        CostPool
+  description String?
+  amount      Decimal  @db.Decimal(18, 2)
+  period      DateTime
+  
+  // Many-to-many with IT towers
+  itTowers    ItTowerCostPool[]
+  
+  createdById String?
+  createdBy   User?    @relation("UserCreatedCostPool", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+  
+  @@unique([companyId, period, name])
+  @@index([companyId, period])
+}
+
+// Junction table for Service-IT Tower relationships
+model ServiceItTower {
+  id        String   @id @default(cuid())
+  serviceId String
+  service   Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  itTowerId String
+  itTower   ItTowerModel  @relation(fields: [itTowerId], references: [id], onDelete: Cascade)
+  weight    Decimal  @db.Decimal(5, 2) // 0-100% allocation
+  
+  @@unique([serviceId, itTowerId])
+}
+
+// Junction table for IT Tower-Cost Pool relationships
+model ItTowerCostPool {
+  id         String   @id @default(cuid())
+  itTowerId  String
+  itTower    ItTowerModel  @relation(fields: [itTowerId], references: [id], onDelete: Cascade)
+  costPoolId String
+  costPool   CostPoolModel @relation(fields: [costPoolId], references: [id], onDelete: Cascade)
+  amount     Decimal  @db.Decimal(18, 2)
+  
+  @@unique([itTowerId, costPoolId])
+}
+
+// Business Insights and Analytics
+model BusinessInsight {
+  id          String          @id @default(cuid())
+  companyId   String
+  company     Company         @relation(fields: [companyId], references: [id])
+  title       String
+  category    InsightCategory
+  description String
+  insight     String          // The actual insight text
+  impact      String?         // High/Medium/Low
+  confidence  Decimal?        @db.Decimal(3, 2) // 0-1 confidence score
+  period      DateTime
+  data        Json?           // Additional structured data
+  
+  createdById String?
+  createdBy   User?    @relation("UserCreatedBusinessInsight", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+  
+  @@index([companyId, period, category])
 }
