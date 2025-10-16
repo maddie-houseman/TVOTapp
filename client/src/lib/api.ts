@@ -5,13 +5,13 @@
 
     export type Me = { id: string; email: string; name: string; role: Role; companyId: string | null };
 
-    export type Department =
-    | "ENGINEERING"
-    | "SALES"
-    | "FINANCE"
-    | "HR"
-    | "MARKETING"
-    | "OPERATIONS";
+export type Department =
+  | "ENGINEERING"
+  | "SALES"
+  | "FINANCE"
+  | "HR"
+  | "MARKETING"
+  | "OPERATIONS";
 
     export type Tower = "APP_DEV" | "CLOUD" | "END_USER";
 
@@ -264,18 +264,6 @@
         return jsonFetch<{ id: string; name: string; domain: string }>(`/api/l4/get-company-id`);
     },
 
-    // Simple L4 calculation that actually works
-    async calculateSimple(params: {
-        companyId: string;
-        period: string;
-        assumptions: SnapshotAssumptions;
-    }): Promise<{ success: boolean; result: { id: string; totalCost: number; totalBenefit: number; roiPct: number; dataCount: number }; duration: number; requestId: string }> {
-        return jsonFetch<{ success: boolean; result: { id: string; totalCost: number; totalBenefit: number; roiPct: number; dataCount: number }; duration: number; requestId: string }>(`/api/l4/calculate-simple`, {
-            method: "POST",
-            json: params,
-            timeout: 10000, // 10 second timeout
-        });
-    },
 
     async testL4Data(companyId: string, period: string): Promise<{
         success: boolean;

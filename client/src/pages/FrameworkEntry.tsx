@@ -173,8 +173,8 @@ export default function FrameworkEntry() {
     setSuccessMessage('');
 
     try {
-      // Use the simple calculation that actually works
-      const result = await api.calculateSimple({
+      // Use the snapshot calculation that actually works
+      const result = await api.snapshot({
         companyId: targetCompanyId,
         period: full,
         assumptions: {
@@ -184,7 +184,7 @@ export default function FrameworkEntry() {
         },
       });
       
-      setSuccessMessage(`ROI calculated successfully! Total Cost: $${result.result.totalCost.toLocaleString()}, Total Benefit: $${result.result.totalBenefit.toLocaleString()}, ROI: ${result.result.roiPct.toFixed(1)}%`);
+      setSuccessMessage(`ROI calculated successfully! Total Cost: $${result.totalCost.toLocaleString()}, Total Benefit: $${result.totalBenefit.toLocaleString()}, ROI: ${result.roiPct.toFixed(1)}%`);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Failed to compute ROI');
     } finally {
@@ -311,13 +311,13 @@ export default function FrameworkEntry() {
                     onChange={(e) => setDept(e.target.value as Department)}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    {(['ENGINEERING', 'SALES', 'FINANCE', 'HR', 'MARKETING', 'OPERATIONS'] as Department[]).map(
-                      (d) => (
-                        <option key={d} value={d}>
-                          {d}
-                        </option>
-                      ),
-                    )}
+    {(['ENGINEERING', 'SALES', 'FINANCE', 'HR', 'MARKETING', 'OPERATIONS'] as Department[]).map(
+      (d) => (
+        <option key={d} value={d}>
+          {d}
+        </option>
+      ),
+    )}
                   </select>
                 </div>
 
