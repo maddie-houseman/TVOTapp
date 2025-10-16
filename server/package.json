@@ -7,13 +7,9 @@
         "build": "tsc -p tsconfig.json",
         "start": "sh -lc 'node dist/index.js || node dist/src/index.js'",
         "seed": "node prisma/seed.js",
-        "seed-tbm": "tsx src/scripts/seed-tbm.ts",
-        "migrate-to-tbm": "tsx src/scripts/migrate-to-tbm.ts",
-        "allocation-pipeline": "tsx src/scripts/allocation-pipeline.ts",
         "postinstall": "prisma generate",
         "migrate": "prisma migrate deploy",
-        "deploy": "prisma db push && npm run seed",
-        "setup-tbm": "npm run seed-tbm && npm run migrate-to-tbm && npm run allocation-pipeline"
+        "deploy": "prisma db push && npm run seed"
     },
     "prisma": {
         "seed": "node prisma/seed.js"

@@ -15,13 +15,14 @@ enum Role {
 }
 
 enum Department {
-  ENGINEERING
-  SALES
-  MARKETING
-  FINANCE
-  HR
-  OPERATIONS
-  OTHER
+  LABOUR
+  CLOUD_SERVICES
+  SOFTWARE_SAAS
+  HARDWARE
+  DATA_CENTRE_FACILITIES
+  TELECOM
+  MISC_COSTS
+  INTERNAL_SERVICES
 }
 
 enum TbmTower {
@@ -43,31 +44,6 @@ enum BenefitCategory {
   OTHER
 }
 
-// TBM Framework Enums
-enum CapexOpex {
-  CAPEX
-  OPEX
-}
-
-enum RuleType {
-  PERCENT
-  ABSOLUTE
-  DRIVER
-}
-
-enum TowerGroup {
-  APPLICATION
-  DELIVERY
-  DATA
-  SECURITY
-  COMPUTE
-  STORAGE
-  NETWORK
-  END_USER
-  DATA_CENTER
-  CLOUD
-}
-
 model Company {
   id        String               @id @default(cuid())
   name      String               @unique
@@ -77,22 +53,6 @@ model Company {
   l2Weights L2AllocationWeight[]
   l3Weights L3BenefitWeight[]
   l4Snaps   L4RoiSnapshot[]
-  
-  // TBM Framework Models
-  departments           DepartmentModel[]
-  costPools            CostPool[]
-  costPoolSpend        CostPoolSpend[]
-  resourceTowers       ResourceTower[]
-  allocationRulesCpToRt AllocationRuleCpToRt[]
-  solutions            Solution[]
-  allocationRulesRtToSol AllocationRuleRtToSol[]
-  benefitMetrics       BenefitMetric[]
-  initiativeCosts      InitiativeCost[]
-  initiativeBenefits   InitiativeBenefit[]
-  towerCosts           TowerCost[]
-  solutionCosts        SolutionCost[]
-  businessCosts        BusinessCost[]
-  
   createdAt DateTime             @default(now())
 }
 
@@ -182,235 +142,3 @@ model L4RoiSnapshot {
   @@unique([companyId, period])
   @@index([companyId, period])
 }
-
-// ===== TBM FRAMEWORK MODELS =====
-
-// Departments (seed from current enum)
-model DepartmentModel {
-  id        String   @id @default(cuid())
-  companyId String
-  company   Company  @relation(fields: [companyId], references: [id])
-  name      String
-  createdAt DateTime @default(now())
-  
-  // Relations
-  costPoolSpend        CostPoolSpend[]
-  allocationRulesCpToRt AllocationRuleCpToRt[]
-  solutions            Solution[]
-  businessCosts        BusinessCost[]
-  towerCosts           TowerCost[]
-  
-  @@unique([companyId, name])
-}
-
-// Cost Pools
-model CostPool {
-  id          String     @id @default(cuid())
-  companyId   String
-  company     Company    @relation(fields: [companyId], references: [id])
-  name        String
-  capexOpex   CapexOpex  @default(OPEX)
-  vendorId    String?
-  glAccount   String?
-  createdAt   DateTime   @default(now())
-  
-  // Relations
-  costPoolSpend        CostPoolSpend[]
-  allocationRulesCpToRt AllocationRuleCpToRt[]
-  
-  @@unique([companyId, name])
-}
-
-// Cost Pool Spend (replaces L1 budget concept)
-model CostPoolSpend {
-  id           String     @id @default(cuid())
-  companyId    String
-  company      Company    @relation(fields: [companyId], references: [id])
-  departmentId String
-  department   DepartmentModel @relation(fields: [departmentId], references: [id])
-  costPoolId   String
-  costPool     CostPool   @relation(fields: [costPoolId], references: [id])
-  period       DateTime
-  amount       Decimal    @db.Decimal(18, 2)
-  currency     String     @default("USD")
-  oneTime      Boolean    @default(false)
-  createdAt    DateTime   @default(now())
-  
-  @@unique([companyId, departmentId, costPoolId, period])
-  @@index([companyId, period])
-}
-
-// Resource Towers (TBM standard)
-model ResourceTower {
-  id          String      @id @default(cuid())
-  companyId   String
-  company     Company     @relation(fields: [companyId], references: [id])
-  towerGroup  TowerGroup
-  towerName   String
-  createdAt   DateTime    @default(now())
-  
-  // Relations
-  allocationRulesCpToRt AllocationRuleCpToRt[]
-  allocationRulesRtToSol AllocationRuleRtToSol[]
-  towerCosts            TowerCost[]
-  
-  @@unique([companyId, towerName])
-}
-
-// Allocation Rules: Cost Pool → Resource Tower
-model AllocationRuleCpToRt {
-  id               String        @id @default(cuid())
-  companyId        String
-  company          Company       @relation(fields: [companyId], references: [id])
-  period           DateTime
-  departmentId     String
-  department       DepartmentModel    @relation(fields: [departmentId], references: [id])
-  costPoolId       String
-  costPool         CostPool      @relation(fields: [costPoolId], references: [id])
-  resourceTowerId  String
-  resourceTower    ResourceTower @relation(fields: [resourceTowerId], references: [id])
-  ruleType         RuleType      @default(PERCENT)
-  percent          Decimal       @db.Decimal(7, 4)
-  createdAt        DateTime      @default(now())
-  
-  @@unique([companyId, period, departmentId, costPoolId, resourceTowerId])
-  @@index([companyId, period])
-}
-
-// Solutions
-model Solution {
-  id           String   @id @default(cuid())
-  companyId    String
-  company      Company  @relation(fields: [companyId], references: [id])
-  departmentId String
-  department   DepartmentModel @relation(fields: [departmentId], references: [id])
-  name         String
-  owner        String?
-  isInitiative Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  
-  // Relations
-  allocationRulesRtToSol AllocationRuleRtToSol[]
-  initiativeCosts        InitiativeCost[]
-  initiativeBenefits     InitiativeBenefit[]
-  solutionCosts          SolutionCost[]
-  
-  @@unique([companyId, name])
-}
-
-// Allocation Rules: Resource Tower → Solution
-model AllocationRuleRtToSol {
-  id          String     @id @default(cuid())
-  companyId   String
-  company     Company    @relation(fields: [companyId], references: [id])
-  period      DateTime
-  resourceTowerId String
-  resourceTower   ResourceTower @relation(fields: [resourceTowerId], references: [id])
-  solutionId  String
-  solution    Solution   @relation(fields: [solutionId], references: [id])
-  ruleType    RuleType   @default(PERCENT)
-  percent     Decimal    @db.Decimal(7, 4)
-  createdAt   DateTime   @default(now())
-  
-  @@unique([companyId, period, resourceTowerId, solutionId])
-  @@index([companyId, period])
-}
-
-// Benefit Metrics
-model BenefitMetric {
-  id        String   @id @default(cuid())
-  companyId String
-  company   Company  @relation(fields: [companyId], references: [id])
-  name      String
-  unit      String
-  category  BenefitCategory
-  createdAt DateTime @default(now())
-  
-  // Relations
-  initiativeBenefits InitiativeBenefit[]
-  
-  @@unique([companyId, name])
-}
-
-// Initiative Costs
-model InitiativeCost {
-  id         String    @id @default(cuid())
-  companyId  String
-  company    Company   @relation(fields: [companyId], references: [id])
-  solutionId String
-  solution   Solution  @relation(fields: [solutionId], references: [id])
-  period     DateTime
-  capexOpex  CapexOpex @default(OPEX)
-  amount     Decimal   @db.Decimal(18, 2)
-  oneTime    Boolean   @default(false)
-  createdAt  DateTime  @default(now())
-  
-  @@index([companyId, period])
-}
-
-// Initiative Benefits
-model InitiativeBenefit {
-  id              String        @id @default(cuid())
-  companyId       String
-  company         Company       @relation(fields: [companyId], references: [id])
-  solutionId      String
-  solution        Solution      @relation(fields: [solutionId], references: [id])
-  period          DateTime
-  benefitMetricId String
-  benefitMetric   BenefitMetric @relation(fields: [benefitMetricId], references: [id])
-  amount          Decimal       @db.Decimal(18, 2)
-  createdAt       DateTime      @default(now())
-  
-  @@index([companyId, period])
-}
-
-// Materialized Results for Performance
-
-// Tower Costs
-model TowerCost {
-  id              String        @id @default(cuid())
-  companyId       String
-  company         Company       @relation(fields: [companyId], references: [id])
-  period          DateTime
-  resourceTowerId String
-  resourceTower   ResourceTower @relation(fields: [resourceTowerId], references: [id])
-  departmentId    String
-  department      DepartmentModel    @relation(fields: [departmentId], references: [id])
-  amount          Decimal       @db.Decimal(18, 2)
-  createdAt       DateTime      @default(now())
-  
-  @@unique([companyId, period, resourceTowerId, departmentId])
-  @@index([companyId, period])
-}
-
-// Solution Costs
-model SolutionCost {
-  id         String   @id @default(cuid())
-  companyId  String
-  company    Company  @relation(fields: [companyId], references: [id])
-  period     DateTime
-  solutionId String
-  solution   Solution @relation(fields: [solutionId], references: [id])
-  amount     Decimal  @db.Decimal(18, 2)
-  createdAt  DateTime @default(now())
-  
-  @@unique([companyId, period, solutionId])
-  @@index([companyId, period])
-}
-
-// Business Costs
-model BusinessCost {
-  id           String     @id @default(cuid())
-  companyId    String
-  company      Company    @relation(fields: [companyId], references: [id])
-  period       DateTime
-  departmentId String
-  department   DepartmentModel @relation(fields: [departmentId], references: [id])
-  businessTag  String
-  amount       Decimal    @db.Decimal(18, 2)
-  createdAt    DateTime   @default(now())
-  
-  @@unique([companyId, period, departmentId, businessTag])
-  @@index([companyId, period])
-}
-

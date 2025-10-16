@@ -19,9 +19,15 @@ export default function FrameworkEntry() {
   const [availableCompanies, setAvailableCompanies] = useState<{ id: string; name: string; domain: string }[]>([]);
 
   // --- L1 - inputs
-  const [dept, setDept] = useState<Department>('ENGINEERING');
+  const [dept, setDept] = useState<Department>('LABOUR');
   const [employees, setEmployees] = useState<number>(10);
   const [budget, setBudget] = useState<number>(200000);
+  // @ts-ignore
+  const [baselineKpi, setBaselineKpi] = useState<number>(0);
+  // @ts-ignore
+  const [departmentGoals, setDepartmentGoals] = useState<string>('');
+  // @ts-ignore
+  const [itSpendCategory, setItSpendCategory] = useState<string>('OPEX');
 
   // --- L2 - tower weights; must sum to 1
   const [appDev, setAppDev] = useState<number>(0.7);
@@ -305,10 +311,10 @@ export default function FrameworkEntry() {
                     onChange={(e) => setDept(e.target.value as Department)}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    {(['ENGINEERING', 'SALES', 'FINANCE', 'HR', 'MARKETING', 'OPERATIONS'] as Department[]).map(
+                    {(['LABOUR', 'CLOUD_SERVICES', 'SOFTWARE_SAAS', 'HARDWARE', 'DATA_CENTRE_FACILITIES', 'TELECOM', 'MISC_COSTS', 'INTERNAL_SERVICES'] as Department[]).map(
                       (d) => (
                         <option key={d} value={d}>
-                          {d}
+                          {d.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                         </option>
                       ),
                     )}
