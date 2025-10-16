@@ -142,10 +142,10 @@ export default function Dashboard() {
   // Show loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading dashboard data...</p>
+          <p className="mt-4 text-gray-300">Loading dashboard data...</p>
         </div>
       </div>
     );
@@ -154,7 +154,7 @@ export default function Dashboard() {
   // Show message for admin users when no company is selected
   if (user?.role === 'ADMIN' && !selectedCompanyId) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-black">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
             <div className="mx-auto h-24 w-24 text-gray-400">
@@ -162,11 +162,11 @@ export default function Dashboard() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
               </svg>
             </div>
-            <h1 className="mt-6 text-3xl font-bold text-gray-900">Select a Company</h1>
-            <p className="mt-2 text-lg text-gray-600">
+            <h1 className="mt-6 text-3xl font-bold text-white">Select a Company</h1>
+            <p className="mt-2 text-lg text-gray-300">
               As an admin, please select a company to view its dashboard data.
             </p>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-gray-400">
               You can view data for any company in the system.
             </p>
             
@@ -175,15 +175,15 @@ export default function Dashboard() {
               {loadingCompanies ? (
                 <div className="text-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                  <p className="mt-2 text-sm text-gray-500">Loading companies...</p>
+                  <p className="mt-2 text-sm text-gray-400">Loading companies...</p>
                 </div>
               ) : (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Select Company:</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Select Company:</label>
                   <select
                     value={selectedCompanyId}
                     onChange={(e) => setSelectedCompanyId(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-600 rounded-md px-3 py-2 text-sm bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Choose a company...</option>
                     {availableCompanies.map((company) => (
@@ -205,7 +205,7 @@ export default function Dashboard() {
   // Show no data message if no framework data exists
   if (!hasData) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-black">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
             <div className="mx-auto h-24 w-24 text-gray-400">
@@ -213,14 +213,14 @@ export default function Dashboard() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             </div>
-            <h1 className="mt-6 text-3xl font-bold text-gray-900">No Framework Data</h1>
-            <p className="mt-2 text-lg text-gray-600">
+            <h1 className="mt-6 text-3xl font-bold text-white">No Framework Data</h1>
+            <p className="mt-2 text-lg text-gray-300">
               {user?.role === 'ADMIN' 
                 ? `No framework data found for the selected company.`
                 : `You haven't set up your TBM framework yet.`
               }
             </p>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-gray-400">
               {user?.role === 'ADMIN' 
                 ? `The selected company may not have completed the framework entry process.`
                 : `Complete the framework entry process to see your dashboard data.`
@@ -560,7 +560,7 @@ export default function Dashboard() {
                         y1={200 * ratio}
                         x2="400"
                         y2={200 * ratio}
-                        stroke="#e5e7eb"
+                        stroke="#4b5563"
                         strokeWidth="1"
                       />
                     ))}
@@ -572,7 +572,7 @@ export default function Dashboard() {
                       const range = maxRevenue - minRevenue;
                       
                       const points = historicalData.map((snapshot, index) => {
-                        const x = (index / (historicalData.length - 1)) * 380 + 20;
+                        const x = (index / (historicalData.length - 1)) * 360 + 40;
                         const y = range > 0 ? 180 - ((snapshot.totalBenefit - minRevenue) / range) * 160 : 100;
                         return `${x},${y}`;
                       }).join(' ');
@@ -588,7 +588,7 @@ export default function Dashboard() {
                             strokeLinejoin="round"
                           />
                           {historicalData.map((snapshot, index) => {
-                            const x = (index / (historicalData.length - 1)) * 380 + 20;
+                            const x = (index / (historicalData.length - 1)) * 360 + 40;
                             const y = range > 0 ? 180 - ((snapshot.totalBenefit - minRevenue) / range) * 160 : 100;
                             return (
                               <circle
@@ -607,21 +607,34 @@ export default function Dashboard() {
                     })()}
                   </svg>
                   
-                  {/* Month labels */}
-                  <div className="absolute bottom-0 left-0 right-0 flex justify-between px-2">
+                  {/* Y-axis labels */}
+                  {historicalData.length > 1 && (() => {
+                    const maxRevenue = Math.max(...historicalData.map(s => s.totalBenefit));
+                    const minRevenue = Math.min(...historicalData.map(s => s.totalBenefit));
+                    const range = maxRevenue - minRevenue;
+                    
+                    return (
+                      <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between py-2">
+                        <div className="text-xs text-gray-400 transform -rotate-90 origin-center">
+                          {formatCurrency(maxRevenue)}
+                        </div>
+                        <div className="text-xs text-gray-400 transform -rotate-90 origin-center">
+                          {formatCurrency(minRevenue + range * 0.5)}
+                        </div>
+                        <div className="text-xs text-gray-400 transform -rotate-90 origin-center">
+                          {formatCurrency(minRevenue)}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                  
+                  {/* Month labels - improved spacing */}
+                  <div className="absolute bottom-0 left-0 right-0 flex justify-between px-4">
                     {historicalData.map((snapshot, index) => (
-                      <div key={index} className="text-xs text-gray-300">
+                      <div key={index} className="text-xs text-gray-300 flex-shrink-0" style={{ width: `${100 / historicalData.length}%`, textAlign: 'center' }}>
                         {new Date(snapshot.period).toLocaleDateString('en-US', { month: 'short' })}
                       </div>
                     ))}
-                  </div>
-                  
-                  {/* Value labels */}
-                  <div className="absolute top-0 right-0 text-xs text-gray-400">
-                    {formatCurrency(Math.max(...historicalData.map(s => s.totalBenefit)))}
-                  </div>
-                  <div className="absolute bottom-0 right-0 text-xs text-gray-400">
-                    {formatCurrency(Math.min(...historicalData.map(s => s.totalBenefit)))}
                   </div>
                 </div>
               </div>
@@ -639,7 +652,7 @@ export default function Dashboard() {
                         y1={200 * ratio}
                         x2="400"
                         y2={200 * ratio}
-                        stroke="#e5e7eb"
+                        stroke="#4b5563"
                         strokeWidth="1"
                       />
                     ))}
@@ -663,7 +676,7 @@ export default function Dashboard() {
                       const centerY = 100; // Zero line
                       
                       const points = historicalData.map((snapshot, index) => {
-                        const x = (index / (historicalData.length - 1)) * 380 + 20;
+                        const x = (index / (historicalData.length - 1)) * 360 + 40;
                         let y;
                         if (range > 0) {
                           y = centerY - ((snapshot.roiPct - minROI) / range) * 80;
@@ -684,7 +697,7 @@ export default function Dashboard() {
                             strokeLinejoin="round"
                           />
                           {historicalData.map((snapshot, index) => {
-                            const x = (index / (historicalData.length - 1)) * 380 + 20;
+                            const x = (index / (historicalData.length - 1)) * 360 + 40;
                             let y;
                             if (range > 0) {
                               y = centerY - ((snapshot.roiPct - minROI) / range) * 80;
@@ -708,21 +721,34 @@ export default function Dashboard() {
                     })()}
                   </svg>
                   
-                  {/* Month labels */}
-                  <div className="absolute bottom-0 left-0 right-0 flex justify-between px-2">
+                  {/* Y-axis labels */}
+                  {historicalData.length > 1 && (() => {
+                    const maxROI = Math.max(...historicalData.map(s => s.roiPct));
+                    const minROI = Math.min(...historicalData.map(s => s.roiPct));
+                    const range = maxROI - minROI;
+                    
+                    return (
+                      <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between py-2">
+                        <div className="text-xs text-gray-400 transform -rotate-90 origin-center">
+                          {formatPercentage(maxROI)}
+                        </div>
+                        <div className="text-xs text-gray-400 transform -rotate-90 origin-center">
+                          {formatPercentage(minROI + range * 0.5)}
+                        </div>
+                        <div className="text-xs text-gray-400 transform -rotate-90 origin-center">
+                          {formatPercentage(minROI)}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                  
+                  {/* Month labels - improved spacing */}
+                  <div className="absolute bottom-0 left-0 right-0 flex justify-between px-4">
                     {historicalData.map((snapshot, index) => (
-                      <div key={index} className="text-xs text-gray-300">
+                      <div key={index} className="text-xs text-gray-300 flex-shrink-0" style={{ width: `${100 / historicalData.length}%`, textAlign: 'center' }}>
                         {new Date(snapshot.period).toLocaleDateString('en-US', { month: 'short' })}
                       </div>
                     ))}
-                  </div>
-                  
-                  {/* Value labels */}
-                  <div className="absolute top-0 right-0 text-xs text-gray-400">
-                    {formatPercentage(Math.max(...historicalData.map(s => s.roiPct)))}
-                  </div>
-                  <div className="absolute bottom-0 right-0 text-xs text-gray-400">
-                    {formatPercentage(Math.min(...historicalData.map(s => s.roiPct)))}
                   </div>
                 </div>
               </div>
