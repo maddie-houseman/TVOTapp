@@ -31,7 +31,56 @@ function toPeriod(bodyPeriod: string) {
   return bodyPeriod;
 }
 
-/** Calculate L4 metrics from L1, L2, L3 data */
+/** Calculate L4 metrics from TBM data */
+async function calculateTbmL4Metrics(companyId: string, period: string, assumptions: any) {
+  console.log(`[TBM-L4-CALC] Starting TBM calculation for company: ${companyId}, period: ${period}`);
+  
+  const periodDate = new Date(period);
+  
+  // Get total costs from solution costs (post-allocation)
+  const solutionCosts = await prisma.solutionCost.findMany({
+    where: {
+      companyId,
+      period: {
+        gte: new Date(periodDate.getFullYear(), periodDate.getMonth(), 1),
+        lt: new Date(periodDate.getFullYear(), periodDate.getMonth() + 1, 1)
+      }
+    },
+    include: {
+      solution: {
+        include: {
+          department: true
+        }
+      }
+    }
+  });
+
+  const totalCosts = solutionCosts.reduce((sum, cost) => sum + Number(cost.amount), 0);
+  
+  // Calculate benefits from assumptions
+  const productivityBenefit = (assumptions.productivityGainHours || 0) * (assumptions.avgLoadedRate || 0);
+  const revenueBenefit = assumptions.revenueUplift || 0;
+  const totalBenefits = productivityBenefit + revenueBenefit;
+  
+  const netBenefit = totalBenefits - totalCosts;
+  const roi = totalCosts > 0 ? ((totalBenefits - totalCosts) / totalCosts) * 100 : 0;
+  
+  console.log(`[TBM-L4-CALC] Final calculation - Benefits: ${totalBenefits}, Costs: ${totalCosts}, ROI: ${roi}%`);
+  
+  return {
+    totalRevenue: totalBenefits,
+    totalCosts: totalCosts,
+    netBenefit: netBenefit,
+    roi: roi,
+    assumptions,
+    dataCount: { 
+      solutionCosts: solutionCosts.length,
+      departments: [...new Set(solutionCosts.map(c => c.solution.department.name))].length
+    }
+  };
+}
+
+/** Calculate L4 metrics from L1, L2, L3 data (legacy) */
 function calculateL4Metrics(l1Data: any[], l2Data: any[], l3Data: any[], assumptions: any) {
   console.log(`[L4-CALC] Starting calculation with data: L1=${l1Data.length}, L2=${l2Data.length}, L3=${l3Data.length}`);
   
@@ -148,8 +197,16 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
     // Calculate L4 metrics
     const calcStart = Date.now();
     console.log(`[L4-SNAPSHOT-${requestId}] STEP 7 - Starting calculation...`);
-    const l4Metrics = calculateL4Metrics(l1Data, l2Data, l3Data, assumptions);
-    console.log(`[L4-SNAPSHOT-${requestId}] STEP 7 - Calculation completed (${Date.now() - calcStart}ms)`);
+    // Try TBM calculation first, fallback to legacy if no TBM data
+    let l4Metrics;
+    try {
+      l4Metrics = await calculateTbmL4Metrics(companyId, normalizedPeriod, assumptions);
+      console.log(`[L4-SNAPSHOT-${requestId}] STEP 7 - TBM calculation completed (${Date.now() - calcStart}ms)`);
+    } catch (tbmError) {
+      console.log(`[L4-SNAPSHOT-${requestId}] STEP 7 - TBM calculation failed, using legacy: ${tbmError}`);
+      l4Metrics = calculateL4Metrics(l1Data, l2Data, l3Data, assumptions);
+      console.log(`[L4-SNAPSHOT-${requestId}] STEP 7 - Legacy calculation completed (${Date.now() - calcStart}ms)`);
+    }
 
     // Save snapshot (handle duplicates by finding existing first)
     const saveStart = Date.now();

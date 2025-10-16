@@ -7,52 +7,32 @@ export default function Home() {
 
   const frameworkLayers = [
     {
-      title: 'Business Units & Capabilities',
-      description: 'Define your business units and their capabilities. Track budgets, headcount, and strategic objectives for each unit.',
-      icon: '🏢',
-      color: 'bg-blue-500',
-      link: '/business-framework',
-      view: 'business-units'
-    },
-    {
-      title: 'Services',
-      description: 'Map IT services to business units. Track service costs, SLAs, utilization, and how services support business capabilities.',
-      icon: '⚙️',
-      color: 'bg-green-500',
-      link: '/business-framework',
-      view: 'services'
-    },
-    {
-      title: 'IT Towers',
-      description: 'Manage your IT infrastructure towers: data centers, compute, storage, network, applications, and security components.',
-      icon: '🏗️',
-      color: 'bg-purple-500',
-      link: '/business-framework',
-      view: 'it-towers'
-    },
-    {
-      title: 'Cost Pools',
-      description: 'Track and allocate costs across different pools: labor, hardware, software, facilities, telecom, and external services.',
+      title: 'L1 - Cost Foundation',
+      description: 'Capture your actual IT costs: department budgets, headcount, and operational expenses. This becomes your baseline cost for ROI calculations.',
       icon: '💰',
-      color: 'bg-yellow-500',
-      link: '/business-framework',
-      view: 'cost-pools'
+      color: 'bg-blue-500',
+      link: '/framework'
     },
     {
-      title: 'Business Insights',
-      description: 'Get AI-powered insights on cost optimization, performance analysis, capacity planning, and strategic alignment.',
-      icon: '💡',
-      color: 'bg-indigo-500',
-      link: '/business-framework',
-      view: 'insights'
+      title: 'L2 - Cost Allocation',
+      description: 'Distribute your L1 costs across TBM towers (App Dev, Cloud, End User, etc.). This shows where your money is actually being spent.',
+      icon: '🏗️',
+      color: 'bg-cyan-500',
+      link: '/framework'
     },
     {
-      title: 'Framework Overview',
-      description: 'Comprehensive dashboard showing the complete business framework with key metrics, relationships, and performance indicators.',
-      icon: '📊',
-      color: 'bg-teal-500',
-      link: '/business-framework',
-      view: 'overview'
+      title: 'L3 - Benefit Sources',
+      description: 'Define how you measure value: productivity gains, revenue uplift, cost avoidance, risk reduction. These become your benefit categories.',
+      icon: '🎯',
+      color: 'bg-purple-500',
+      link: '/framework'
+    },
+    {
+      title: 'L4 - ROI Calculation',
+      description: 'Calculate ROI = (Total Benefits - Total Costs) / Total Costs. Benefits come from L3 assumptions, costs from L1/L2 data.',
+      icon: '📈',
+      color: 'bg-sky-500',
+      link: '/dashboard'
     }
   ];
 
@@ -63,19 +43,19 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center">
             <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
-              Business Framework
-              <span className="block text-blue-600">Management</span>
+              Technology Business Management
+              <span className="block text-blue-600">Framework</span>
             </h1>
             <p className="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-              Transform your business operations with a comprehensive 4-layer framework. Connect business units to IT infrastructure and get actionable insights.
+              Optimize your technology investments with data-driven insights. Track costs, measure benefits, and demonstrate ROI across your IT portfolio.
             </p>
             <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
               <div className="rounded-md shadow">
                 <Link
-                  to="/business-framework"
+                  to="/framework"
                   className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10"
                 >
-                  Explore Framework
+                  Get Started
                 </Link>
               </div>
               <div className="mt-3 rounded-md shadow sm:mt-0 sm:ml-3">
@@ -96,18 +76,17 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-              Four-Layer Business Framework
+              Four-Layer ROI Framework
             </h2>
             <p className="mt-4 max-w-2xl mx-auto text-xl text-gray-600">
-              A comprehensive approach to align business units with IT infrastructure and cost management
+              A systematic approach to calculate meaningful ROI from your IT investments
             </p>
             <div className="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-200 max-w-4xl mx-auto">
-              <h3 className="text-lg font-semibold text-blue-900 mb-3">Framework Structure</h3>
+              <h3 className="text-lg font-semibold text-blue-900 mb-3">How ROI is Calculated</h3>
               <div className="text-sm text-blue-800 space-y-2">
-                <p><strong>Business Units:</strong> Define your organizational structure and capabilities</p>
-                <p><strong>Services:</strong> Map IT services to business units with cost and performance tracking</p>
-                <p><strong>IT Towers:</strong> Manage infrastructure components and their utilization</p>
-                <p><strong>Cost Pools:</strong> Track and allocate costs across different expense categories</p>
+                <p><strong>Costs (L1 + L2):</strong> Your actual IT spending across departments and towers</p>
+                <p><strong>Benefits (L3 + Assumptions):</strong> Quantified value from productivity gains, revenue uplift, cost avoidance</p>
+                <p><strong>ROI Formula:</strong> <code className="bg-blue-100 px-2 py-1 rounded">(Total Benefits - Total Costs) ÷ Total Costs × 100%</code></p>
               </div>
             </div>
           </div>

@@ -8,8 +8,7 @@ export default function Navigation() {
 
   const navItems = [
     { path: '/', label: 'Home', icon: '🏠︎' },
-    { path: '/business-framework', label: 'Business Framework', icon: '🏢' },
-    { path: '/framework', label: 'Legacy Framework', icon: '☰' },
+    { path: '/framework', label: 'Framework Entry', icon: '☰' },
     { path: '/dashboard', label: 'Dashboard', icon: '↗︎' },
     { path: '/account', label: 'Account', icon: '✶' }
   ];
