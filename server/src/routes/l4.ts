@@ -246,6 +246,7 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
       });
     }
 
+
     // Normalize period
     const normalizedPeriod = toPeriod(period);
     
@@ -350,6 +351,7 @@ const getSnapshots: RequestHandler<{ companyId: string }> = async (req, res) => 
   try {
     const { companyId } = req.params;
 
+
     const snapshots = await prisma.l4RoiSnapshot.findMany({
       where: { companyId },
       orderBy: { createdAt: 'desc' },
@@ -379,7 +381,7 @@ const getSnapshots: RequestHandler<{ companyId: string }> = async (req, res) => 
 };
 
 /** ===== Routes ===== */
-r.post('/snapshot', auth, postSnapshot);
+r.post('/snapshot', postSnapshot);
 r.get('/snapshots/:companyId', getSnapshots);
 
 export default r;

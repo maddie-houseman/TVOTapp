@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { exportElementToPdf } from '../utils/exportPdf';
 import { useAuth } from '../contexts/useAuth';
 import api, { type L1Input, type L2Input, type L4Snapshot } from '../lib/api';
+import { getDisplayLabel } from '../utils/departmentLabels';
 
 // Merge sort utility
 function mergeSort<T>(arr: T[], compare: (a: T, b: T) => number): T[] {
@@ -453,7 +454,7 @@ export default function Dashboard() {
                   return (
                     <div key={index} className="border rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-900">{dept.department.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                        <span className="text-sm font-medium text-gray-900">{getDisplayLabel(dept.department)}</span>
                         <span className="text-sm font-bold text-blue-600">{formatCurrency(Number(dept.budget))}</span>
                       </div>
                       <div className="grid grid-cols-2 gap-4 text-xs text-gray-600">
@@ -551,7 +552,7 @@ export default function Dashboard() {
                           </span>
                         </div>
                         <div>
-                          <span className="font-medium">Department:</span> {tower.department.replace(/_/g, ' ')}
+                          <span className="font-medium">Department:</span> {getDisplayLabel(tower.department)}
                         </div>
                         <div>
                           <span className="font-medium">Strategic Focus:</span> 

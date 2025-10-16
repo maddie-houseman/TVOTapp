@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/useAuth';
 import { api, type Department, } from '../lib/api';
+import { getDatabaseValue, getAllDisplayLabels, type DisplayDepartment } from '../utils/departmentLabels';
 
 export default function FrameworkEntry() {
   // auth / context
@@ -20,14 +21,9 @@ export default function FrameworkEntry() {
 
   // --- L1 - inputs
   const [dept, setDept] = useState<Department>('ENGINEERING');
+  const [displayDept, setDisplayDept] = useState<DisplayDepartment>('Labour');
   const [employees, setEmployees] = useState<number>(10);
   const [budget, setBudget] = useState<number>(200000);
-  // @ts-ignore
-  const [baselineKpi, setBaselineKpi] = useState<number>(0);
-  // @ts-ignore
-  const [departmentGoals, setDepartmentGoals] = useState<string>('');
-  // @ts-ignore
-  const [itSpendCategory, setItSpendCategory] = useState<string>('OPEX');
 
   // --- L2 - tower weights; must sum to 1
   const [appDev, setAppDev] = useState<number>(0.7);
@@ -195,6 +191,12 @@ export default function FrameworkEntry() {
   // helpers for numeric inputs
   const num = (v: string) => Number(v);
 
+  // Handle department selection change
+  const handleDepartmentChange = (displayValue: DisplayDepartment) => {
+    setDisplayDept(displayValue);
+    setDept(getDatabaseValue(displayValue));
+  };
+
   // Step navigation
   const prevStep = () => {
     if (currentStep > 1) {
@@ -307,14 +309,14 @@ export default function FrameworkEntry() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Department</label>
                   <select
-                    value={dept}
-                    onChange={(e) => setDept(e.target.value as Department)}
+                    value={displayDept}
+                    onChange={(e) => handleDepartmentChange(e.target.value as DisplayDepartment)}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-    {(['ENGINEERING', 'SALES', 'FINANCE', 'HR', 'MARKETING', 'OPERATIONS'] as Department[]).map(
-      (d) => (
-        <option key={d} value={d}>
-          {d}
+    {getAllDisplayLabels().map(
+      (label) => (
+        <option key={label} value={label}>
+          {label}
         </option>
       ),
     )}
