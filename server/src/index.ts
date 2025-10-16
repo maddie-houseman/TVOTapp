@@ -6,10 +6,10 @@ import { ENV } from './env.js';
 
 const app = express();
 
-/* -------------------- CORS (first) -------------------- */
+// CORS
 app.use(
     cors({
-        // reflect the request Origin header
+        // Reflect origin
         origin: true,
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key'],
@@ -17,7 +17,7 @@ app.use(
     })
 );
 
-// 🔒 Hard preflight handler to avoid proxy timeouts (502 on OPTIONS)
+// Handle preflight requests
 app.use((req, res, next) => {
     if (req.method !== 'OPTIONS') return next();
 
@@ -30,26 +30,20 @@ app.use((req, res, next) => {
     return res.sendStatus(204);
 });
 
-/* -------------------- Parsers / proxy -------------------- */
+// Parsers
 app.use(express.json());
 app.use(cookieParser());
-// Behind Railway proxy so req.secure works correctly
+// Trust proxy
 app.set('trust proxy', 1);
 
-/* -------------------- API key guard -------------------- */
-/**
- * Keep your x-api-key requirement for non-auth endpoints, but:
- *  - never gate preflights
- *  - allow /api/auth/* without an API key
- */
-// API key check disabled for testing
+// API key guard (disabled)
 app.use((req, res, next) => {
     return next();
 });
 
-/* -------------------- Request timeout -------------------- */
+// Request timeout
 app.use((req, res, next) => {
-    // Set a 30-second timeout for all requests
+    // 30-second timeout
     const timeout = setTimeout(() => {
         if (!res.headersSent) {
             res.status(408).json({ error: 'Request timeout' });
@@ -61,7 +55,7 @@ app.use((req, res, next) => {
     next();
 });
 
-/* -------------------- Rate limit -------------------- */
+// Rate limiting
 app.use(
     rateLimit({
         windowMs: 15 * 60 * 1000,
@@ -71,7 +65,7 @@ app.use(
     })
 );
 
-/* -------------------- Health -------------------- */
+// Health endpoints
 app.get('/api/health', (_req, res) => {
     res.status(200).json({ 
         ok: true, 
@@ -81,7 +75,7 @@ app.get('/api/health', (_req, res) => {
     });
 });
 
-// Simple test endpoint that bypasses all middleware
+// Simple health check
 app.get('/test', (_req, res) => {
     res.json({ 
         message: 'Server is working!', 
@@ -93,12 +87,12 @@ app.get('/test', (_req, res) => {
     });
 });
 
-// Database health check endpoint
+// Database health check
 app.get('/api/health/db', async (_req, res) => {
     try {
         const { prisma } = await import('./prisma.js');
         
-        // Test database connection with timeout
+        // Test DB connection
         const queryPromise = prisma.$queryRaw`SELECT 1 as test`;
         const timeoutPromise = new Promise((_, reject) => 
             setTimeout(() => reject(new Error('Database query timeout')), 5000)
@@ -116,7 +110,7 @@ app.get('/api/health/db', async (_req, res) => {
     }
 });
 
-// Comprehensive diagnostic endpoint
+// Diagnostic endpoint
 app.get('/api/debug/full', async (req, res) => {
     const startTime = Date.now();
     const results: any = {
@@ -131,10 +125,10 @@ app.get('/api/debug/full', async (req, res) => {
     };
 
     try {
-        // Test 1: Basic server response
+        // Basic response test
         results.tests.basicResponse = { status: 'OK', duration: Date.now() - startTime };
 
-        // Test 2: Database connection
+        // Database test
         const dbStart = Date.now();
         try {
             const { prisma } = await import('./prisma.js');
@@ -151,7 +145,7 @@ app.get('/api/debug/full', async (req, res) => {
             };
         }
 
-        // Test 3: Database tables existence
+        // Database tables test
         const tablesStart = Date.now();
         try {
             const { prisma } = await import('./prisma.js');
@@ -175,7 +169,7 @@ app.get('/api/debug/full', async (req, res) => {
             };
         }
 
-        // Test 4: Sample data query
+        // Sample data test
         const dataStart = Date.now();
         try {
             const { prisma } = await import('./prisma.js');
@@ -197,7 +191,7 @@ app.get('/api/debug/full', async (req, res) => {
             };
         }
 
-        // Test 5: Memory usage
+        // Memory test
         const memUsage = process.memoryUsage();
         results.tests.memoryUsage = {
             status: 'OK',
@@ -216,7 +210,7 @@ app.get('/api/debug/full', async (req, res) => {
     }
 });
 
-// Test specific company data
+// Company data test
 app.get('/api/debug/company/:companyId', async (req, res) => {
     const { companyId } = req.params;
     const { period = '2024-01' } = req.query;
@@ -273,7 +267,7 @@ app.get('/api/debug/company/:companyId', async (req, res) => {
     }
 });
 
-/* -------------------- Bootstrap: Routers Only -------------------- */
+// Bootstrap routers
 (async () => {
     try {
         const { default: authRouter } = await import('./routes/auth.js');
@@ -284,7 +278,7 @@ app.get('/api/debug/company/:companyId', async (req, res) => {
         const { default: companyRouter } = await import('./routes/company.js');
         const { default: aiRouter } = await import('./routes/ai.js');
 
-        // auth routes are public; others may use your own auth middleware where needed
+        // Register routes
         app.use('/api', authRouter);
         app.use('/api/l1', l1Router);
         app.use('/api/l2', l2Router);
@@ -294,14 +288,11 @@ app.get('/api/debug/company/:companyId', async (req, res) => {
         app.use('/api', aiRouter);
 
         
-        // Start server immediately
+        // Start server
         const port = Number(process.env.PORT) || 8080;
 app.listen(port, '0.0.0.0', () => {
     console.log(`✅ Server started successfully on port ${port}`);
-    console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`📊 Health check: http://0.0.0.0:${port}/api/health`);
-    console.log(`🔧 Database connection timeouts: 30s (Railway optimized)`);
-    console.log(`🚀 Deployment timestamp: ${new Date().toISOString()}`);
+    console.log(`🌐 Environment: ${process.env.NODE_ENV || 'production'}`);
 });
     } catch (e) {
         console.error('Router load failed:', e);
@@ -309,12 +300,12 @@ app.listen(port, '0.0.0.0', () => {
     }
 })();
 
-// Try database connection in background (non-blocking)
+// Background DB connection
 setTimeout(async () => {
     try {
         const { prisma } = await import('./prisma.js');
         
-        // Add connection timeout
+        // Connection timeout
         const connectPromise = prisma.$connect();
         const timeoutPromise = new Promise((_, reject) => 
             setTimeout(() => reject(new Error('Database connection timeout')), 10000)

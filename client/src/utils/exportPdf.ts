@@ -1,8 +1,4 @@
-// client/src/utils/exportPdf.ts
-// Export any DOM element to a PDF using html2canvas + jsPDF loaded from a CDN at runtime.
-// Usage example (in a React page):
-//   import { exportElementToPdf } from '../utils/exportPdf';
-//   const onExport = () => exportElementToPdf(document.getElementById('dashboard-root')!, 'dashboard.pdf');
+// Export DOM element to PDF using html2canvas + jsPDF
 
 type LoadedLibs = {
   html2canvas: (el: HTMLElement, opts?: Record<string, unknown>) => Promise<HTMLCanvasElement>;
@@ -24,7 +20,7 @@ async function loadFromCdn(): Promise<LoadedLibs> {
 
   function load(url: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      // Check if script already exists
+      // Check if already loaded
       const existingScript = document.querySelector(`script[src="${url}"]`);
       if (existingScript) {
         resolve();
@@ -46,12 +42,11 @@ async function loadFromCdn(): Promise<LoadedLibs> {
   }
 
   try {
-    // Known good CDN builds
-    // html2canvas v1.4.x and jsPDF v2.5.x
+    // Load CDN libraries
     await load('https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js');
     await load('https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js');
 
-    // Wait a bit for libraries to initialize
+    // Initialize libraries
     await new Promise(resolve => setTimeout(resolve, 100));
 
     const html2canvas = (window as unknown as { html2canvas: LoadedLibs['html2canvas'] }).html2canvas;
@@ -79,46 +74,43 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
       throw new Error('exportElementToPdf: target element is required');
     }
 
-    // Preprocess CSS to convert unsupported color functions and ensure proper styling
+    // Preprocess CSS for PDF compatibility
     const preprocessElement = (element: HTMLElement) => {
       const computedStyle = window.getComputedStyle(element);
       const style = element.style;
       
-      // Convert oklch colors to rgb
+      // Fix color compatibility
       if (computedStyle.color && computedStyle.color.includes('oklch')) {
-        style.color = '#000000'; // Fallback to black
+        style.color = '#000000';
       }
       if (computedStyle.backgroundColor && computedStyle.backgroundColor.includes('oklch')) {
-        style.backgroundColor = '#ffffff'; // Fallback to white
+        style.backgroundColor = '#ffffff';
       }
       if (computedStyle.borderColor && computedStyle.borderColor.includes('oklch')) {
-        style.borderColor = '#000000'; // Fallback to black
+        style.borderColor = '#000000';
       }
       
-      // Ensure colored bars in L1, L2 data and graphs are visible
+      // Preserve chart colors
       if (element.classList.contains('bg-blue-500')) {
-        style.backgroundColor = '#3b82f6'; // Ensure blue bars are visible
+        style.backgroundColor = '#3b82f6';
       }
       if (element.classList.contains('bg-green-500')) {
-        style.backgroundColor = '#10b981'; // Ensure green bars are visible
+        style.backgroundColor = '#10b981';
       }
       if (element.classList.contains('bg-red-500')) {
-        style.backgroundColor = '#ef4444'; // Ensure red bars are visible
+        style.backgroundColor = '#ef4444';
       }
       
-      // Ensure graph elements are properly styled for export
+      // Preserve graph styling
       if (element.style.height && element.style.height.includes('px')) {
-        // Preserve height for graph bars
         style.height = element.style.height;
       }
-      
-      // Ensure proper display for graph containers
       if (element.classList.contains('flex') && element.classList.contains('items-end')) {
         style.display = 'flex';
         style.alignItems = 'flex-end';
       }
       
-      // Process child elements
+      // Process children
       Array.from(element.children).forEach(child => {
         if (child instanceof HTMLElement) {
           preprocessElement(child);
@@ -126,12 +118,12 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
       });
     };
 
-    // Preprocess the target element and its children
+    // Preprocess element
     preprocessElement(target);
 
     const { html2canvas, jsPDF } = await loadFromCdn();
     
-    // Temporarily hide interactive elements to prevent issues
+    // Hide interactive elements
     const interactiveElements = target.querySelectorAll('button, input, select, textarea, a[href], [onclick], [onchange]');
     const originalStyles: string[] = [];
     
@@ -149,27 +141,27 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
         backgroundColor: '#ffffff',
         useCORS: true,
         allowTaint: true,
-        logging: true, // Enable logging to debug
+        logging: false
         foreignObjectRendering: false,
         removeContainer: false,
         width: target.scrollWidth,
         height: target.scrollHeight
       });
     } finally {
-      // Restore original styles for interactive elements
+      // Restore styles
       interactiveElements.forEach((element, index) => {
         const htmlElement = element as HTMLElement;
         htmlElement.style.display = originalStyles[index];
       });
     }
     
-    // Create PDF with dimensions matching A4 portrait by default
+    // Create PDF
     const pdf = new jsPDF({ orientation: 'p', unit: 'pt', format: 'a4' });
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
     
 
-    // Fit image into page while keeping aspect ratio
+    // Scale to fit page
     const imgWidth = pageWidth - 40; // 20pt margins
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
     
@@ -180,7 +172,7 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
     const sliceHeightPx = Math.floor((canvas.width * (pageHeight - 40)) / imgWidth);
     let pageCount = 1;
 
-    // If the rendered content is longer than one page, slice and add new pages
+    // Handle multi-page content
     while (remaining > 0) {
       
       const sliceCanvas = document.createElement('canvas');

@@ -4,7 +4,7 @@ import { prisma } from "../prisma.js";
 
 const router = Router();
 
-// Simple key guard using existing API key middleware on app, plus extra check here
+// API key guard
 function requireApiKey(req: Request, res: Response, next: () => void) {
   const required = process.env.API_KEY;
   if (!required) return res.status(403).json({ error: "API key not configured" });
@@ -13,8 +13,7 @@ function requireApiKey(req: Request, res: Response, next: () => void) {
   next();
 }
 
-// POST /api/admin/seed
-// Body: { companyName, domain, adminEmail, adminPassword, adminName }
+// Seed company data
 router.post("/admin/seed", requireApiKey, async (req: Request, res: Response) => {
   try {
     const { companyName, domain, adminEmail, adminPassword, adminName } = (req.body ?? {}) as {
@@ -29,7 +28,7 @@ router.post("/admin/seed", requireApiKey, async (req: Request, res: Response) =>
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    // Upsert company
+    // Create company
     const company = await prisma.company.upsert({
       where: { name: companyName },
       create: { name: companyName, domain: domain ?? null },

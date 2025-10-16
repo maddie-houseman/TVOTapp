@@ -3,7 +3,7 @@ import { exportElementToPdf } from '../utils/exportPdf';
 import { useAuth } from '../contexts/useAuth';
 import api, { type L1Input, type L2Input, type L4Snapshot } from '../lib/api';
 
-// Local, stable merge sort (no external file)
+// Merge sort utility
 function mergeSort<T>(arr: T[], compare: (a: T, b: T) => number): T[] {
   if (arr.length <= 1) return arr.slice();
   const mid = Math.floor(arr.length / 2);
@@ -29,12 +29,12 @@ export default function Dashboard() {
   const [selectedMonth, setSelectedMonth] = useState('01');
   const selectedPeriod = `${selectedYear}-${selectedMonth}`;
 
-  // Admin company filtering
+  // Admin companies
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>('');
   const [availableCompanies, setAvailableCompanies] = useState<{ id: string; name: string; domain: string }[]>([]);
   const [loadingCompanies, setLoadingCompanies] = useState(false);
 
-  // Real data state
+  // Data state
   const [l1Data, setL1Data] = useState<L1Input[]>([]);
   const [l2Data, setL2Data] = useState<L2Input[]>([]);
   const [l4Data, setL4Data] = useState<L4Snapshot[]>([]);
@@ -42,20 +42,16 @@ export default function Dashboard() {
   const [hasData, setHasData] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   
-  // Historical data for graphs
+  // Graph data
   const [historicalData, setHistoricalData] = useState<L4Snapshot[]>([]);
   const [showGraphs, setShowGraphs] = useState(false);
 
   // Load companies for admin users
   useEffect(() => {
-    console.log('Admin check - User role:', user?.role, 'Is authenticated:', isAuthenticated);
-    
     if (user?.role === 'ADMIN' && isAuthenticated) {
-      console.log('Loading companies for admin user...');
       setLoadingCompanies(true);
       api.getCompanies()
         .then(companies => {
-          console.log('Successfully loaded companies for admin:', companies);
           setAvailableCompanies(companies);
         })
         .catch(error => {
@@ -66,7 +62,6 @@ export default function Dashboard() {
           setLoadingCompanies(false);
         });
     } else {
-      console.log('Not loading companies - User role:', user?.role, 'Is authenticated:', isAuthenticated);
       setAvailableCompanies([]);
       setLoadingCompanies(false);
     }
@@ -111,20 +106,10 @@ export default function Dashboard() {
         setL4Data(l4);
         setHasData(l1.length > 0 || uniqueL2Data.length > 0 || l4.length > 0);
         
-        // Debug: Log L2 data to check for duplicates
-        console.log('Original L2 Data:', l2);
-        console.log('Deduplicated L2 Data:', uniqueL2Data);
-        
-        // Check if we have enough historical data for graphs (6+ consecutive months)
+        // Check if we have enough historical data for graphs
         const sortedSnapshots = l4.sort((a, b) => a.period.localeCompare(b.period));
         setHistoricalData(sortedSnapshots);
-        // Show graphs with 2+ data points
         setShowGraphs(sortedSnapshots.length >= 2);
-        
-        // Debug: Log graph data
-        console.log('L4 Snapshots:', sortedSnapshots);
-        console.log('Number of snapshots:', sortedSnapshots.length);
-        console.log('Should show graphs:', sortedSnapshots.length >= 2);
       } catch (error) {
         console.error('Failed to load dashboard data:', error);
         setHasData(false);
@@ -211,11 +196,6 @@ export default function Dashboard() {
               )}
             </div>
             
-            <div className="mt-4 text-xs text-gray-400">
-              Debug: User role: {user?.role}, Loading: {loadingCompanies ? 'Yes' : 'No'}, Companies: {availableCompanies.length}
-              <br />
-              Graph Data: {historicalData.length} snapshots, Show Graphs: {showGraphs ? 'Yes' : 'No'}
-            </div>
           </div>
         </div>
       </div>
@@ -338,10 +318,6 @@ export default function Dashboard() {
                     ))}
                   </select>
                 )}
-                {/* Debug info */}
-                <div className="text-xs text-gray-400">
-                  Debug: User role: {user?.role}, Loading: {loadingCompanies ? 'Yes' : 'No'}, Companies: {availableCompanies.length}
-                </div>
               </>
             )}
 

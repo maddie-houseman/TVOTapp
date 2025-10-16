@@ -1,4 +1,4 @@
-// AuthContext.tsx
+// Authentication context
 import { createContext, useState, useEffect, type ReactNode } from 'react';
 import api from '../lib/api';
 
@@ -55,7 +55,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           companyId: me.companyId,
         });
         
-        // Fetch company details if user has a company
+        // Fetch company details
         if (me.companyId) {
           try {
             const companyData = await api.getCompany();

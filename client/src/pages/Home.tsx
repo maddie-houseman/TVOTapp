@@ -37,7 +37,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="py-16 bg-black text-white">
       {/* Hero Section */}
       <div className="bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -72,7 +72,7 @@ export default function Home() {
       </div>
 
       {/* Framework Overview */}
-      <div className="py-16 bg-white">
+      <div className="py-16 bg-black text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
