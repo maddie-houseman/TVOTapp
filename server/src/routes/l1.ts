@@ -31,73 +31,13 @@ r.post('/', auth(), async (req, res) => {
         }
     }
 
-    // Create/update legacy L1 record for backward compatibility
     const created = await prisma.l1OperationalInput.upsert({
         where: { companyId_period_department: { companyId: body.companyId, period: new Date(body.period), department: body.department } },
         create: { ...body, period: new Date(body.period), createdById: req.user!.userId },
         update: { employees: body.employees, budget: new Decimal(body.budget), baselineKpi: body.baselineKpi ?? null }
     });
-
-    // Also create/update TBM cost pool spend
-    await upsertTbmCostPoolSpend(body, req.user!.userId);
-
     res.json(created);
 });
 
-// Helper function to create/update TBM cost pool spend
-async function upsertTbmCostPoolSpend(body: any, userId: string) {
-    // Get or create department
-    const department = await prisma.departmentModel.upsert({
-        where: {
-            companyId_name: {
-                companyId: body.companyId,
-                name: body.department
-            }
-        },
-        update: {},
-        create: {
-            companyId: body.companyId,
-            name: body.department
-        }
-    });
-
-    // Get or create default cost pool
-    const costPool = await prisma.costPool.upsert({
-        where: {
-            companyId_name: {
-                companyId: body.companyId,
-                name: 'Department IT Budget'
-            }
-        },
-        update: {},
-        create: {
-            companyId: body.companyId,
-            name: 'Department IT Budget',
-            capexOpex: 'OPEX'
-        }
-    });
-
-    // Create/update cost pool spend
-    await prisma.costPoolSpend.upsert({
-        where: {
-            companyId_departmentId_costPoolId_period: {
-                companyId: body.companyId,
-                departmentId: department.id,
-                costPoolId: costPool.id,
-                period: new Date(body.period)
-            }
-        },
-        update: {
-            amount: new Decimal(body.budget)
-        },
-        create: {
-            companyId: body.companyId,
-            departmentId: department.id,
-            costPoolId: costPool.id,
-            period: new Date(body.period),
-            amount: new Decimal(body.budget)
-        }
-    });
-}
 
 export default r;

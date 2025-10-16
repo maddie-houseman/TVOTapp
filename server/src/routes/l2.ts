@@ -85,8 +85,6 @@ r.post("/", auth(), async (req, res) => {
     },
     });
 
-    // Also create/update TBM allocation rules
-    await upsertTbmAllocationRule(body.companyId, body.period, body.department, body.tower, body.weightPct, userId);
 
   // Validate the department's weights sum to ~1.0 (±0.0001 tolerance)
     const rows = await prisma.l2AllocationWeight.findMany({
@@ -110,91 +108,5 @@ r.post("/", auth(), async (req, res) => {
     res.json(created);
 });
 
-// Helper function to create/update TBM allocation rules
-async function upsertTbmAllocationRule(companyId: string, period: string, department: string, tower: string, weightPct: number, userId: string) {
-    // Get or create department
-    const dept = await prisma.departmentModel.upsert({
-        where: {
-            companyId_name: {
-                companyId,
-                name: department
-            }
-        },
-        update: {},
-        create: {
-            companyId,
-            name: department
-        }
-    });
-
-    // Get or create default cost pool
-    const costPool = await prisma.costPool.upsert({
-        where: {
-            companyId_name: {
-                companyId,
-                name: 'Department IT Budget'
-            }
-        },
-        update: {},
-        create: {
-            companyId,
-            name: 'Department IT Budget',
-            capexOpex: 'OPEX'
-        }
-    });
-
-    // Map old tower names to new ones
-    const towerMapping: Record<string, string> = {
-        'APP_DEV': 'Application Development',
-        'CLOUD': 'Cloud Services',
-        'END_USER': 'End User Computing',
-        'SERVICE_DESK': 'Delivery Services',
-        'DATA_CENTER': 'Data Center',
-        'NETWORK': 'Network Services',
-        'SECURITY': 'Security & Compliance'
-    };
-
-    const towerName = towerMapping[tower] || tower;
-
-    // Get or create resource tower
-    const resourceTower = await prisma.resourceTower.upsert({
-        where: {
-            companyId_towerName: {
-                companyId,
-                towerName
-            }
-        },
-        update: {},
-        create: {
-            companyId,
-            towerGroup: 'APPLICATION', // Default group
-            towerName
-        }
-    });
-
-    // Create/update allocation rule
-    await prisma.allocationRuleCpToRt.upsert({
-        where: {
-            companyId_period_departmentId_costPoolId_resourceTowerId: {
-                companyId,
-                period: toPeriodDate(period),
-                departmentId: dept.id,
-                costPoolId: costPool.id,
-                resourceTowerId: resourceTower.id
-            }
-        },
-        update: {
-            percent: weightPct
-        },
-        create: {
-            companyId,
-            period: toPeriodDate(period),
-            departmentId: dept.id,
-            costPoolId: costPool.id,
-            resourceTowerId: resourceTower.id,
-            percent: weightPct
-        }
-    });
-}
 
 export default r;
