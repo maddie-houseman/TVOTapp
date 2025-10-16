@@ -39,14 +39,14 @@ export default function Home() {
   return (
     <div className="py-16 bg-black text-white">
       {/* Hero Section */}
-      <div className="bg-black">
+      <div className="bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center">
-            <h1 className="text-4xl font-extrabold text-white sm:text-5xl md:text-6xl">
+            <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
               Technology Business Management
-              <span className="block text-blue-400">Framework</span>
+              <span className="block text-blue-600">Framework</span>
             </h1>
-            <p className="mt-3 max-w-md mx-auto text-base text-gray-300 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
+            <p className="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
               Optimize your technology investments with data-driven insights. Track costs, measure benefits, and demonstrate ROI across your IT portfolio.
             </p>
             <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
@@ -61,7 +61,7 @@ export default function Home() {
               <div className="mt-3 rounded-md shadow sm:mt-0 sm:ml-3">
                 <Link
                   to="/dashboard"
-                  className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gray-800 hover:bg-gray-700 md:py-4 md:text-lg md:px-10"
+                  className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-600 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10"
                 >
                   View Dashboard
                 </Link>
@@ -75,10 +75,10 @@ export default function Home() {
       <div className="py-16 bg-black text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h2 className="text-3xl font-extrabold text-white sm:text-4xl">
+            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
               Four-Layer Framework
             </h2>
-            <p className="mt-4 max-w-2xl mx-auto text-xl text-gray-300">
+            <p className="mt-4 max-w-2xl mx-auto text-xl text-gray-500">
               Our comprehensive approach to technology business management
             </p>
           </div>
@@ -93,8 +93,8 @@ export default function Home() {
                     <p className="text-sm opacity-90">{layer.description}</p>
                   </div>
                   <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
-                    <div className="bg-gray-800 rounded-full p-2 shadow-lg">
-                      <span className="text-white font-bold">{index + 1}</span>
+                    <div className="bg-white rounded-full p-2 shadow-lg">
+                      <span className="text-gray-600 font-bold">{index + 1}</span>
                     </div>
                   </div>
                 </div>
@@ -106,14 +106,14 @@ export default function Home() {
 
       {/* Authentication Notice */}
       {!isAuthenticated && (
-        <div className="p-4 bg-gray-800 border-l-4 border-teal-400">
+        <div className="p-4" style={{ backgroundColor: 'var(--light-blue)', borderLeft: '4px solid var(--primary-teal)' }}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex">
               <div className="flex-shrink-0">
-                <span className="text-teal-400">ℹ️</span>
+                <span style={{ color: 'var(--primary-teal)' }}>ℹ️</span>
               </div>
               <div className="ml-3">
-                <p className="text-sm text-white">
+                <p className="text-sm" style={{ color: 'var(--primary-navy)' }}>
                       <strong>Authentication Required:</strong>  
                       Please log in to access your TBM framework data.
                 </p>
@@ -124,27 +124,30 @@ export default function Home() {
       )}
 
       {/* Company Info */}
-      <div className="py-12 bg-gray-900">
+      <div className="py-12" style={{ backgroundColor: 'var(--light-grey)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gray-800 rounded-lg shadow p-6 border border-gray-700">
-            <h3 className="text-lg font-medium mb-4 text-white">Current Company</h3>
+          <div className="bg-white rounded-lg shadow p-6" style={{ border: '1px solid var(--light-blue)' }}>
+            <h3 className="text-lg font-medium mb-4" style={{ color: 'var(--dark-grey)' }}>Current Company</h3>
             {company ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm font-medium text-gray-300">Company Name</p>
-                  <p className="text-lg text-white">{company.name}</p>
+                  <p className="text-sm font-medium" style={{ color: 'var(--medium-grey)' }}>Company Name</p>
+                  <p className="text-lg" style={{ color: 'var(--dark-grey)' }}>{company.name}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-300">Domain</p>
-                  <p className="text-lg text-white">{company.domain}</p>
+                  <p className="text-sm font-medium" style={{ color: 'var(--medium-grey)' }}>Domain</p>
+                  <p className="text-lg" style={{ color: 'var(--dark-grey)' }}>{company.domain}</p>
                 </div>
               </div>
             ) : (
               <div className="text-center py-8">
-                <p className="text-gray-300">Please log in to view company information</p>
+                <p style={{ color: 'var(--medium-grey)' }}>Please log in to view company information</p>
                 <Link
                   to="/login"
-                  className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+                  className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white transition-colors"
+                  style={{ backgroundColor: 'var(--primary-blue)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--primary-navy)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--primary-blue)'}
                 >
                   Go to Login
                 </Link>

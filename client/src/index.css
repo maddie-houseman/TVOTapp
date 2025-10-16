@@ -12,13 +12,10 @@
   --light-grey: #f3f4f6;
   --accent-teal: #14b8a6;
   --dark-navy: #1e293b;
-  --black-bg: #000000;
-  --white-text: #ffffff;
-  --dark-grey-text: #9ca3af;
 }
 
 body { 
-  background: var(--black-bg);
-  color: var(--white-text);
+  background: var(--light-grey);
+  color: var(--dark-grey);
   font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
 }

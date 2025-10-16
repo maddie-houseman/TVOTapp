@@ -7,9 +7,9 @@
 
 .card {
   padding: 2em;
-  background: var(--black-bg);
+  background: #ffffff;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid var(--primary-blue);
-  color: var(--white-text);
+  color: #374151;
 }
