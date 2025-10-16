@@ -37,7 +37,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="py-16 bg-black text-white">
+    <div className="py-16 bg-gray-50 text-gray-900">
       {/* Hero Section */}
       <div className="bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -72,13 +72,13 @@ export default function Home() {
       </div>
 
       {/* Framework Overview */}
-      <div className="py-16 bg-black text-white">
+      <div className="py-16 bg-gray-50 text-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
               Four-Layer Framework
             </h2>
-            <p className="mt-4 max-w-2xl mx-auto text-xl text-gray-500">
+            <p className="mt-4 max-w-2xl mx-auto text-xl text-gray-600">
               Our comprehensive approach to technology business management
             </p>
           </div>
