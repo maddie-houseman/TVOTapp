@@ -32,40 +32,138 @@ function toPeriod(bodyPeriod: string) {
 }
 
 
-/** Calculate L4 metrics from L1, L2, L3 data (legacy) */
+/** Calculate L4 metrics with enhanced business insights */
 function calculateL4Metrics(l1Data: any[], l2Data: any[], l3Data: any[], assumptions: any) {
-  console.log(`[L4-CALC] Starting calculation with data: L1=${l1Data.length}, L2=${l2Data.length}, L3=${l3Data.length}`);
+  console.log(`[L4-CALC] Starting enhanced calculation with data: L1=${l1Data.length}, L2=${l2Data.length}, L3=${l3Data.length}`);
   
-  // Calculate from actual data if available
-  const totalRevenue = l1Data.reduce((sum, item) => sum + Number(item.budget || 0), 0);
+  // Calculate total costs from L1 data
   const totalCosts = l1Data.reduce((sum, item) => sum + Number(item.budget || 0), 0);
+  const totalEmployees = l1Data.reduce((sum, item) => sum + Number(item.employees || 0), 0);
   
-  console.log(`[L4-CALC] Calculated from data - Revenue: ${totalRevenue}, Costs: ${totalCosts}`);
+  // Calculate benefits from assumptions
+  const productivityBenefit = (assumptions.productivityGainHours || 0) * (assumptions.avgLoadedRate || 0);
+  const revenueBenefit = assumptions.revenueUplift || 0;
+  const totalBenefits = productivityBenefit + revenueBenefit;
   
-  // If no L1 data, use assumptions for a basic calculation
-  let revenue, costs;
-  if (l1Data.length === 0) {
-    console.log(`[L4-CALC] No L1 data, using assumptions`);
-    revenue = assumptions.revenueUplift || 0;
-    costs = 100000; // Default cost base
-  } else {
-    revenue = totalRevenue;
-    costs = totalCosts;
-  }
+  // Enhanced calculations
+  const netBenefit = totalBenefits - totalCosts;
+  const roi = totalCosts > 0 ? ((totalBenefits - totalCosts) / totalCosts) * 100 : 0;
+  const costPerEmployee = totalEmployees > 0 ? totalCosts / totalEmployees : 0;
+  const benefitPerEmployee = totalEmployees > 0 ? totalBenefits / totalEmployees : 0;
   
-  const netBenefit = revenue - costs;
-  const roi = costs > 0 ? ((revenue - costs) / costs) * 100 : 0;
+  // Calculate payback period (months)
+  const monthlyBenefit = totalBenefits / 12;
+  const paybackMonths = monthlyBenefit > 0 ? totalCosts / monthlyBenefit : 0;
   
-  console.log(`[L4-CALC] Final calculation - Revenue: ${revenue}, Costs: ${costs}, ROI: ${roi}%`);
+  // Generate business insights
+  const insights = generateBusinessInsights(l1Data, l2Data, l3Data, {
+    totalCosts,
+    totalBenefits,
+    roi,
+    costPerEmployee,
+    benefitPerEmployee,
+    paybackMonths
+  });
+  
+  console.log(`[L4-CALC] Enhanced calculation - Benefits: ${totalBenefits}, Costs: ${totalCosts}, ROI: ${roi}%`);
   
   return {
-    totalRevenue: revenue,
-    totalCosts: costs,
+    totalRevenue: totalBenefits,
+    totalCosts: totalCosts,
     netBenefit: netBenefit,
     roi: roi,
     assumptions,
-    dataCount: { l1: l1Data.length, l2: l2Data.length, l3: l3Data.length }
+    dataCount: { l1: l1Data.length, l2: l2Data.length, l3: l3Data.length },
+    // Enhanced metrics
+    costPerEmployee: costPerEmployee,
+    benefitPerEmployee: benefitPerEmployee,
+    paybackMonths: paybackMonths,
+    insights: insights
   };
+}
+
+/** Generate actionable business insights */
+function generateBusinessInsights(l1Data: any[], l2Data: any[], l3Data: any[], metrics: any) {
+  const insights = [];
+  
+  // Cost efficiency insights
+  if (metrics.costPerEmployee > 100000) {
+    insights.push({
+      type: 'warning',
+      category: 'Cost Optimization',
+      title: 'High IT Cost Per Employee',
+      message: `Your IT cost per employee is $${metrics.costPerEmployee.toLocaleString()}, which is above industry average. Consider optimizing resource allocation.`,
+      impact: 'High'
+    });
+  }
+  
+  // ROI insights
+  if (metrics.roi < 0) {
+    insights.push({
+      type: 'error',
+      category: 'ROI Analysis',
+      title: 'Negative ROI Detected',
+      message: 'Your current IT investments are not generating positive returns. Review your benefit assumptions and cost structure.',
+      impact: 'Critical'
+    });
+  } else if (metrics.roi > 200) {
+    insights.push({
+      type: 'success',
+      category: 'ROI Analysis',
+      title: 'Excellent ROI Performance',
+      message: `Your ROI of ${metrics.roi.toFixed(1)}% is exceptional. Consider scaling successful initiatives.`,
+      impact: 'High'
+    });
+  }
+  
+  // Payback period insights
+  if (metrics.paybackMonths > 24) {
+    insights.push({
+      type: 'warning',
+      category: 'Financial Planning',
+      title: 'Long Payback Period',
+      message: `Payback period of ${metrics.paybackMonths.toFixed(1)} months is longer than typical. Consider shorter-term initiatives.`,
+      impact: 'Medium'
+    });
+  }
+  
+  // Department analysis
+  const deptCosts = l1Data.reduce((acc, item) => {
+    acc[item.department] = (acc[item.department] || 0) + Number(item.budget);
+    return acc;
+  }, {});
+  
+  const highestCostDept = Object.entries(deptCosts).reduce((a, b) => deptCosts[a[0]] > deptCosts[b[0]] ? a : b);
+  if (highestCostDept) {
+    insights.push({
+      type: 'info',
+      category: 'Cost Allocation',
+      title: 'Highest Cost Department',
+      message: `${highestCostDept[0]} has the highest IT costs at $${deptCosts[highestCostDept[0]].toLocaleString()}. Review allocation efficiency.`,
+      impact: 'Medium'
+    });
+  }
+  
+  // Tower allocation insights
+  if (l2Data.length > 0) {
+    const towerAllocations = l2Data.reduce((acc, item) => {
+      acc[item.tower] = (acc[item.tower] || 0) + Number(item.weightPct);
+      return acc;
+    }, {});
+    
+    const dominantTower = Object.entries(towerAllocations).reduce((a, b) => towerAllocations[a[0]] > towerAllocations[b[0]] ? a : b);
+    if (dominantTower && towerAllocations[dominantTower[0]] > 0.6) {
+      insights.push({
+        type: 'info',
+        category: 'Resource Allocation',
+        title: 'Concentrated Tower Investment',
+        message: `${dominantTower[0]} represents ${(towerAllocations[dominantTower[0]] * 100).toFixed(1)}% of your IT allocation. Consider diversification.`,
+        impact: 'Medium'
+      });
+    }
+  }
+  
+  return insights;
 }
 
 /** ===== POST /api/l4/snapshot ===== */

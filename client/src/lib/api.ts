@@ -57,6 +57,19 @@
     assumptions: SnapshotAssumptions;
     createdAt?: string;
     updatedAt?: string;
+    // Enhanced metrics
+    costPerEmployee?: number;
+    benefitPerEmployee?: number;
+    paybackMonths?: number;
+    insights?: BusinessInsight[];
+    };
+
+    export type BusinessInsight = {
+    type: 'success' | 'warning' | 'error' | 'info';
+    category: string;
+    title: string;
+    message: string;
+    impact: 'Low' | 'Medium' | 'High' | 'Critical';
     };
 
     // -------- Base URL --------

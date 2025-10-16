@@ -512,6 +512,25 @@ export default function Dashboard() {
                     <span className="text-sm text-gray-600">ROI:</span>
                     <span className="text-sm font-bold text-blue-600">{formatPercentage(currentSnapshot.roiPct)}</span>
                   </div>
+                  {/* Enhanced metrics */}
+                  {currentSnapshot.costPerEmployee && (
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Cost per Employee:</span>
+                      <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.costPerEmployee)}</span>
+                    </div>
+                  )}
+                  {currentSnapshot.benefitPerEmployee && (
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Benefit per Employee:</span>
+                      <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.benefitPerEmployee)}</span>
+                    </div>
+                  )}
+                  {currentSnapshot.paybackMonths && (
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Payback Period:</span>
+                      <span className="text-sm font-medium text-gray-900">{currentSnapshot.paybackMonths.toFixed(1)} months</span>
+                    </div>
+                  )}
                 </div>
               </div>
               
@@ -537,6 +556,47 @@ export default function Dashboard() {
             <p className="text-gray-500 text-center py-4">No ROI snapshot available for this period</p>
           )}
         </div>
+
+        {/* Business Insights */}
+        {currentSnapshot?.insights && currentSnapshot.insights.length > 0 && (
+          <div className="bg-white rounded-lg shadow p-6 mb-8">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Business Insights</h3>
+            <div className="space-y-4">
+              {currentSnapshot.insights.map((insight, index) => (
+                <div key={index} className={`p-4 rounded-lg border-l-4 ${
+                  insight.type === 'success' ? 'bg-green-50 border-green-400' :
+                  insight.type === 'warning' ? 'bg-yellow-50 border-yellow-400' :
+                  insight.type === 'error' ? 'bg-red-50 border-red-400' :
+                  'bg-blue-50 border-blue-400'
+                }`}>
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      {insight.type === 'success' && <span className="text-green-400">✓</span>}
+                      {insight.type === 'warning' && <span className="text-yellow-400">⚠</span>}
+                      {insight.type === 'error' && <span className="text-red-400">✗</span>}
+                      {insight.type === 'info' && <span className="text-blue-400">ℹ</span>}
+                    </div>
+                    <div className="ml-3">
+                      <div className="flex items-center">
+                        <h4 className="text-sm font-medium text-gray-900">{insight.title}</h4>
+                        <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          insight.impact === 'Critical' ? 'bg-red-100 text-red-800' :
+                          insight.impact === 'High' ? 'bg-orange-100 text-orange-800' :
+                          insight.impact === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {insight.impact}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-sm text-gray-600">{insight.message}</p>
+                      <p className="mt-1 text-xs text-gray-500">{insight.category}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Revenue/Return Projection Graphs */}
         {showGraphs && (
