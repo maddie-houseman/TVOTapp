@@ -7,29 +7,29 @@ export default function Home() {
 
   const frameworkLayers = [
     {
-      title: 'L1 - Operational Inputs',
-      description: 'Capture current operational metrics including headcount, budget allocation, for micheal.',
-      icon: '📊',
+      title: 'L1 - Cost Foundation',
+      description: 'Capture your actual IT costs: department budgets, headcount, and operational expenses. This becomes your baseline cost for ROI calculations.',
+      icon: '💰',
       color: 'bg-blue-500',
       link: '/framework'
     },
     {
-      title: 'L2 - Tower Allocation',
-      description: 'Define resource distribution across TBM towers (App Dev, Cloud, End User, etc.) with percentage weights.',
+      title: 'L2 - Cost Allocation',
+      description: 'Distribute your L1 costs across TBM towers (App Dev, Cloud, End User, etc.). This shows where your money is actually being spent.',
       icon: '🏗️',
       color: 'bg-cyan-500',
       link: '/framework'
     },
     {
-      title: 'L3 - Benefit Categories',
-      description: 'Categorize and weight business benefits including productivity gains and revenue uplift.',
+      title: 'L3 - Benefit Sources',
+      description: 'Define how you measure value: productivity gains, revenue uplift, cost avoidance, risk reduction. These become your benefit categories.',
       icon: '🎯',
       color: 'bg-purple-500',
       link: '/framework'
     },
     {
-      title: 'L4 - ROI Snapshots',
-      description: 'Generate comprehensive ROI analysis with cost-benefit calculations and performance metrics.',
+      title: 'L4 - ROI Calculation',
+      description: 'Calculate ROI = (Total Benefits - Total Costs) / Total Costs. Benefits come from L3 assumptions, costs from L1/L2 data.',
       icon: '📈',
       color: 'bg-sky-500',
       link: '/dashboard'
@@ -76,11 +76,19 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-              Four-Layer Framework
+              Four-Layer ROI Framework
             </h2>
             <p className="mt-4 max-w-2xl mx-auto text-xl text-gray-600">
-              Our comprehensive approach to technology business management
+              A systematic approach to calculate meaningful ROI from your IT investments
             </p>
+            <div className="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-200 max-w-4xl mx-auto">
+              <h3 className="text-lg font-semibold text-blue-900 mb-3">How ROI is Calculated</h3>
+              <div className="text-sm text-blue-800 space-y-2">
+                <p><strong>Costs (L1 + L2):</strong> Your actual IT spending across departments and towers</p>
+                <p><strong>Benefits (L3 + Assumptions):</strong> Quantified value from productivity gains, revenue uplift, cost avoidance</p>
+                <p><strong>ROI Formula:</strong> <code className="bg-blue-100 px-2 py-1 rounded">(Total Benefits - Total Costs) ÷ Total Costs × 100%</code></p>
+              </div>
+            </div>
           </div>
 
           <div className="mt-16">
