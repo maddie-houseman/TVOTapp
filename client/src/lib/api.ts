@@ -13,7 +13,7 @@ export type Department =
   | "MARKETING"
   | "OPERATIONS";
 
-    export type Tower = "INFRASTRUCTURE" | "APPLICATIONS" | "OPERATIONS" | "FIELD_OFFICE";
+    export type Tower = "APP_DEV" | "CLOUD" | "END_USER";
 
     export type L3Category = "PRODUCTIVITY" | "REVENUE_UPLIFT";
 

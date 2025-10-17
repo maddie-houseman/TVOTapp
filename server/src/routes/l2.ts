@@ -19,7 +19,7 @@ const l2Schema = z.object({
         "MARKETING",
         "OPERATIONS",
     ] as const),
-    tower: z.enum(["INFRASTRUCTURE", "APPLICATIONS", "OPERATIONS", "FIELD_OFFICE"] as const),
+    tower: z.enum(["APP_DEV", "CLOUD", "END_USER"] as const),
     weightPct: z.number().min(0).max(1),
 });
 

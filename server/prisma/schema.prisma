@@ -25,10 +25,14 @@ enum Department {
 }
 
 enum TbmTower {
-  INFRASTRUCTURE
-  APPLICATIONS
-  OPERATIONS
-  FIELD_OFFICE
+  APP_DEV
+  SERVICE_DESK
+  DATA_CENTER
+  NETWORK
+  END_USER
+  SECURITY
+  CLOUD
+  OTHER
 }
 
 enum BenefitCategory {
