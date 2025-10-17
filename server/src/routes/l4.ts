@@ -39,14 +39,51 @@ function calculateL4Metrics(l1Data: any[], l2Data: any[], l3Data: any[], assumpt
   const totalEmployees = l1Data.reduce((sum, item) => sum + Number(item.employees || 0), 0);
   
   // === BENEFIT ANALYSIS ===
-  // Use the assumptions from the form (revenue uplift from L4 form)
-  const totalBenefits = assumptions.revenueUplift || 0;
+  // Calculate benefits from L2 and L3 data
+  let totalBenefits = 0;
+  
+  // Calculate allocated costs per tower from L2 data
+  const towerAllocations = l2Data.reduce((acc, item) => {
+    const deptCost = l1Data.find(d => d.department === item.department);
+    if (deptCost) {
+      const allocatedAmount = Number(deptCost.budget) * item.weightPct;
+      acc[item.tower] = (acc[item.tower] || 0) + allocatedAmount;
+    }
+    return acc;
+  }, {});
+  
+  // Calculate benefits from L3 categories
+  l3Data.forEach(l3Item => {
+    const category = l3Item.category;
+    const weight = Number(l3Item.weightPct);
+    
+    if (category === 'PRODUCTIVITY') {
+      // Productivity benefits from assumptions
+      const productivityBenefit = (assumptions.productivityGainHours || 0) * (assumptions.avgLoadedRate || 0);
+      totalBenefits += productivityBenefit * weight;
+    } else if (category === 'REVENUE_UPLIFT') {
+      // Revenue benefits from assumptions
+      totalBenefits += (assumptions.revenueUplift || 0) * weight;
+    }
+  });
+  
+  // If no L3 data, calculate a more realistic benefit
+  if (l3Data.length === 0) {
+    // Use revenue uplift + productivity benefits as a reasonable default
+    const productivityBenefit = (assumptions.productivityGainHours || 0) * (assumptions.avgLoadedRate || 0);
+    const revenueBenefit = assumptions.revenueUplift || 0;
+    totalBenefits = productivityBenefit + revenueBenefit;
+    
+    console.log(`[L4-CALC] No L3 data - using default calculation: Productivity: $${productivityBenefit}, Revenue: $${revenueBenefit}, Total: $${totalBenefits}`);
+  }
   
   // === ROI CALCULATION ===
   const netBenefit = totalBenefits - totalCosts;
   const roi = totalCosts > 0 ? ((totalBenefits - totalCosts) / totalCosts) * 100 : 0;
   
-  console.log(`[L4-CALC] Simple analysis - ROI: ${roi.toFixed(1)}%, Total Cost: $${totalCosts.toLocaleString()}, Total Benefit: $${totalBenefits.toLocaleString()}`);
+  console.log(`[L4-CALC] Analysis - ROI: ${roi.toFixed(1)}%, Total Cost: $${totalCosts.toLocaleString()}, Total Benefit: $${totalBenefits.toLocaleString()}`);
+  console.log(`[L4-CALC] Data counts - L1: ${l1Data.length}, L2: ${l2Data.length}, L3: ${l3Data.length}`);
+  console.log(`[L4-CALC] Assumptions - Revenue: $${assumptions.revenueUplift}, Hours: ${assumptions.productivityGainHours}, Rate: $${assumptions.avgLoadedRate}`);
   
   return {
     totalRevenue: totalBenefits,
@@ -54,7 +91,14 @@ function calculateL4Metrics(l1Data: any[], l2Data: any[], l3Data: any[], assumpt
     netBenefit: netBenefit,
     roi: roi,
     assumptions,
-    dataCount: { l1: l1Data.length, l2: l2Data.length, l3: l3Data.length }
+    dataCount: { l1: l1Data.length, l2: l2Data.length, l3: l3Data.length },
+    debug: {
+      l1Data: l1Data.map(d => ({ department: d.department, budget: d.budget })),
+      l2Data: l2Data.map(d => ({ department: d.department, tower: d.tower, weight: d.weightPct })),
+      l3Data: l3Data.map(d => ({ category: d.category, weight: d.weightPct })),
+      towerAllocations,
+      calculatedBenefits: totalBenefits
+    }
   };
 }
 
