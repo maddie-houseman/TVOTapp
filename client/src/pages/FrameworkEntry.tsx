@@ -366,8 +366,8 @@ export default function FrameworkEntry() {
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Application Development</label>
-                  <p className="text-xs text-gray-500 mb-2">Software applications and development platforms</p>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Applications</label>
+                  <p className="text-xs text-gray-500 mb-2">Software applications and data platforms</p>
                   <input
                     type="number"
                     step="0.01"
@@ -379,8 +379,8 @@ export default function FrameworkEntry() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Cloud Services</label>
-                  <p className="text-xs text-gray-500 mb-2">Cloud infrastructure and platform services</p>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Infrastructure</label>
+                  <p className="text-xs text-gray-500 mb-2">Core technology infrastructure and foundational systems</p>
                   <input
                     type="number"
                     step="0.01"
@@ -392,8 +392,8 @@ export default function FrameworkEntry() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">End User Computing</label>
-                  <p className="text-xs text-gray-500 mb-2">End-user devices and productivity tools</p>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Operations</label>
+                  <p className="text-xs text-gray-500 mb-2">IT operations, security, and governance</p>
                   <input
                     type="number"
                     step="0.01"

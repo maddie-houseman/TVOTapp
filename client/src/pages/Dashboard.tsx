@@ -3,6 +3,7 @@ import { exportElementToPdf } from '../utils/exportPdf';
 import { useAuth } from '../contexts/useAuth';
 import api, { type L1Input, type L2Input, type L4Snapshot } from '../lib/api';
 import { getDisplayLabel } from '../utils/departmentLabels';
+import { getDisplayLabel as getTowerDisplayLabel } from '../utils/towerLabels';
 
 // Merge sort utility
 function mergeSort<T>(arr: T[], compare: (a: T, b: T) => number): T[] {
@@ -526,7 +527,7 @@ export default function Dashboard() {
                   return (
                     <div key={index} className="border rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-900">{tower.tower.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                        <span className="text-sm font-medium text-gray-900">{getTowerDisplayLabel(tower.tower)}</span>
                         <div className="flex items-center space-x-2">
                           <span className="text-sm font-bold text-blue-600">{formatPercentage(tower.weightPct * 100)}</span>
                           <span className="text-xs text-gray-500">({formatCurrency(allocatedAmount)})</span>
@@ -579,7 +580,7 @@ export default function Dashboard() {
                     <div>
                       <div className="text-sm font-bold text-gray-900 mb-1">Highest Investment</div>
                       <div className="text-lg font-bold text-purple-600">
-                        {l2Data.length > 0 ? l2Data.reduce((max, tower) => tower.weightPct > max.weightPct ? tower : max).tower.replace(/_/g, ' ') : 'N/A'}
+                        {l2Data.length > 0 ? getTowerDisplayLabel(l2Data.reduce((max, tower) => tower.weightPct > max.weightPct ? tower : max).tower) : 'N/A'}
                       </div>
                     </div>
                     <div>
