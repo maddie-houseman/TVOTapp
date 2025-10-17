@@ -17,7 +17,7 @@ export const l2Schema = z.object({
     companyId: z.string().cuid(),
     period: periodSchema,
     department: z.enum(['ENGINEERING','SALES','MARKETING','FINANCE','HR','OPERATIONS']),
-    tower: z.enum(['APP_DEV','SERVICE_DESK','DATA_CENTER','NETWORK','END_USER','SECURITY','CLOUD','OTHER']),
+    tower: z.enum(['INFRASTRUCTURE','APPLICATIONS','OPERATIONS','FIELD_OFFICE']),
     weightPct: z.number().min(0).max(1)
 });
 

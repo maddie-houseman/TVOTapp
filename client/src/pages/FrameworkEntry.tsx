@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/useAuth';
 import { api, type Department, } from '../lib/api';
 import { getDatabaseValue, getAllDisplayLabels, type DisplayDepartment } from '../utils/departmentLabels';
+import { TOWER_DESCRIPTIONS } from '../utils/towerDescriptions';
 
 export default function FrameworkEntry() {
   // auth / context
@@ -26,9 +27,10 @@ export default function FrameworkEntry() {
   const [budget, setBudget] = useState<number>(200000);
 
   // --- L2 - tower weights; must sum to 1
-  const [appDev, setAppDev] = useState<number>(0.7);
-  const [cloud, setCloud] = useState<number>(0.3);
-  const [endUser, setEndUser] = useState<number>(0);
+  const [infrastructure, setInfrastructure] = useState<number>(0.3);
+  const [applications, setApplications] = useState<number>(0.4);
+  const [operations, setOperations] = useState<number>(0.2);
+  const [fieldOffice, setFieldOffice] = useState<number>(0.1);
 
   // --- L3 - benefit weights; must sum to 1
   const [prod, setProd] = useState<number>(0.6);
@@ -115,9 +117,10 @@ export default function FrameworkEntry() {
 
     try {
       await Promise.all([
-        api.l2Upsert({ companyId: targetCompanyId, period: full, department: dept, tower: 'APP_DEV', weightPct: appDev }),
-        api.l2Upsert({ companyId: targetCompanyId, period: full, department: dept, tower: 'CLOUD', weightPct: cloud }),
-        api.l2Upsert({ companyId: targetCompanyId, period: full, department: dept, tower: 'END_USER', weightPct: endUser }),
+        api.l2Upsert({ companyId: targetCompanyId, period: full, department: dept, tower: 'INFRASTRUCTURE', weightPct: infrastructure }),
+        api.l2Upsert({ companyId: targetCompanyId, period: full, department: dept, tower: 'APPLICATIONS', weightPct: applications }),
+        api.l2Upsert({ companyId: targetCompanyId, period: full, department: dept, tower: 'OPERATIONS', weightPct: operations }),
+        api.l2Upsert({ companyId: targetCompanyId, period: full, department: dept, tower: 'FIELD_OFFICE', weightPct: fieldOffice }),
       ]);
       setSuccessMessage('L2 Allocation weights saved successfully!');
       setCurrentStep(3);
@@ -364,40 +367,64 @@ export default function FrameworkEntry() {
               <h3 className="text-xl font-semibold text-gray-900 mb-4">L2 - Allocation Weights</h3>
               <p className="text-gray-600 mb-6">Define how your budget is allocated across technology towers. Weights must sum to 1.0.</p>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Application Development</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {TOWER_DESCRIPTIONS.INFRASTRUCTURE.name}
+                  </label>
+                  <p className="text-xs text-gray-500 mb-2">{TOWER_DESCRIPTIONS.INFRASTRUCTURE.description}</p>
                   <input
                     type="number"
                     step="0.01"
                     min={0}
                     max={1}
-                    value={appDev}
-                    onChange={(e) => setAppDev(num(e.target.value))}
+                    value={infrastructure}
+                    onChange={(e) => setInfrastructure(num(e.target.value))}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Cloud Services</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {TOWER_DESCRIPTIONS.APPLICATIONS.name}
+                  </label>
+                  <p className="text-xs text-gray-500 mb-2">{TOWER_DESCRIPTIONS.APPLICATIONS.description}</p>
                   <input
                     type="number"
                     step="0.01"
                     min={0}
                     max={1}
-                    value={cloud}
-                    onChange={(e) => setCloud(num(e.target.value))}
+                    value={applications}
+                    onChange={(e) => setApplications(num(e.target.value))}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">End User Computing</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {TOWER_DESCRIPTIONS.OPERATIONS.name}
+                  </label>
+                  <p className="text-xs text-gray-500 mb-2">{TOWER_DESCRIPTIONS.OPERATIONS.description}</p>
                   <input
                     type="number"
                     step="0.01"
                     min={0}
                     max={1}
-                    value={endUser}
-                    onChange={(e) => setEndUser(num(e.target.value))}
+                    value={operations}
+                    onChange={(e) => setOperations(num(e.target.value))}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {TOWER_DESCRIPTIONS.FIELD_OFFICE.name}
+                  </label>
+                  <p className="text-xs text-gray-500 mb-2">{TOWER_DESCRIPTIONS.FIELD_OFFICE.description}</p>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min={0}
+                    max={1}
+                    value={fieldOffice}
+                    onChange={(e) => setFieldOffice(num(e.target.value))}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -407,12 +434,12 @@ export default function FrameworkEntry() {
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-gray-600">Total Weight:</span>
                   <span className={`text-sm font-bold ${
-                    Math.abs((appDev + cloud + endUser) - 1) < 0.01 ? 'text-green-800' : 'text-red-800'
+                    Math.abs((infrastructure + applications + operations + fieldOffice) - 1) < 0.01 ? 'text-green-800' : 'text-red-800'
                   }`}>
-                    {(appDev + cloud + endUser).toFixed(3)}
+                    {(infrastructure + applications + operations + fieldOffice).toFixed(3)}
                   </span>
                 </div>
-                {Math.abs((appDev + cloud + endUser) - 1) >= 0.01 && (
+                {Math.abs((infrastructure + applications + operations + fieldOffice) - 1) >= 0.01 && (
                   <p className="text-xs text-red-800 mt-1">Weights must sum to 1.0</p>
                 )}
               </div>
@@ -426,7 +453,7 @@ export default function FrameworkEntry() {
                 </button>
                 <button
                   onClick={saveL2}
-                  disabled={isLoading || Math.abs((appDev + cloud + endUser) - 1) >= 0.01}
+                  disabled={isLoading || Math.abs((infrastructure + applications + operations + fieldOffice) - 1) >= 0.01}
                   className="px-6 py-2 bg-blue-600 text-gray-900 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? 'Saving...' : 'Save L2 Data'}
