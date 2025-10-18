@@ -249,7 +249,7 @@ export default function Dashboard() {
       <div id="dashboard-root" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">TBM Dashboard</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="mt-2 text-gray-600">
             Technology Business Management insights for {
               user?.role === 'ADMIN' && selectedCompanyId 
@@ -412,7 +412,7 @@ export default function Dashboard() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">ROI</p>
                 <p className="text-2xl font-semibold text-gray-900">
-                  {currentSnapshot ? formatPercentage(currentSnapshot.roiPct) : 'N/A'}
+                  {currentSnapshot ? formatPercentage(currentSnapshot.roiPct) : ''}
                 </p>
               </div>
             </div>
@@ -428,7 +428,7 @@ export default function Dashboard() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Net Benefit</p>
                 <p className="text-2xl font-semibold text-gray-900">
-                  {currentSnapshot ? formatCurrency(currentSnapshot.totalBenefit - currentSnapshot.totalCost) : 'N/A'}
+                  {currentSnapshot ? formatCurrency(currentSnapshot.totalBenefit - currentSnapshot.totalCost) : ''}
                 </p>
               </div>
             </div>
@@ -563,7 +563,7 @@ export default function Dashboard() {
                     <div>
                       <div className="text-sm font-bold text-gray-900 mb-1">Highest Investment</div>
                       <div className="text-lg font-bold text-purple-600">
-                        {l2Data.length > 0 ? getTowerDisplayLabel(l2Data.reduce((max, tower) => tower.weightPct > max.weightPct ? tower : max).tower) : 'N/A'}
+                        {l2Data.length > 0 ? getTowerDisplayLabel(l2Data.reduce((max, tower) => tower.weightPct > max.weightPct ? tower : max).tower) : ''}
                       </div>
                     </div>
                     <div>
@@ -571,7 +571,7 @@ export default function Dashboard() {
                       <div className="text-lg font-bold text-orange-600">
                         {l2Data.length > 0 ? 
                           (Math.max(...l2Data.map(t => t.weightPct)) - Math.min(...l2Data.map(t => t.weightPct)) < 0.3 ? 'Balanced' : 'Concentrated') : 
-                          'N/A'}
+                          ''}
                       </div>
                     </div>
                   </div>

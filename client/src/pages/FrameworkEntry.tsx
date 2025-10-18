@@ -22,22 +22,22 @@ export default function FrameworkEntry() {
   // --- L1 - inputs
   const [dept, setDept] = useState<Department>('ENGINEERING');
   const [displayDept, setDisplayDept] = useState<DisplayDepartment>('Labour');
-  const [employees, setEmployees] = useState<number>(10);
-  const [budget, setBudget] = useState<number>(200000);
+  const [employees, setEmployees] = useState<number>(0);
+  const [budget, setBudget] = useState<number>(0);
 
   // --- L2 - tower weights; must sum to 1
-  const [appDev, setAppDev] = useState<number>(0.4);
-  const [cloud, setCloud] = useState<number>(0.4);
-  const [endUser, setEndUser] = useState<number>(0.2);
+  const [appDev, setAppDev] = useState<number>(0);
+  const [cloud, setCloud] = useState<number>(0);
+  const [endUser, setEndUser] = useState<number>(0);
 
   // --- L3 - benefit weights; must sum to 1
-  const [prod, setProd] = useState<number>(0.6);
-  const [rev, setRev] = useState<number>(0.4);
+  const [prod, setProd] = useState<number>(0);
+  const [rev, setRev] = useState<number>(0);
 
   // --- L4 - assumptions for snapshot / ROI
-  const [uplift, setUplift] = useState<number>(100000);
-  const [hours, setHours] = useState<number>(400);
-  const [rate, setRate] = useState<number>(50);
+  const [uplift, setUplift] = useState<number>(0);
+  const [hours, setHours] = useState<number>(0);
+  const [rate, setRate] = useState<number>(0);
 
   // Loading and success states
   const [isLoading, setIsLoading] = useState<boolean>(false);
