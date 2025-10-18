@@ -442,7 +442,7 @@ export default function Dashboard() {
             <div className="mb-4">
               <h3 className="text-lg font-medium text-gray-900">L1 - Technology Cost Foundation Analysis</h3>
               <p className="text-sm text-gray-600 mt-1">
-                Department-level IT cost allocation and efficiency metrics for technology investment planning
+                Department-level IT efficiency metrics for technology investment planning
               </p>
             </div>
             {l1Data.length > 0 ? (
@@ -514,9 +514,9 @@ export default function Dashboard() {
           {/* L2 - Technology Resource Allocation Analysis */}
           <div className="bg-white rounded-lg shadow p-6">
             <div className="mb-4">
-              <h3 className="text-lg font-medium text-gray-900">L2 - Technology Resource Allocation Analysis</h3>
+              <h3 className="text-lg font-medium text-gray-900">L2 - Technology Resource Allocation</h3>
               <p className="text-sm text-gray-600 mt-1">
-                IT resource distribution across technology towers for strategic investment planning and optimization
+                IT resource distribution across technology towers for strategic investment planning
               </p>
             </div>
             {l2Data.length > 0 ? (
@@ -554,31 +554,12 @@ export default function Dashboard() {
                             {efficiencyRating}
                           </span>
                         </div>
-                        <div>
-                          <span className="font-medium">Department:</span> {getDisplayLabel(tower.department)}
-                        </div>
-                        <div>
-                          <span className="font-medium">Strategic Focus:</span> 
-                          <span className={`ml-1 font-medium ${
-                            tower.weightPct > 0.3 ? 'text-blue-600' : 'text-gray-600'
-                          }`}>
-                            {tower.weightPct > 0.3 ? 'Core' : 'Supporting'}
-                          </span>
-                        </div>
                       </div>
                     </div>
                   );
                 })}
                 <div className="border-t pt-4 bg-gray-50 rounded-lg p-4">
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <div className="text-sm font-bold text-gray-900 mb-1">Total Allocation</div>
-                      <div className="text-lg font-bold text-blue-600">{formatPercentage(l2Data.reduce((sum, tower) => sum + tower.weightPct, 0) * 100)}</div>
-                    </div>
-                    <div>
-                      <div className="text-sm font-bold text-gray-900 mb-1">Technology Towers</div>
-                      <div className="text-lg font-bold text-green-600">{l2Data.length} active towers</div>
-                    </div>
                     <div>
                       <div className="text-sm font-bold text-gray-900 mb-1">Highest Investment</div>
                       <div className="text-lg font-bold text-purple-600">
@@ -606,9 +587,6 @@ export default function Dashboard() {
         <div className="bg-white rounded-lg shadow p-6 mb-8">
           <div className="mb-4">
             <h3 className="text-lg font-medium text-gray-900">L4 - ROI Analysis</h3>
-            <p className="text-sm text-gray-600 mt-1">
-              Return on investment calculation based on L1 costs and L4 revenue assumptions
-            </p>
           </div>
           
           {currentSnapshot ? (
