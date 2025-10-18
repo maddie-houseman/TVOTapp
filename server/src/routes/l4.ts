@@ -62,17 +62,26 @@ function calculateL4Metrics(l1Data: any[], l2Data: any[], l3Data: any[], assumpt
     const category = l3Item.category;
     const weight = Number(l3Item.weightPct);
     
+    console.log(`[L4-CALC] Processing L3 category: ${category}, weight: ${weight}`);
+    
     if (category === 'PRODUCTIVITY') {
       // Productivity benefits from assumptions
       const productivityBenefit = (assumptions.productivityGainHours || 0) * (assumptions.avgLoadedRate || 0);
-      totalBenefits += productivityBenefit * weight;
+      const weightedProductivity = productivityBenefit * weight;
+      totalBenefits += weightedProductivity;
+      console.log(`[L4-CALC] Productivity: ${productivityBenefit} * ${weight} = ${weightedProductivity}`);
     } else if (category === 'REVENUE_UPLIFT') {
       // Revenue benefits from assumptions
-      totalBenefits += (assumptions.revenueUplift || 0) * weight;
+      const revenueBenefit = (assumptions.revenueUplift || 0);
+      const weightedRevenue = revenueBenefit * weight;
+      totalBenefits += weightedRevenue;
+      console.log(`[L4-CALC] Revenue: ${revenueBenefit} * ${weight} = ${weightedRevenue}`);
     }
   });
   
   console.log(`[L4-CALC] Using L3 weighted benefits: $${totalBenefits.toLocaleString()}`);
+  console.log(`[L4-CALC] L3 Data:`, l3Data.map(item => ({ category: item.category, weight: Number(item.weightPct) })));
+  console.log(`[L4-CALC] Assumptions:`, assumptions);
   
   // === ROI CALCULATION ===
   const netBenefit = totalBenefits - totalCosts;
