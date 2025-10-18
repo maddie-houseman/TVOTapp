@@ -135,6 +135,52 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
         style.textAlign = 'center';
       }
       
+      // Preserve text colors
+      if (element.classList.contains('text-blue-600')) {
+        style.color = '#2563eb';
+      }
+      if (element.classList.contains('text-green-600')) {
+        style.color = '#16a34a';
+      }
+      if (element.classList.contains('text-red-600')) {
+        style.color = '#dc2626';
+      }
+      if (element.classList.contains('text-yellow-600')) {
+        style.color = '#ca8a04';
+      }
+      if (element.classList.contains('text-purple-600')) {
+        style.color = '#9333ea';
+      }
+      if (element.classList.contains('text-orange-600')) {
+        style.color = '#ea580c';
+      }
+      if (element.classList.contains('text-gray-600')) {
+        style.color = '#4b5563';
+      }
+      if (element.classList.contains('text-gray-500')) {
+        style.color = '#6b7280';
+      }
+      if (element.classList.contains('text-gray-900')) {
+        style.color = '#111827';
+      }
+      
+      // Preserve background colors for colored sections
+      if (element.classList.contains('bg-blue-50')) {
+        style.backgroundColor = '#eff6ff';
+      }
+      if (element.classList.contains('bg-green-50')) {
+        style.backgroundColor = '#f0fdf4';
+      }
+      if (element.classList.contains('bg-purple-50')) {
+        style.backgroundColor = '#faf5ff';
+      }
+      if (element.classList.contains('bg-orange-50')) {
+        style.backgroundColor = '#fff7ed';
+      }
+      if (element.classList.contains('bg-gray-50')) {
+        style.backgroundColor = '#f9fafb';
+      }
+      
       // Process children
       Array.from(element.children).forEach(child => {
         if (child instanceof HTMLElement) {
