@@ -15,9 +15,29 @@ export default function Login() {
     const navigate = useNavigate();
     const { login, signup } = useAuth();
 
+    // Password validation function
+    function validatePassword(password: string): string | null {
+        if (password.length < 8) {
+            return 'Password must be at least 8 characters long';
+        }
+        if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
+            return 'Password must contain at least one special character';
+        }
+        return null;
+    }
+
     async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         setErr('');
+        
+        // Validate password if signing up
+        if (isSignup) {
+            const passwordError = validatePassword(password);
+            if (passwordError) {
+                setErr(passwordError);
+                return;
+            }
+        }
         
         // Validate admin password if admin role is selected
         if (isSignup && role === 'ADMIN' && adminPassword !== 'ADMINPASS') {
@@ -99,6 +119,11 @@ export default function Login() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                             />
+                            {isSignup && (
+                                <p className="mt-1 text-xs text-gray-500">
+                                    Password must be at least 8 characters with special characters
+                                </p>
+                            )}
                         </div>
                         {isSignup && (
                             <>
