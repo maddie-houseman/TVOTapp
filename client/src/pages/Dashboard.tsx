@@ -516,7 +516,7 @@ export default function Dashboard() {
             <div className="mb-4">
               <h3 className="text-lg font-medium text-gray-900">L2 - Technology Resource Allocation</h3>
               <p className="text-sm text-gray-600 mt-1">
-                IT resource distribution across technology towers for strategic investment planning
+                IT resource distribution across technology towers for investment planning
               </p>
             </div>
             {l2Data.length > 0 ? (
@@ -623,14 +623,14 @@ export default function Dashboard() {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Revenue Uplift (L4):</span>
+                    <span className="text-sm text-gray-600">Revenue Uplift :</span>
                     <span className="text-sm font-medium text-gray-900">{formatCurrency(currentSnapshot.assumptions.revenueUplift)}</span>
                   </div>
                 </div>
               </div>
             </div>
           ) : (
-            <p className="text-gray-500 text-center py-4">No ROI snapshot available for this period</p>
+            <p className="text-gray-500 text-center py-4">No ROI data available for this period</p>
           )}
         </div>
 
@@ -712,13 +712,13 @@ export default function Dashboard() {
                     
                     return (
                       <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between py-2">
-                        <div className="text-xs text-gray-500 transform -rotate-90 origin-center">
+                        <div className="text-xs text-gray-500">
                           {formatCurrency(maxRevenue)}
                         </div>
-                        <div className="text-xs text-gray-500 transform -rotate-90 origin-center">
+                        <div className="text-xs text-gray-500">
                           {formatCurrency(minRevenue + range * 0.5)}
                         </div>
-                        <div className="text-xs text-gray-500 transform -rotate-90 origin-center">
+                        <div className="text-xs text-gray-500">
                           {formatCurrency(minRevenue)}
                         </div>
                       </div>
@@ -826,13 +826,13 @@ export default function Dashboard() {
                     
                     return (
                       <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between py-2">
-                        <div className="text-xs text-gray-500 transform -rotate-90 origin-center">
+                        <div className="text-xs text-gray-500">
                           {formatPercentage(maxROI)}
                         </div>
-                        <div className="text-xs text-gray-500 transform -rotate-90 origin-center">
+                        <div className="text-xs text-gray-500">
                           {formatPercentage(minROI + range * 0.5)}
                         </div>
-                        <div className="text-xs text-gray-500 transform -rotate-90 origin-center">
+                        <div className="text-xs text-gray-500">
                           {formatPercentage(minROI)}
                         </div>
                       </div>
