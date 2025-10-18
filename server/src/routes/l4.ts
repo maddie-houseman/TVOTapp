@@ -74,14 +74,6 @@ function calculateL4Metrics(l1Data: any[], l2Data: any[], l3Data: any[], assumpt
   
   console.log(`[L4-CALC] Using L3 weighted benefits: $${totalBenefits.toLocaleString()}`);
   
-  // Ensure minimum benefit to avoid negative ROI for reasonable assumptions
-  // If benefits are too low compared to costs, scale them up to be more realistic
-  if (totalBenefits < totalCosts * 0.5 && totalCosts > 0) {
-    const minBenefit = totalCosts * 1.2; // At least 20% ROI
-    console.log(`[L4-CALC] Benefits too low (${totalBenefits.toLocaleString()}), scaling to minimum ${minBenefit.toLocaleString()} for realistic ROI`);
-    totalBenefits = minBenefit;
-  }
-  
   // === ROI CALCULATION ===
   const netBenefit = totalBenefits - totalCosts;
   const roi = totalCosts > 0 ? ((totalBenefits - totalCosts) / totalCosts) * 100 : 0;
