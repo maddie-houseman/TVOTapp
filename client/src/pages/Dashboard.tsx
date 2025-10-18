@@ -111,7 +111,8 @@ export default function Dashboard() {
         // Check if we have enough historical data for graphs
         const sortedSnapshots = l4.sort((a, b) => a.period.localeCompare(b.period));
         setHistoricalData(sortedSnapshots);
-        setShowGraphs(sortedSnapshots.length >= 2);
+        // Only show graphs if we have current data AND historical data
+        setShowGraphs(sortedSnapshots.length >= 2 && l1.length > 0 && l2.length > 0);
       } catch (error) {
         console.error('Failed to load dashboard data:', error);
         setHasData(false);
@@ -636,7 +637,7 @@ export default function Dashboard() {
 
 
         {/* Revenue/Return Projection Graphs */}
-        {showGraphs && (
+        {showGraphs && l1Data.length > 0 && l2Data.length > 0 && (
           <div className="bg-white rounded-lg shadow p-6 mb-8">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Revenue & Return Projections</h3>
             <p className="text-sm text-gray-600 mb-6">
