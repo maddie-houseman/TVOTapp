@@ -52,32 +52,27 @@ function calculateL4Metrics(l1Data: any[], l2Data: any[], l3Data: any[], assumpt
     return acc;
   }, {});
   
-  // Calculate benefits from L3 categories
-  if (l3Data.length > 0) {
-    l3Data.forEach(l3Item => {
-      const category = l3Item.category;
-      const weight = Number(l3Item.weightPct);
-      
-      if (category === 'PRODUCTIVITY') {
-        // Productivity benefits from assumptions
-        const productivityBenefit = (assumptions.productivityGainHours || 0) * (assumptions.avgLoadedRate || 0);
-        totalBenefits += productivityBenefit * weight;
-      } else if (category === 'REVENUE_UPLIFT') {
-        // Revenue benefits from assumptions
-        totalBenefits += (assumptions.revenueUplift || 0) * weight;
-      }
-    });
-    
-    console.log(`[L4-CALC] Using L3 weighted benefits: $${totalBenefits.toLocaleString()}`);
-  } else {
-    // If no L3 data, calculate a more realistic benefit
-    // Use revenue uplift + productivity benefits as a reasonable default
-    const productivityBenefit = (assumptions.productivityGainHours || 0) * (assumptions.avgLoadedRate || 0);
-    const revenueBenefit = assumptions.revenueUplift || 0;
-    totalBenefits = productivityBenefit + revenueBenefit;
-    
-    console.log(`[L4-CALC] No L3 data - using default calculation: Productivity: $${productivityBenefit}, Revenue: $${revenueBenefit}, Total: $${totalBenefits}`);
+  // Check if we have the required data
+  if (l1Data.length === 0 || l2Data.length === 0 || l3Data.length === 0) {
+    throw new Error('Missing required data for ROI computation. Please complete L1, L2, and L3 data entry before computing ROI.');
   }
+
+  // Calculate benefits from L3 categories
+  l3Data.forEach(l3Item => {
+    const category = l3Item.category;
+    const weight = Number(l3Item.weightPct);
+    
+    if (category === 'PRODUCTIVITY') {
+      // Productivity benefits from assumptions
+      const productivityBenefit = (assumptions.productivityGainHours || 0) * (assumptions.avgLoadedRate || 0);
+      totalBenefits += productivityBenefit * weight;
+    } else if (category === 'REVENUE_UPLIFT') {
+      // Revenue benefits from assumptions
+      totalBenefits += (assumptions.revenueUplift || 0) * weight;
+    }
+  });
+  
+  console.log(`[L4-CALC] Using L3 weighted benefits: $${totalBenefits.toLocaleString()}`);
   
   // Ensure minimum benefit to avoid negative ROI for reasonable assumptions
   // If benefits are too low compared to costs, scale them up to be more realistic
@@ -167,7 +162,19 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
     ]);
 
     // Calculate L4 metrics
-    const l4Metrics = calculateL4Metrics(l1Data, l2Data, l3Data, assumptions);
+    let l4Metrics;
+    try {
+      l4Metrics = calculateL4Metrics(l1Data, l2Data, l3Data, assumptions);
+    } catch (error) {
+      return res.status(400).json({
+        error: error instanceof Error ? error.message : 'Failed to calculate L4 metrics',
+        details: {
+          l1Count: l1Data.length,
+          l2Count: l2Data.length,
+          l3Count: l3Data.length
+        }
+      });
+    }
 
     // Save snapshot (handle duplicates by finding existing first)
     const existingSnapshot = await prisma.l4RoiSnapshot.findFirst({
