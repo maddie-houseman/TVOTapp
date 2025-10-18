@@ -501,7 +501,7 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <div className="text-sm font-bold text-gray-900 mb-1">Departments</div>
-                      <div className="text-lg font-bold text-orange-600">{l1Data.length} cost centers</div>
+                      <div className="text-lg font-bold text-orange-600">{l1Data.length} </div>
                     </div>
                   </div>
                 </div>

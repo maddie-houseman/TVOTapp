@@ -100,6 +100,21 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
       if (element.classList.contains('bg-red-500')) {
         style.backgroundColor = '#ef4444';
       }
+      if (element.classList.contains('bg-purple-500')) {
+        style.backgroundColor = '#8b5cf6';
+      }
+      if (element.classList.contains('bg-orange-500')) {
+        style.backgroundColor = '#f97316';
+      }
+      if (element.classList.contains('bg-yellow-500')) {
+        style.backgroundColor = '#eab308';
+      }
+      if (element.classList.contains('bg-cyan-500')) {
+        style.backgroundColor = '#06b6d4';
+      }
+      if (element.classList.contains('bg-sky-500')) {
+        style.backgroundColor = '#0ea5e9';
+      }
       
       // Preserve graph styling
       if (element.style.height && element.style.height.includes('px')) {
@@ -108,6 +123,16 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
       if (element.classList.contains('flex') && element.classList.contains('items-end')) {
         style.display = 'flex';
         style.alignItems = 'flex-end';
+      }
+      
+      // Preserve emoji sizing - ensure consistent emoji size
+      if (element.tagName === 'SPAN' && element.textContent && /[\u{1F300}-\u{1F9FF}]/u.test(element.textContent)) {
+        style.fontSize = '14px';
+        style.lineHeight = '1';
+        style.display = 'inline-block';
+        style.width = '16px';
+        style.height = '16px';
+        style.textAlign = 'center';
       }
       
       // Process children
