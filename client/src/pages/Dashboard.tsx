@@ -589,7 +589,7 @@ export default function Dashboard() {
             <h3 className="text-lg font-medium text-gray-900">L4 - ROI Analysis</h3>
           </div>
           
-          {currentSnapshot ? (
+          {currentSnapshot && currentSnapshot.totalCost > 0 && currentSnapshot.totalBenefit > 0 ? (
             <div className="space-y-6">
               {/* Core ROI Metrics */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
