@@ -468,15 +468,17 @@ export default function Dashboard() {
                         <div>
                           <span className="font-medium">% of Total IT Spend:</span> {percentageOfTotal.toFixed(1)}%
                         </div>
-                        <div>
-                          <span className="font-medium">Efficiency Rating:</span> 
-                          <span className={`ml-1 font-medium ${
-                            costPerEmployee < 10000 ? 'text-green-600' :
-                            costPerEmployee < 20000 ? 'text-yellow-600' : 'text-red-600'
-                          }`}>
-                            {costPerEmployee < 10000 ? 'High' : costPerEmployee < 20000 ? 'Medium' : 'Low'}
-                          </span>
-                        </div>
+                        {dept.employees > 0 && (
+                          <div>
+                            <span className="font-medium">Efficiency Rating:</span> 
+                            <span className={`ml-1 font-medium ${
+                              costPerEmployee < 20000 ? 'text-green-600' :
+                              costPerEmployee < 40000 ? 'text-yellow-600' : 'text-red-600'
+                            }`}>
+                              {costPerEmployee < 20000 ? 'High' : costPerEmployee < 40000 ? 'Medium' : 'Low'}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
