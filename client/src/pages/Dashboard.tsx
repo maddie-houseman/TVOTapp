@@ -412,7 +412,7 @@ export default function Dashboard() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">ROI</p>
                 <p className="text-2xl font-semibold text-gray-900">
-                  {currentSnapshot ? formatPercentage(currentSnapshot.roiPct) : ''}
+                  {currentSnapshot && currentSnapshot.totalCost > 0 && currentSnapshot.totalBenefit > 0 && l1Data.length > 0 && l2Data.length > 0 ? formatPercentage(currentSnapshot.roiPct) : ''}
                 </p>
               </div>
             </div>
@@ -428,7 +428,7 @@ export default function Dashboard() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Net Benefit</p>
                 <p className="text-2xl font-semibold text-gray-900">
-                  {currentSnapshot ? formatCurrency(currentSnapshot.totalBenefit - currentSnapshot.totalCost) : ''}
+                  {currentSnapshot && currentSnapshot.totalCost > 0 && currentSnapshot.totalBenefit > 0 && l1Data.length > 0 && l2Data.length > 0 ? formatCurrency(currentSnapshot.totalBenefit - currentSnapshot.totalCost) : ''}
                 </p>
               </div>
             </div>
@@ -589,7 +589,7 @@ export default function Dashboard() {
             <h3 className="text-lg font-medium text-gray-900">L4 - ROI Analysis</h3>
           </div>
           
-          {currentSnapshot && currentSnapshot.totalCost > 0 && currentSnapshot.totalBenefit > 0 ? (
+          {currentSnapshot && currentSnapshot.totalCost > 0 && currentSnapshot.totalBenefit > 0 && l1Data.length > 0 && l2Data.length > 0 ? (
             <div className="space-y-6">
               {/* Core ROI Metrics */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
