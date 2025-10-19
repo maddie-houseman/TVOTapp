@@ -98,8 +98,8 @@ r.post("/", auth(), async (req, res) => {
 
     type L2Row = Awaited<ReturnType<typeof prisma.l2AllocationWeight.findMany>>[number];
 
-    // Only validate sum if we have all three towers
-    if (rows.length >= 3) {
+    // Only validate sum if we have exactly all three towers (APP_DEV, CLOUD, END_USER)
+    if (rows.length === 3) {
         const sum = rows.reduce((acc: number, row: L2Row) => acc + Number(row.weightPct), 0);
 
         if (sum < 0.9999 || sum > 1.0001) {

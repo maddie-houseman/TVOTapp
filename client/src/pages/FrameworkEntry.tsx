@@ -147,11 +147,10 @@ export default function FrameworkEntry() {
     setSuccessMessage('');
     
     try {
-      await Promise.all([
-        api.l2Upsert({ companyId: targetCompanyId, period: full, department: dept, tower: 'APP_DEV', weightPct: appDev }),
-        api.l2Upsert({ companyId: targetCompanyId, period: full, department: dept, tower: 'CLOUD', weightPct: cloud }),
-        api.l2Upsert({ companyId: targetCompanyId, period: full, department: dept, tower: 'END_USER', weightPct: endUser }),
-      ]);
+      // Save L2 weights sequentially to avoid race condition in server validation
+      await api.l2Upsert({ companyId: targetCompanyId, period: full, department: dept, tower: 'APP_DEV', weightPct: appDev });
+      await api.l2Upsert({ companyId: targetCompanyId, period: full, department: dept, tower: 'CLOUD', weightPct: cloud });
+      await api.l2Upsert({ companyId: targetCompanyId, period: full, department: dept, tower: 'END_USER', weightPct: endUser });
       setSuccessMessage('L2 Allocation weights saved successfully!');
       setCurrentStep(3);
     } catch (error) {
@@ -188,10 +187,9 @@ export default function FrameworkEntry() {
     setSuccessMessage('');
 
     try {
-      await Promise.all([
-        api.l3Upsert({ companyId: targetCompanyId, period: full, category: 'PRODUCTIVITY', weightPct: prod }),
-        api.l3Upsert({ companyId: targetCompanyId, period: full, category: 'REVENUE_UPLIFT', weightPct: rev }),
-      ]);
+      // Save L3 weights sequentially to avoid race condition in server validation
+      await api.l3Upsert({ companyId: targetCompanyId, period: full, category: 'PRODUCTIVITY', weightPct: prod });
+      await api.l3Upsert({ companyId: targetCompanyId, period: full, category: 'REVENUE_UPLIFT', weightPct: rev });
       setSuccessMessage('L3 Benefit weights saved successfully!');
       setCurrentStep(4);
     } catch (error) {

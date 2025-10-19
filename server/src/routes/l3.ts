@@ -81,8 +81,8 @@ r.post("/", auth(), async (req, res) => {
     });
     type L3Row = typeof rows[number]; // derive element type
     
-    // Only validate sum if we have all benefit categories
-    if (rows.length >= 2) {
+    // Only validate sum if we have exactly both benefit categories (PRODUCTIVITY, REVENUE_UPLIFT)
+    if (rows.length === 2) {
         const sum = rows.reduce((acc: number, row: L3Row) => acc + Number(row.weightPct), 0);
 
         if (sum < 0.9999 || sum > 1.0001) {
