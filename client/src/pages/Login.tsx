@@ -47,7 +47,12 @@ export default function Login() {
         
         try {
             if (isSignup) {
-                await signup(email, password, name, companyName, companyDomain, role);
+                // For ADMIN users, don't pass company information
+                if (role === 'ADMIN') {
+                    await signup(email, password, name, undefined, undefined, role);
+                } else {
+                    await signup(email, password, name, companyName, companyDomain, role);
+                }
             } else {
                 await login(email, password);
             }
@@ -127,35 +132,39 @@ export default function Login() {
                         </div>
                         {isSignup && (
                             <>
-                                <div>
-                                    <label htmlFor="company-name" className="sr-only">
-                                        Company Name
-                                    </label>
-                                    <input
-                                        id="company-name"
-                                        name="companyName"
-                                        type="text"
-                                        required
-                                        className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-400 text-gray-900 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                        placeholder="Company Name"
-                                        value={companyName}
-                                        onChange={(e) => setCompanyName(e.target.value)}
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="company-domain" className="sr-only">
-                                        Company Domain (Optional)
-                                    </label>
-                                    <input
-                                        id="company-domain"
-                                        name="companyDomain"
-                                        type="text"
-                                        className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-400 text-gray-900 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                        placeholder="Company Domain (Optional)"
-                                        value={companyDomain}
-                                        onChange={(e) => setCompanyDomain(e.target.value)}
-                                    />
-                                </div>
+                                {role === 'EMPLOYEE' && (
+                                    <>
+                                        <div>
+                                            <label htmlFor="company-name" className="sr-only">
+                                                Company Name
+                                            </label>
+                                            <input
+                                                id="company-name"
+                                                name="companyName"
+                                                type="text"
+                                                required
+                                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-400 text-gray-900 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                                                placeholder="Company Name"
+                                                value={companyName}
+                                                onChange={(e) => setCompanyName(e.target.value)}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label htmlFor="company-domain" className="sr-only">
+                                                Company Domain (Optional)
+                                            </label>
+                                            <input
+                                                id="company-domain"
+                                                name="companyDomain"
+                                                type="text"
+                                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-400 text-gray-900 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                                                placeholder="Company Domain (Optional)"
+                                                value={companyDomain}
+                                                onChange={(e) => setCompanyDomain(e.target.value)}
+                                            />
+                                        </div>
+                                    </>
+                                )}
                                 <div>
                                     <label htmlFor="role" className="sr-only">
                                         Role

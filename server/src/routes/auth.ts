@@ -66,7 +66,7 @@ function resolveSecureFlag(req: Request): boolean {
 
         // Create company if provided, or find existing one
         let companyId: string | null = null;
-        if (companyName) {
+        if (companyName && role !== 'ADMIN') {
         console.log(`[SIGNUP] Looking for company: "${companyName}"`);
         
         // Check if company already exists
@@ -88,6 +88,8 @@ function resolveSecureFlag(req: Request): boolean {
             console.log(`[SIGNUP] Created new company: ${company.id} - ${company.name}`);
         }
         companyId = company.id;
+        } else if (role === 'ADMIN') {
+        console.log(`[SIGNUP] Admin user - no company required`);
         }
 
         // Use provided role or default to EMPLOYEE

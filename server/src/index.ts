@@ -276,8 +276,6 @@ app.get('/api/debug/company/:companyId', async (req, res) => {
         const { default: l3Router } = await import('./routes/l3.js');
         const { default: l4Router } = await import('./routes/l4.js');
         const { default: companyRouter } = await import('./routes/company.js');
-        const { default: aiRouter } = await import('./routes/ai.js');
-
         // Register routes
         app.use('/api', authRouter);
         app.use('/api/l1', l1Router);
@@ -285,7 +283,6 @@ app.get('/api/debug/company/:companyId', async (req, res) => {
         app.use('/api/l3', l3Router);
         app.use('/api/l4', l4Router);
         app.use('/api', companyRouter);
-        app.use('/api', aiRouter);
 
         
         // Start server

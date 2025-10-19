@@ -44,6 +44,20 @@ export default function FrameworkEntry() {
   const [successMessage, setSuccessMessage] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
 
+  // Boundary validation errors
+  const [validationErrors, setValidationErrors] = useState<{
+    employees?: string;
+    budget?: string;
+    appDev?: string;
+    cloud?: string;
+    endUser?: string;
+    prod?: string;
+    rev?: string;
+    uplift?: string;
+    hours?: string;
+    rate?: string;
+  }>({});
+
   // loading companies for admin users
   useEffect(() => {
     if (user?.role === 'ADMIN') {
@@ -71,6 +85,12 @@ export default function FrameworkEntry() {
 
   // ----- Actions -----
   async function saveL1() {
+    // Check for validation errors
+    if (validationErrors.employees || validationErrors.budget) {
+      setErrorMessage('Please fix validation errors before saving');
+      return;
+    }
+    
     // Use the user's actual company ID for L1 operations
     const targetCompanyId = user?.role === 'ADMIN' && selectedCompanyId ? selectedCompanyId : user?.companyId;
     
@@ -101,6 +121,12 @@ export default function FrameworkEntry() {
   }
 
   async function saveL2() {
+    // Check for validation errors
+    if (validationErrors.appDev || validationErrors.cloud || validationErrors.endUser) {
+      setErrorMessage('Please fix validation errors before saving');
+      return;
+    }
+    
     // Use the user's actual company ID for L2 operations
     const targetCompanyId = user?.role === 'ADMIN' && selectedCompanyId ? selectedCompanyId : user?.companyId;
     
@@ -112,7 +138,7 @@ export default function FrameworkEntry() {
     setIsLoading(true);
     setErrorMessage('');
     setSuccessMessage('');
-
+    
     try {
       await Promise.all([
         api.l2Upsert({ companyId: targetCompanyId, period: full, department: dept, tower: 'APP_DEV', weightPct: appDev }),
@@ -129,6 +155,12 @@ export default function FrameworkEntry() {
   }
 
   async function saveL3() {
+    // Check for validation errors
+    if (validationErrors.prod || validationErrors.rev) {
+      setErrorMessage('Please fix validation errors before saving');
+      return;
+    }
+    
     // Use the user's actual company ID for L3 operations
     const targetCompanyId = user?.role === 'ADMIN' && selectedCompanyId ? selectedCompanyId : user?.companyId;
     
@@ -156,6 +188,12 @@ export default function FrameworkEntry() {
   }
 
   async function computeAndSave() {
+    // Check for validation errors
+    if (validationErrors.uplift || validationErrors.hours || validationErrors.rate) {
+      setErrorMessage('Please fix validation errors before saving');
+      return;
+    }
+    
     // Use the user's actual company ID for L4 computation (same as L1, L2, L3)
     const targetCompanyId = user?.role === 'ADMIN' && selectedCompanyId ? selectedCompanyId : user?.companyId;
     
@@ -190,6 +228,87 @@ export default function FrameworkEntry() {
 
   // helpers for numeric inputs
   const num = (v: string) => Number(v);
+
+  // Boundary validation functions
+  const validateEmployees = (value: number): string | null => {
+    if (value < 0) return 'Number of employees cannot be negative';
+    if (value > 100000) return 'Number of employees cannot exceed 100,000';
+    if (!Number.isInteger(value)) return 'Number of employees must be a whole number';
+    return null;
+  };
+
+  const validateBudget = (value: number): string | null => {
+    if (value < 0) return 'Budget cannot be negative';
+    if (value > 10000000) return 'Budget cannot exceed $10,000,000';
+    return null;
+  };
+
+  const validateWeight = (value: number, fieldName: string): string | null => {
+    if (value < 0) return `${fieldName} cannot be negative`;
+    if (value > 1) return `${fieldName} cannot exceed 1.0`;
+    return null;
+  };
+
+  const validateUplift = (value: number): string | null => {
+    if (value < 0) return 'Revenue uplift cannot be negative';
+    if (value > 10000000) return 'Revenue uplift cannot exceed $10,000,000';
+    return null;
+  };
+
+  const validateHours = (value: number): string | null => {
+    if (value < 0) return 'Productivity hours cannot be negative';
+    if (value > 100000) return 'Productivity hours cannot exceed 100,000';
+    return null;
+  };
+
+  const validateRate = (value: number): string | null => {
+    if (value < 0) return 'Average loaded rate cannot be negative';
+    if (value > 10000) return 'Average loaded rate cannot exceed $10,000';
+    return null;
+  };
+
+  // Update validation errors when values change
+  const updateValidationError = (field: string, value: number) => {
+    let error: string | null = null;
+    
+    switch (field) {
+      case 'employees':
+        error = validateEmployees(value);
+        break;
+      case 'budget':
+        error = validateBudget(value);
+        break;
+      case 'appDev':
+        error = validateWeight(value, 'Applications weight');
+        break;
+      case 'cloud':
+        error = validateWeight(value, 'Infrastructure weight');
+        break;
+      case 'endUser':
+        error = validateWeight(value, 'Operations weight');
+        break;
+      case 'prod':
+        error = validateWeight(value, 'Productivity weight');
+        break;
+      case 'rev':
+        error = validateWeight(value, 'Revenue weight');
+        break;
+      case 'uplift':
+        error = validateUplift(value);
+        break;
+      case 'hours':
+        error = validateHours(value);
+        break;
+      case 'rate':
+        error = validateRate(value);
+        break;
+    }
+    
+    setValidationErrors(prev => ({
+      ...prev,
+      [field]: error || undefined
+    }));
+  };
 
   // Handle department selection change
   const handleDepartmentChange = (displayValue: DisplayDepartment) => {
@@ -328,10 +447,20 @@ export default function FrameworkEntry() {
                   <input
                     type="number"
                     min={0}
+                    max={100000}
                     value={employees}
-                    onChange={(e) => setEmployees(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(e) => {
+                      const value = num(e.target.value);
+                      setEmployees(value);
+                      updateValidationError('employees', value);
+                    }}
+                    className={`w-full border rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      validationErrors.employees ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   />
+                  {validationErrors.employees && (
+                    <p className="mt-1 text-sm text-red-600">{validationErrors.employees}</p>
+                  )}
                 </div>
 
                 <div>
@@ -339,10 +468,20 @@ export default function FrameworkEntry() {
                   <input
                     type="number"
                     min={0}
+                    max={10000000}
                     value={budget}
-                    onChange={(e) => setBudget(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(e) => {
+                      const value = num(e.target.value);
+                      setBudget(value);
+                      updateValidationError('budget', value);
+                    }}
+                    className={`w-full border rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      validationErrors.budget ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   />
+                  {validationErrors.budget && (
+                    <p className="mt-1 text-sm text-red-600">{validationErrors.budget}</p>
+                  )}
                 </div>
               </div>
 
@@ -374,9 +513,18 @@ export default function FrameworkEntry() {
                     min={0}
                     max={1}
                     value={appDev}
-                    onChange={(e) => setAppDev(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(e) => {
+                      const value = num(e.target.value);
+                      setAppDev(value);
+                      updateValidationError('appDev', value);
+                    }}
+                    className={`w-full border rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      validationErrors.appDev ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   />
+                  {validationErrors.appDev && (
+                    <p className="mt-1 text-sm text-red-600">{validationErrors.appDev}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Infrastructure</label>
@@ -387,9 +535,18 @@ export default function FrameworkEntry() {
                     min={0}
                     max={1}
                     value={cloud}
-                    onChange={(e) => setCloud(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(e) => {
+                      const value = num(e.target.value);
+                      setCloud(value);
+                      updateValidationError('cloud', value);
+                    }}
+                    className={`w-full border rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      validationErrors.cloud ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   />
+                  {validationErrors.cloud && (
+                    <p className="mt-1 text-sm text-red-600">{validationErrors.cloud}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Operations</label>
@@ -400,9 +557,18 @@ export default function FrameworkEntry() {
                     min={0}
                     max={1}
                     value={endUser}
-                    onChange={(e) => setEndUser(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(e) => {
+                      const value = num(e.target.value);
+                      setEndUser(value);
+                      updateValidationError('endUser', value);
+                    }}
+                    className={`w-full border rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      validationErrors.endUser ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   />
+                  {validationErrors.endUser && (
+                    <p className="mt-1 text-sm text-red-600">{validationErrors.endUser}</p>
+                  )}
                 </div>
               </div>
               
@@ -453,9 +619,18 @@ export default function FrameworkEntry() {
                     min={0}
                     max={1}
                     value={prod}
-                    onChange={(e) => setProd(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(e) => {
+                      const value = num(e.target.value);
+                      setProd(value);
+                      updateValidationError('prod', value);
+                    }}
+                    className={`w-full border rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      validationErrors.prod ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   />
+                  {validationErrors.prod && (
+                    <p className="mt-1 text-sm text-red-600">{validationErrors.prod}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Revenue Uplift</label>
@@ -465,9 +640,18 @@ export default function FrameworkEntry() {
                     min={0}
                     max={1}
                     value={rev}
-                    onChange={(e) => setRev(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(e) => {
+                      const value = num(e.target.value);
+                      setRev(value);
+                      updateValidationError('rev', value);
+                    }}
+                    className={`w-full border rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      validationErrors.rev ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   />
+                  {validationErrors.rev && (
+                    <p className="mt-1 text-sm text-red-600">{validationErrors.rev}</p>
+                  )}
                 </div>
               </div>
               
@@ -515,30 +699,60 @@ export default function FrameworkEntry() {
                   <input
                     type="number"
                     min={0}
+                    max={10000000}
                     value={uplift}
-                    onChange={(e) => setUplift(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(e) => {
+                      const value = num(e.target.value);
+                      setUplift(value);
+                      updateValidationError('uplift', value);
+                    }}
+                    className={`w-full border rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      validationErrors.uplift ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   />
+                  {validationErrors.uplift && (
+                    <p className="mt-1 text-sm text-red-600">{validationErrors.uplift}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Productivity Gain (Hours)</label>
                   <input
                     type="number"
                     min={0}
+                    max={100000}
                     value={hours}
-                    onChange={(e) => setHours(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(e) => {
+                      const value = num(e.target.value);
+                      setHours(value);
+                      updateValidationError('hours', value);
+                    }}
+                    className={`w-full border rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      validationErrors.hours ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   />
+                  {validationErrors.hours && (
+                    <p className="mt-1 text-sm text-red-600">{validationErrors.hours}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Average Loaded Rate ($)</label>
                   <input
                     type="number"
                     min={0}
+                    max={10000}
                     value={rate}
-                    onChange={(e) => setRate(num(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(e) => {
+                      const value = num(e.target.value);
+                      setRate(value);
+                      updateValidationError('rate', value);
+                    }}
+                    className={`w-full border rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      validationErrors.rate ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   />
+                  {validationErrors.rate && (
+                    <p className="mt-1 text-sm text-red-600">{validationErrors.rate}</p>
+                  )}
                 </div>
               </div>
 
