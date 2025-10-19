@@ -410,12 +410,12 @@ export default function FrameworkEntry() {
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-gray-600">Total Weight:</span>
                   <span className={`text-sm font-bold ${
-                    Math.abs((appDev + cloud + endUser) - 1) < 0.01 ? 'text-green-800' : 'text-red-800'
+                    Math.abs((appDev + cloud + endUser) - 1) < 0.0001 ? 'text-green-800' : 'text-red-800'
                   }`}>
                     {(appDev + cloud + endUser).toFixed(3)}
                   </span>
                 </div>
-                {Math.abs((appDev + cloud + endUser) - 1) >= 0.01 && (
+                {Math.abs((appDev + cloud + endUser) - 1) >= 0.0001 && (
                   <p className="text-xs text-red-800 mt-1">Weights must sum to 1.0</p>
                 )}
               </div>
@@ -429,7 +429,7 @@ export default function FrameworkEntry() {
                 </button>
                 <button
                   onClick={saveL2}
-                  disabled={isLoading || Math.abs((appDev + cloud + endUser) - 1) >= 0.01}
+                  disabled={isLoading || Math.abs((appDev + cloud + endUser) - 1) >= 0.0001}
                   className="px-6 py-2 bg-blue-600 text-gray-900 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? 'Saving...' : 'Save L2 Data'}
@@ -475,12 +475,12 @@ export default function FrameworkEntry() {
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-gray-600">Total Weight:</span>
                   <span className={`text-sm font-bold ${
-                    Math.abs((prod + rev) - 1) < 0.01 ? 'text-green-800' : 'text-red-800'
+                    Math.abs((prod + rev) - 1) < 0.0001 ? 'text-green-800' : 'text-red-800'
                   }`}>
                     {(prod + rev).toFixed(3)}
                   </span>
                 </div>
-                {Math.abs((prod + rev) - 1) >= 0.01 && (
+                {Math.abs((prod + rev) - 1) >= 0.0001 && (
                   <p className="text-xs text-red-800 mt-1">Weights must sum to 1.0</p>
                 )}
               </div>
@@ -494,7 +494,7 @@ export default function FrameworkEntry() {
                 </button>
                 <button
                   onClick={saveL3}
-                  disabled={isLoading || Math.abs((prod + rev) - 1) >= 0.01}
+                  disabled={isLoading || Math.abs((prod + rev) - 1) >= 0.0001}
                   className="px-6 py-2 bg-blue-600 text-gray-900 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? 'Saving...' : 'Save L3 Data'}

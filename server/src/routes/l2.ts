@@ -99,7 +99,7 @@ r.post("/", auth(), async (req, res) => {
 
     const sum = rows.reduce((acc: number, row: L2Row) => acc + Number(row.weightPct), 0);
 
-    if (sum < 0.999 || sum > 1.001) {
+    if (sum < 0.9999 || sum > 1.0001) {
         return res.status(400).json({ 
             error: `Weights for department must sum to 1.0 (current sum: ${sum.toFixed(3)})` 
         });
