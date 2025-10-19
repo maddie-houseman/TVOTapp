@@ -121,9 +121,16 @@ export default function FrameworkEntry() {
   }
 
   async function saveL2() {
-    // Check for validation errors
+    // Check for individual field validation errors
     if (validationErrors.appDev || validationErrors.cloud || validationErrors.endUser) {
       setErrorMessage('Please fix validation errors before saving');
+      return;
+    }
+    
+    // Check if weights sum to 1.0
+    const sumError = validateL2Sum();
+    if (sumError) {
+      setErrorMessage(sumError);
       return;
     }
     
@@ -155,9 +162,16 @@ export default function FrameworkEntry() {
   }
 
   async function saveL3() {
-    // Check for validation errors
+    // Check for individual field validation errors
     if (validationErrors.prod || validationErrors.rev) {
       setErrorMessage('Please fix validation errors before saving');
+      return;
+    }
+    
+    // Check if weights sum to 1.0
+    const sumError = validateL3Sum();
+    if (sumError) {
+      setErrorMessage(sumError);
       return;
     }
     
@@ -246,6 +260,24 @@ export default function FrameworkEntry() {
   const validateWeight = (value: number, fieldName: string): string | null => {
     if (value < 0) return `${fieldName} cannot be negative`;
     if (value > 1) return `${fieldName} cannot exceed 1.0`;
+    return null;
+  };
+
+  // Check if L2 weights sum to 1.0
+  const validateL2Sum = (): string | null => {
+    const sum = appDev + cloud + endUser;
+    if (Math.abs(sum - 1) >= 0.0001) {
+      return `Weights must sum to 1.0 (current sum: ${sum.toFixed(3)})`;
+    }
+    return null;
+  };
+
+  // Check if L3 weights sum to 1.0
+  const validateL3Sum = (): string | null => {
+    const sum = prod + rev;
+    if (Math.abs(sum - 1) >= 0.0001) {
+      return `Weights must sum to 1.0 (current sum: ${sum.toFixed(3)})`;
+    }
     return null;
   };
 
@@ -582,7 +614,7 @@ export default function FrameworkEntry() {
                   </span>
                 </div>
                 {Math.abs((appDev + cloud + endUser) - 1) >= 0.0001 && (
-                  <p className="text-xs text-red-800 mt-1">Weights must sum to 1.0</p>
+                  <p className="text-xs text-red-800 mt-1">Weights must sum to 1.0 (current sum: {(appDev + cloud + endUser).toFixed(3)})</p>
                 )}
               </div>
 
@@ -595,7 +627,7 @@ export default function FrameworkEntry() {
                 </button>
                 <button
                   onClick={saveL2}
-                  disabled={isLoading || Math.abs((appDev + cloud + endUser) - 1) >= 0.0001}
+                  disabled={isLoading || Math.abs((appDev + cloud + endUser) - 1) >= 0.0001 || !!validationErrors.appDev || !!validationErrors.cloud || !!validationErrors.endUser}
                   className="px-6 py-2 bg-blue-600 text-gray-900 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? 'Saving...' : 'Save L2 Data'}
@@ -665,7 +697,7 @@ export default function FrameworkEntry() {
                   </span>
                 </div>
                 {Math.abs((prod + rev) - 1) >= 0.0001 && (
-                  <p className="text-xs text-red-800 mt-1">Weights must sum to 1.0</p>
+                  <p className="text-xs text-red-800 mt-1">Weights must sum to 1.0 (current sum: {(prod + rev).toFixed(3)})</p>
                 )}
               </div>
 
@@ -678,7 +710,7 @@ export default function FrameworkEntry() {
                 </button>
                 <button
                   onClick={saveL3}
-                  disabled={isLoading || Math.abs((prod + rev) - 1) >= 0.0001}
+                  disabled={isLoading || Math.abs((prod + rev) - 1) >= 0.0001 || !!validationErrors.prod || !!validationErrors.rev}
                   className="px-6 py-2 bg-blue-600 text-gray-900 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? 'Saving...' : 'Save L3 Data'}
