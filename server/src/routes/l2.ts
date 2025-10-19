@@ -87,6 +87,7 @@ r.post("/", auth(), async (req, res) => {
 
 
   // Validate the department's weights sum to ~1.0 (±0.0001 tolerance)
+    // Only validate if all three towers are present
     const rows = await prisma.l2AllocationWeight.findMany({
         where: {
             companyId: body.companyId,
@@ -97,12 +98,15 @@ r.post("/", auth(), async (req, res) => {
 
     type L2Row = Awaited<ReturnType<typeof prisma.l2AllocationWeight.findMany>>[number];
 
-    const sum = rows.reduce((acc: number, row: L2Row) => acc + Number(row.weightPct), 0);
+    // Only validate sum if we have all three towers
+    if (rows.length >= 3) {
+        const sum = rows.reduce((acc: number, row: L2Row) => acc + Number(row.weightPct), 0);
 
-    if (sum < 0.9999 || sum > 1.0001) {
-        return res.status(400).json({ 
-            error: `Weights for department must sum to 1.0 (current sum: ${sum.toFixed(3)})` 
-        });
+        if (sum < 0.9999 || sum > 1.0001) {
+            return res.status(400).json({ 
+                error: `Weights for department must sum to 1.0 (current sum: ${sum.toFixed(3)})` 
+            });
+        }
     }
 
     res.json(created);

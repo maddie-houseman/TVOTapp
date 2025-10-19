@@ -80,12 +80,16 @@ r.post("/", auth(), async (req, res) => {
         where: { companyId: body.companyId, period },
     });
     type L3Row = typeof rows[number]; // derive element type
-    const sum = rows.reduce((acc: number, row: L3Row) => acc + Number(row.weightPct), 0);
+    
+    // Only validate sum if we have all benefit categories
+    if (rows.length >= 2) {
+        const sum = rows.reduce((acc: number, row: L3Row) => acc + Number(row.weightPct), 0);
 
-    if (sum < 0.9999 || sum > 1.0001) {
-        return res.status(400).json({ 
-            error: `L3 weights must sum to 1.0 (current sum: ${sum.toFixed(3)})` 
-        });
+        if (sum < 0.9999 || sum > 1.0001) {
+            return res.status(400).json({ 
+                error: `L3 weights must sum to 1.0 (current sum: ${sum.toFixed(3)})` 
+            });
+        }
     }
 
     res.json(created);
