@@ -85,6 +85,8 @@ r.post("/", auth(), async (req, res) => {
     },
     });
 
+    console.log(`[L2 DEBUG] Upserted tower ${body.tower} with weight ${body.weightPct}`);
+
 
   // Validate the department's weights sum to ~1.0 (±0.0001 tolerance)
     // Only validate if all three towers are present
@@ -94,19 +96,43 @@ r.post("/", auth(), async (req, res) => {
             period,
             department: body.department,
         },
+        orderBy: {
+            createdAt: 'desc' // Get most recent records first
+        },
     });
 
     type L2Row = Awaited<ReturnType<typeof prisma.l2AllocationWeight.findMany>>[number];
 
+    // Debug: Log what we found in the database
+    console.log(`[L2 DEBUG] Found ${rows.length} rows for ${body.companyId}/${period}/${body.department}`);
+    rows.forEach(row => {
+        console.log(`[L2 DEBUG] Tower: ${row.tower}, Weight: ${row.weightPct}, Created: ${row.createdAt}`);
+    });
+
+    // Group by tower and get the most recent record for each tower
+    const towerMap = new Map<string, L2Row>();
+    rows.forEach(row => {
+        const existing = towerMap.get(row.tower);
+        if (!existing || new Date(row.createdAt) > new Date(existing.createdAt)) {
+            towerMap.set(row.tower, row);
+        }
+    });
+
+    const uniqueRows = Array.from(towerMap.values());
+    console.log(`[L2 DEBUG] After deduplication: ${uniqueRows.length} unique towers`);
+
     // Only validate sum if we have exactly all three towers (APP_DEV, CLOUD, END_USER)
-    if (rows.length === 3) {
-        const sum = rows.reduce((acc: number, row: L2Row) => acc + Number(row.weightPct), 0);
+    if (uniqueRows.length === 3) {
+        const sum = uniqueRows.reduce((acc: number, row: L2Row) => acc + Number(row.weightPct), 0);
+        console.log(`[L2 DEBUG] Calculated sum from unique rows: ${sum}`);
 
         if (sum < 0.9999 || sum > 1.0001) {
             return res.status(400).json({ 
                 error: `Weights for department must sum to 1.0 (current sum: ${sum.toFixed(3)})` 
             });
         }
+    } else if (uniqueRows.length > 3) {
+        console.log(`[L2 DEBUG] WARNING: Found ${uniqueRows.length} unique towers, expected 3.`);
     }
 
     res.json(created);
