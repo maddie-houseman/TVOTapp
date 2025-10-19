@@ -88,9 +88,28 @@ r.post("/", auth(), async (req, res) => {
     console.log(`[L2 DEBUG] Upserted tower ${body.tower} with weight ${body.weightPct}`);
 
 
-  // No server-side validation - let the client handle sum validation
-    // The client already validates that weights sum to 1.0 before sending
-    console.log(`[L2 DEBUG] Saved tower ${body.tower} with weight ${body.weightPct}`);
+  // Validate the department's weights sum to ~1.0 (±0.0001 tolerance)
+    // Only validate if all three towers are present
+    const rows = await prisma.l2AllocationWeight.findMany({
+        where: {
+            companyId: body.companyId,
+            period,
+            department: body.department,
+        },
+    });
+
+    type L2Row = Awaited<ReturnType<typeof prisma.l2AllocationWeight.findMany>>[number];
+
+    // Only validate sum if we have all three towers
+    if (rows.length >= 3) {
+        const sum = rows.reduce((acc: number, row: L2Row) => acc + Number(row.weightPct), 0);
+
+        if (sum < 0.9999 || sum > 1.0001) {
+            return res.status(400).json({ 
+                error: `Weights for department must sum to 1.0 (current sum: ${sum.toFixed(3)})` 
+            });
+        }
+    }
 
     res.json(created);
 });
