@@ -31,12 +31,32 @@ r.post('/', auth(), async (req, res) => {
         }
     }
 
-    const created = await prisma.l1OperationalInput.upsert({
-        where: { companyId_period_department: { companyId: body.companyId, period: new Date(body.period), department: body.department } },
-        create: { ...body, period: new Date(body.period), createdById: req.user!.userId },
-        update: { employees: body.employees, budget: new Decimal(body.budget), baselineKpi: body.baselineKpi ?? null }
-    });
-    res.json(created);
+    try {
+        const created = await prisma.l1OperationalInput.upsert({
+            where: { 
+                companyId_period_department: { 
+                    companyId: body.companyId, 
+                    period: new Date(body.period), 
+                    department: body.department 
+                } 
+            },
+            create: { 
+                ...body, 
+                period: new Date(body.period), 
+                createdById: req.user!.userId 
+            },
+            update: { 
+                employees: body.employees, 
+                budget: new Decimal(body.budget), 
+                baselineKpi: body.baselineKpi ?? null 
+            }
+        });
+        console.log(`[L1 DEBUG] Upserted L1 data for ${body.department}:`, created);
+        res.json(created);
+    } catch (error) {
+        console.error(`[L1 ERROR] Failed to upsert L1 data:`, error);
+        res.status(500).json({ error: 'Failed to save L1 data', details: error instanceof Error ? error.message : 'Unknown error' });
+    }
 });
 
 
