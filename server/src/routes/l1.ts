@@ -8,6 +8,15 @@ import { Decimal } from '@prisma/client/runtime/library';
 
 const r = Router();
 
+// Handle GET requests to /api/l1 without parameters
+r.get('/', (req, res) => {
+    res.status(400).json({ 
+        error: 'L1 API requires companyId and period parameters',
+        message: 'Use GET /api/l1/{companyId}/{period} to retrieve L1 data',
+        example: '/api/l1/your-company-id/2024-01'
+    });
+});
+
 r.get('/:companyId/:period', async (req, res) => {
     const { companyId, period } = req.params;
     const data = await prisma.l1OperationalInput.findMany({ where: { companyId, period: new Date(period) } });
