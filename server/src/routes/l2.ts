@@ -23,6 +23,25 @@ const l2Schema = z.object({
     weightPct: z.number().min(0).max(1),
 });
 
+// Batch payload: save all three towers for one department at once
+const l2BatchSchema = z.object({
+    companyId: z.string().min(1),
+    period: z.string().regex(/^\d{4}-\d{2}(-\d{2})?$/, 'Use YYYY-MM or YYYY-MM-01'),
+    department: z.enum([
+        'ENGINEERING',
+        'SALES',
+        'FINANCE',
+        'HR',
+        'MARKETING',
+        'OPERATIONS',
+    ] as const),
+    weights: z.object({
+        APP_DEV: z.number().min(0).max(1),
+        CLOUD: z.number().min(0).max(1),
+        END_USER: z.number().min(0).max(1),
+    }),
+});
+
 function toPeriodDate(p: string) {
     const iso = /^\d{4}-\d{2}$/.test(p) ? `${p}-01` : p;
     return new Date(iso + "T00:00:00.000Z");
@@ -116,3 +135,59 @@ r.post("/", auth(), async (req, res) => {
 
 
 export default r;
+
+/** ---- POST: batch upsert three weights atomically ---- */
+r.post('/batch', auth(), async (req, res) => {
+    const parsed = l2BatchSchema.safeParse(req.body);
+    if (!parsed.success) {
+        return res.status(400).json({ error: parsed.error.flatten() });
+    }
+    const body = parsed.data;
+
+    // RBAC: employees may only write to their own company
+    if (req.user?.role !== 'ADMIN' && req.user?.companyId !== body.companyId) {
+        return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const period = toPeriodDate(body.period);
+    const userId = (req.user as any)?.id ?? (req.user as any)?.userId ?? undefined;
+
+    // Align server check with UI: same tolerance and direct sum of provided values
+    const sum = Number(body.weights.APP_DEV) + Number(body.weights.CLOUD) + Number(body.weights.END_USER);
+    if (Math.abs(sum - 1) >= 0.0001) {
+        return res.status(400).json({ error: `Weights must sum to 1.0 (current sum: ${sum.toFixed(3)})` });
+    }
+
+    // Upsert all three in a single transaction
+    const result = await prisma.$transaction(async (tx) => {
+        const upsert = async (tower: 'APP_DEV' | 'CLOUD' | 'END_USER', weightPct: number) =>
+            tx.l2AllocationWeight.upsert({
+                where: {
+                    companyId_period_department_tower: {
+                        companyId: body.companyId,
+                        period,
+                        department: body.department,
+                        tower,
+                    },
+                },
+                create: {
+                    companyId: body.companyId,
+                    period,
+                    department: body.department,
+                    tower,
+                    weightPct,
+                    createdById: userId,
+                },
+                update: { weightPct },
+            });
+
+        const [a, c, e] = await Promise.all([
+            upsert('APP_DEV', body.weights.APP_DEV),
+            upsert('CLOUD', body.weights.CLOUD),
+            upsert('END_USER', body.weights.END_USER),
+        ]);
+        return [a, c, e];
+    });
+
+    return res.json({ ok: true, rows: result });
+});

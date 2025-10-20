@@ -140,9 +140,12 @@ export default function FrameworkEntry() {
     setSuccessMessage('');
     
     try {
-      await api.l2Upsert({ companyId: targetCompanyId, period: full, department: dept, tower: 'APP_DEV', weightPct: appDev });
-      await api.l2Upsert({ companyId: targetCompanyId, period: full, department: dept, tower: 'CLOUD', weightPct: cloud });
-      await api.l2Upsert({ companyId: targetCompanyId, period: full, department: dept, tower: 'END_USER', weightPct: endUser });
+      await api.l2UpsertBatch({
+        companyId: targetCompanyId,
+        period: full,
+        department: dept,
+        weights: { APP_DEV: appDev, CLOUD: cloud, END_USER: endUser },
+      });
       setSuccessMessage('L2 Allocation weights saved successfully!');
       setCurrentStep(3);
     } catch (error) {
@@ -179,8 +182,11 @@ export default function FrameworkEntry() {
     setSuccessMessage('');
 
     try {
-      await api.l3Upsert({ companyId: targetCompanyId, period: full, category: 'PRODUCTIVITY', weightPct: prod });
-      await api.l3Upsert({ companyId: targetCompanyId, period: full, category: 'REVENUE_UPLIFT', weightPct: rev });
+      await api.l3UpsertBatch({
+        companyId: targetCompanyId,
+        period: full,
+        weights: { PRODUCTIVITY: prod, REVENUE_UPLIFT: rev },
+      });
       setSuccessMessage('L3 Benefit weights saved successfully!');
       setCurrentStep(4);
     } catch (error) {

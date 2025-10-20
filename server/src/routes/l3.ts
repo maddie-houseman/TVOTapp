@@ -15,6 +15,16 @@ const l3Schema = z.object({
     weightPct: z.number().min(0).max(1),
 });
 
+// Batch payload: save both categories at once
+const l3BatchSchema = z.object({
+    companyId: z.string().min(1),
+    period: z.string().regex(/^\d{4}-\d{2}(-\d{2})?$/, 'Use YYYY-MM or YYYY-MM-01'),
+    weights: z.object({
+        PRODUCTIVITY: z.number().min(0).max(1),
+        REVENUE_UPLIFT: z.number().min(0).max(1),
+    }),
+});
+
 function toPeriodDate(p: string) {
     const iso = /^\d{4}-\d{2}$/.test(p) ? `${p}-01` : p;
     return new Date(iso + "T00:00:00.000Z");
@@ -96,3 +106,49 @@ r.post("/", auth(), async (req, res) => {
 });
 
 export default r;
+
+/** ---- POST: batch upsert two weights atomically ---- */
+r.post('/batch', auth(), async (req, res) => {
+    const parsed = l3BatchSchema.safeParse(req.body);
+    if (!parsed.success) {
+        return res.status(400).json({ error: parsed.error.flatten() });
+    }
+    const body = parsed.data;
+
+    if (req.user?.role !== 'ADMIN' && req.user?.companyId !== body.companyId) {
+        return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const period = new Date((/^\d{4}-\d{2}$/.test(body.period) ? `${body.period}-01` : body.period) + 'T00:00:00.000Z');
+    const userId = (req.user as any)?.id ?? (req.user as any)?.userId ?? undefined;
+
+    const sum = Number(body.weights.PRODUCTIVITY) + Number(body.weights.REVENUE_UPLIFT);
+    if (Math.abs(sum - 1) >= 0.0001) {
+        return res.status(400).json({ error: `L3 weights must sum to 1.0 (current sum: ${sum.toFixed(3)})` });
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+        const upsert = async (category: 'PRODUCTIVITY' | 'REVENUE_UPLIFT', weightPct: number) =>
+            tx.l3BenefitWeight.upsert({
+                where: {
+                    companyId_period_category: { companyId: body.companyId, period, category },
+                },
+                create: {
+                    companyId: body.companyId,
+                    period,
+                    category,
+                    weightPct,
+                    createdById: userId,
+                },
+                update: { weightPct },
+            });
+
+        const [p, r] = await Promise.all([
+            upsert('PRODUCTIVITY', body.weights.PRODUCTIVITY),
+            upsert('REVENUE_UPLIFT', body.weights.REVENUE_UPLIFT),
+        ]);
+        return [p, r];
+    });
+
+    return res.json({ ok: true, rows: result });
+});

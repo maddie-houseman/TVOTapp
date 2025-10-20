@@ -219,6 +219,10 @@ export const api = {
         return jsonFetch<L2Input>("/api/l2", { method: "POST", json: v });
     },
 
+    async l2UpsertBatch(params: { companyId: string; period: string; department: Department; weights: { APP_DEV: number; CLOUD: number; END_USER: number } }): Promise<{ ok: boolean }> {
+        return jsonFetch<{ ok: boolean }>("/api/l2/batch", { method: "POST", json: params });
+    },
+
     async l2Get(companyId: string, period: string): Promise<L2Input[]> {
         return jsonFetch<L2Input[]>(`/api/l2/${companyId}/${period}`);
     },
@@ -226,6 +230,10 @@ export const api = {
     // ---- L3 ----
     async l3Upsert(v: L3Input): Promise<L3Input> {
         return jsonFetch<L3Input>("/api/l3", { method: "POST", json: v });
+    },
+
+    async l3UpsertBatch(params: { companyId: string; period: string; weights: { PRODUCTIVITY: number; REVENUE_UPLIFT: number } }): Promise<{ ok: boolean }> {
+        return jsonFetch<{ ok: boolean }>("/api/l3/batch", { method: "POST", json: params });
     },
 
     async l3Get(companyId: string, period: string): Promise<L3Input[]> {
