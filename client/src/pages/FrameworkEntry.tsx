@@ -1,50 +1,42 @@
-// client/src/pages/FrameworkEntry.tsx
 import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/useAuth';
 import { api, type Department, } from '../lib/api';
 import { getDatabaseValue, getAllDisplayLabels, type DisplayDepartment } from '../utils/departmentLabels';
 
 export default function FrameworkEntry() {
-  // auth / context
   const { user, company } = useAuth();
-
-  // period YYYY-MM (we send YYYY-MM-01 to the server)
   const [period, setPeriod] = useState<string>(new Date().toISOString().slice(0, 7));
-
-  // Current step in the framework entry process
   const [currentStep, setCurrentStep] = useState<number>(1);
-  // const totalSteps = 4;
 
-  // Admin company selection
+  // Admin can switch between companies
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>('');
   const [availableCompanies, setAvailableCompanies] = useState<{ id: string; name: string; domain: string }[]>([]);
 
-  // --- L1 - inputs
+  // L1: Basic operational data
   const [dept, setDept] = useState<Department>('ENGINEERING');
   const [displayDept, setDisplayDept] = useState<DisplayDepartment>('Labour');
   const [employees, setEmployees] = useState<number>(0);
   const [budget, setBudget] = useState<number>(0);
 
-  // --- L2 - tower weights; must sum to 1
+  // L2: How to split costs across technology towers
   const [appDev, setAppDev] = useState<number>(0);
   const [cloud, setCloud] = useState<number>(0);
   const [endUser, setEndUser] = useState<number>(0);
 
-  // --- L3 - benefit weights; must sum to 1
+  // L3: How to prioritize different types of benefits
   const [prod, setProd] = useState<number>(0);
   const [rev, setRev] = useState<number>(0);
 
-  // --- L4 - assumptions for snapshot / ROI
+  // L4: ROI calculation assumptions
   const [uplift, setUplift] = useState<number>(0);
   const [hours, setHours] = useState<number>(0);
   const [rate, setRate] = useState<number>(0);
 
-  // Loading and success states
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [successMessage, setSuccessMessage] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
 
-  // Boundary validation errors
+  // Track validation errors for form inputs
   const [validationErrors, setValidationErrors] = useState<{
     employees?: string;
     budget?: string;

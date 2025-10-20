@@ -1,9 +1,6 @@
-    // client/src/lib/api.ts
+export type Role = "ADMIN" | "EMPLOYEE";
 
-    // -------- Types --------
-    export type Role = "ADMIN" | "EMPLOYEE";
-
-    export type Me = { id: string; email: string; name: string; role: Role; companyId: string | null };
+export type Me = { id: string; email: string; name: string; role: Role; companyId: string | null };
 
 export type Department =
   | "ENGINEERING"
@@ -13,19 +10,19 @@ export type Department =
   | "MARKETING"
   | "OPERATIONS";
 
-    export type Tower = "APP_DEV" | "CLOUD" | "END_USER";
+export type Tower = "APP_DEV" | "CLOUD" | "END_USER";
 
-    export type L3Category = "PRODUCTIVITY" | "REVENUE_UPLIFT";
+export type L3Category = "PRODUCTIVITY" | "REVENUE_UPLIFT";
 
-    export type L1Input = {
+export type L1Input = {
     companyId: string;
-    period: string; // YYYY-MM-DD
+    period: string;
     department: Department;
     employees: number;
     budget: number;
-    };
+};
 
-    export type L2Input = {
+export type L2Input = {
     companyId: string;
     period: string;
     department: Department;
@@ -65,7 +62,6 @@ export type Department =
     assumptions: SnapshotAssumptions;
     createdAt?: string;
     updatedAt?: string;
-    // Enhanced investment metrics
     paybackMonths?: number;
     npv?: number;
     irr?: number;
@@ -79,61 +75,57 @@ export type Department =
     };
     departmentCosts?: Record<string, number>;
     insights?: BusinessInsight[];
-    };
+};
 
-    // -------- Base URL --------
-    const BASE = import.meta.env.DEV ? "https://tvotapp-production.up.railway.app" : (import.meta.env.VITE_API_BASE ?? "https://tvotapp-production.up.railway.app");
+const BASE = import.meta.env.DEV ? "https://tvotapp-production.up.railway.app" : (import.meta.env.VITE_API_BASE ?? "https://tvotapp-production.up.railway.app");
 
-    // -------- Helpers --------
-    function withBase(path: string) {
+function withBase(path: string) {
     return path.startsWith("http") ? path : `${BASE}${path}`;
-    }
+}
 
-    async function toApiError(res: Response): Promise<Error> {
+async function toApiError(res: Response): Promise<Error> {
     const raw = await res.text();
     let msg = `HTTP ${res.status}`;
 
     try {
-    const data: unknown = JSON.parse(raw);
+        const data: unknown = JSON.parse(raw);
 
-    if (typeof data === "string") {
-        msg = data;
-    } else if (data && typeof data === "object" && "error" in data) {
-        const maybe = data as { error?: unknown };
-        if (typeof maybe.error === "string") {
-        msg = maybe.error;
+        if (typeof data === "string") {
+            msg = data;
+        } else if (data && typeof data === "object" && "error" in data) {
+            const maybe = data as { error?: unknown };
+            if (typeof maybe.error === "string") {
+                msg = maybe.error;
+            } else {
+                msg = raw;
+            }
         } else {
-        msg = raw;
+            msg = raw;
         }
-    } else {
-        msg = raw;
-    }
     } catch {
-    msg = raw; // not JSON
+        msg = raw;
     }
 
     throw new Error(msg);
+}
 
-    }
-
-    async function jsonFetch<T>(
+async function jsonFetch<T>(
     path: string,
     init?: RequestInit & { json?: unknown; timeout?: number }
-    ): Promise<T> {
-    const { json, timeout = 30000, ...rest } = init ?? {}; // 30 second default timeout
+): Promise<T> {
+    const { json, timeout = 30000, ...rest } = init ?? {};
     
-    // Create AbortController for timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
     
     try {
         const res = await fetch(withBase(path), {
-            credentials: "include", // send/receive cookies
+            credentials: "include",
             signal: controller.signal,
             ...rest,
             headers: {
-            ...(json !== undefined ? { "Content-Type": "application/json" } : {}),
-            ...(rest.headers ?? {}),
+                ...(json !== undefined ? { "Content-Type": "application/json" } : {}),
+                ...(rest.headers ?? {}),
             },
             body: json !== undefined ? JSON.stringify(json) : (rest as RequestInit).body,
         });
@@ -152,32 +144,30 @@ export type Department =
         }
         throw error;
     }
-    }
+}
 
-    function isHttpStatus(e: unknown, code: number): e is Error {
+function isHttpStatus(e: unknown, code: number): e is Error {
     return e instanceof Error && new RegExp(`^HTTP\\s+${code}\\b`).test(e.message);
-    }
+}
 
-    // -------- Public API --------
-    export const api = {
-    // ---- Auth ----
+export const api = {
     async signup(email: string, password: string, name: string, companyName?: string, companyDomain?: string, role?: 'ADMIN' | 'EMPLOYEE'): Promise<{ ok: boolean; user?: Me }> {
         return jsonFetch<{ ok: boolean; user?: Me }>("/api/auth/signup", {
-        method: "POST",
-        json: { email, password, name, companyName, companyDomain, role },
+            method: "POST",
+            json: { email, password, name, companyName, companyDomain, role },
         });
     },
 
     async login(email: string, password: string): Promise<{ ok: boolean }> {
         return jsonFetch<{ ok: boolean }>("/api/auth/login", {
-        method: "POST",
-        json: { email, password },
+            method: "POST",
+            json: { email, password },
         });
     },
 
     async me(): Promise<Me | null> {
         try {
-        return await jsonFetch<Me>("/api/auth/me");
+            return await jsonFetch<Me>("/api/auth/me");
         } catch (e: unknown) {
         if (isHttpStatus(e, 401)) return null; // not logged in
         throw e instanceof Error ? e : new Error(String(e));

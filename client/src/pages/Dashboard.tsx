@@ -5,7 +5,6 @@ import api, { type L1Input, type L2Input, type L4Snapshot } from '../lib/api';
 import { getDisplayLabel } from '../utils/departmentLabels';
 import { getDisplayLabel as getTowerDisplayLabel } from '../utils/towerLabels';
 
-// Merge sort utility
 function mergeSort<T>(arr: T[], compare: (a: T, b: T) => number): T[] {
   if (arr.length <= 1) return arr.slice();
   const mid = Math.floor(arr.length / 2);
@@ -31,12 +30,10 @@ export default function Dashboard() {
   const [selectedMonth, setSelectedMonth] = useState('01');
   const selectedPeriod = `${selectedYear}-${selectedMonth}`;
 
-  // Admin companies
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>('');
   const [availableCompanies, setAvailableCompanies] = useState<{ id: string; name: string; domain: string }[]>([]);
   const [loadingCompanies, setLoadingCompanies] = useState(false);
 
-  // Data state
   const [l1Data, setL1Data] = useState<L1Input[]>([]);
   const [l2Data, setL2Data] = useState<L2Input[]>([]);
   const [l4Data, setL4Data] = useState<L4Snapshot[]>([]);
@@ -44,7 +41,6 @@ export default function Dashboard() {
   const [hasData, setHasData] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   
-  // Graph data
   const [historicalData, setHistoricalData] = useState<L4Snapshot[]>([]);
   const [showGraphs, setShowGraphs] = useState(false);
 

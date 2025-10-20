@@ -6,18 +6,15 @@ import { ENV } from './env.js';
 
 const app = express();
 
-// CORS
 app.use(
     cors({
-        // Reflect origin
         origin: true,
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key'],
-        credentials: true, // allow cookies
+        credentials: true,
     })
 );
 
-// Handle preflight requests
 app.use((req, res, next) => {
     if (req.method !== 'OPTIONS') return next();
 
@@ -30,20 +27,15 @@ app.use((req, res, next) => {
     return res.sendStatus(204);
 });
 
-// Parsers
 app.use(express.json());
 app.use(cookieParser());
-// Trust proxy
 app.set('trust proxy', 1);
 
-// API key guard (disabled)
 app.use((req, res, next) => {
     return next();
 });
 
-// Request timeout
 app.use((req, res, next) => {
-    // 30-second timeout
     const timeout = setTimeout(() => {
         if (!res.headersSent) {
             res.status(408).json({ error: 'Request timeout' });
@@ -55,7 +47,6 @@ app.use((req, res, next) => {
     next();
 });
 
-// Rate limiting
 app.use(
     rateLimit({
         windowMs: 15 * 60 * 1000,
@@ -65,7 +56,6 @@ app.use(
     })
 );
 
-// Health endpoints
 app.get('/api/health', (_req, res) => {
     res.status(200).json({ 
         ok: true, 
@@ -75,7 +65,6 @@ app.get('/api/health', (_req, res) => {
     });
 });
 
-// Simple health check
 app.get('/test', (_req, res) => {
     res.json({ 
         message: 'Server is working!', 
@@ -87,12 +76,10 @@ app.get('/test', (_req, res) => {
     });
 });
 
-// Database health check
 app.get('/api/health/db', async (_req, res) => {
     try {
         const { prisma } = await import('./prisma.js');
         
-        // Test DB connection
         const queryPromise = prisma.$queryRaw`SELECT 1 as test`;
         const timeoutPromise = new Promise((_, reject) => 
             setTimeout(() => reject(new Error('Database query timeout')), 5000)

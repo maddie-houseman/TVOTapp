@@ -1,4 +1,3 @@
-// server/src/routes/auth.ts
 import { Router, type Request, type Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -7,40 +6,32 @@ import { ENV } from '../env.js';
 
 const router = Router();
 
-/* ---------------- Env + helpers ---------------- */
-
 type SameSite = 'lax' | 'none' | 'strict';
 const JWT_SECRET = ENV.JWT_SECRET || 'dev-secret-change-me';
 const COOKIE_SAMESITE: SameSite = ENV.COOKIE_SAMESITE ?? 'none';
 
 function resolveSecureFlag(req: Request): boolean {
-  // Explicit ENV wins
     if (ENV.COOKIE_SECURE === true) return true;
     if (ENV.COOKIE_SECURE === false) return false;
 
-    // Infer via proxy header / req.secure
     const xfProto = req.header('x-forwarded-proto')?.split(',')[0]?.trim();
     return req.secure || xfProto === 'https';
-    }
+}
 
-    function setSessionCookie(req: Request, res: Response, userId: string, role: string, companyId: string | null): string {
+function setSessionCookie(req: Request, res: Response, userId: string, role: string, companyId: string | null): string {
     const token = jwt.sign({ sub: userId, role, companyId }, JWT_SECRET, { expiresIn: '7d' });
 
     res.cookie('session', token, {
         httpOnly: true,
-        secure: resolveSecureFlag(req), // true behind HTTPS
-        sameSite: COOKIE_SAMESITE,      // 'none' for cross-site
+        secure: resolveSecureFlag(req),
+        sameSite: COOKIE_SAMESITE,
         path: '/',
         maxAge: 7 * 24 * 3600 * 1000,
     });
 
     return token;
-    }
-
-    /* ---------------- Routes ---------------- */
-
-    // /api/auth/signup
-    router.post('/auth/signup', async (req: Request, res: Response) => {
+}
+router.post('/auth/signup', async (req: Request, res: Response) => {
     try {
         const { email, password, name, companyName, companyDomain, role } = (req.body ?? {}) as { 
         email?: string; 
