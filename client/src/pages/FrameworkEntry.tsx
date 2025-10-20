@@ -8,26 +8,26 @@ export default function FrameworkEntry() {
   const [period, setPeriod] = useState<string>(new Date().toISOString().slice(0, 7));
   const [currentStep, setCurrentStep] = useState<number>(1);
 
-  // Admin can switch between companies
+  // Admin switch between companies
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>('');
   const [availableCompanies, setAvailableCompanies] = useState<{ id: string; name: string; domain: string }[]>([]);
 
-  // L1: Basic operational data
-  const [dept, setDept] = useState<Department>('ENGINEERING');
-  const [displayDept, setDisplayDept] = useState<DisplayDepartment>('Labour');
+  // L1 data with display departments overlayed
+  const [dept, setDept] = useState<Department>('ENGINEERING'); //from prisma schema
+  const [displayDept, setDisplayDept] = useState<DisplayDepartment>('Labour'); //shows on UI
   const [employees, setEmployees] = useState<number>(0);
   const [budget, setBudget] = useState<number>(0);
 
-  // L2: How to split costs across technology towers
+  // L2 technology towers
   const [appDev, setAppDev] = useState<number>(0);
   const [cloud, setCloud] = useState<number>(0);
   const [endUser, setEndUser] = useState<number>(0);
 
-  // L3: How to prioritize different types of benefits
+  // L3 benefit weights
   const [prod, setProd] = useState<number>(0);
   const [rev, setRev] = useState<number>(0);
 
-  // L4: ROI calculation assumptions
+  // L4 assumptions data
   const [uplift, setUplift] = useState<number>(0);
   const [hours, setHours] = useState<number>(0);
   const [rate, setRate] = useState<number>(0);
@@ -36,7 +36,7 @@ export default function FrameworkEntry() {
   const [successMessage, setSuccessMessage] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
 
-  // Track validation errors for form inputs
+  // Tracking validation errors for all form inputs
   const [validationErrors, setValidationErrors] = useState<{
     employees?: string;
     budget?: string;
@@ -50,7 +50,7 @@ export default function FrameworkEntry() {
     rate?: string;
   }>({});
 
-  // loading companies for admin users
+  // load companies for admin users
   useEffect(() => {
     if (user?.role === 'ADMIN') {
       // Load all companies for admin users
@@ -61,9 +61,9 @@ export default function FrameworkEntry() {
   if (!user) return <div className="text-sm">Please login.</div>;
   
   
-  const full = `${period}-01`; // server expects YYYY-MM-DD
+  const full = `${period}-01`; // server normalising date to be in the 1st of month
 
-  // For non-admin users, check if they have a company
+  // Check if EMPLOYEE has a company
   if (user.role !== 'ADMIN' && !user.companyId) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -75,7 +75,7 @@ export default function FrameworkEntry() {
     );
   }
 
-  // ----- Actions -----
+//l1save 
   async function saveL1() {
     // Check for validation errors
     if (validationErrors.employees || validationErrors.budget) {
@@ -112,6 +112,7 @@ export default function FrameworkEntry() {
     }
   }
 
+//l2 save
   async function saveL2() {
     // Check for individual field validation errors
     if (validationErrors.appDev || validationErrors.cloud || validationErrors.endUser) {
@@ -139,11 +140,9 @@ export default function FrameworkEntry() {
     setSuccessMessage('');
     
     try {
-      await Promise.all([
-        api.l2Upsert({ companyId: targetCompanyId, period: full, department: dept, tower: 'APP_DEV', weightPct: appDev }),
-        api.l2Upsert({ companyId: targetCompanyId, period: full, department: dept, tower: 'CLOUD', weightPct: cloud }),
-        api.l2Upsert({ companyId: targetCompanyId, period: full, department: dept, tower: 'END_USER', weightPct: endUser }),
-      ]);
+      await api.l2Upsert({ companyId: targetCompanyId, period: full, department: dept, tower: 'APP_DEV', weightPct: appDev });
+      await api.l2Upsert({ companyId: targetCompanyId, period: full, department: dept, tower: 'CLOUD', weightPct: cloud });
+      await api.l2Upsert({ companyId: targetCompanyId, period: full, department: dept, tower: 'END_USER', weightPct: endUser });
       setSuccessMessage('L2 Allocation weights saved successfully!');
       setCurrentStep(3);
     } catch (error) {
@@ -152,9 +151,9 @@ export default function FrameworkEntry() {
       setIsLoading(false);
     }
   }
-
+//l3save
   async function saveL3() {
-    // Check for individual field validation errors
+    // Check for individual errors
     if (validationErrors.prod || validationErrors.rev) {
       setErrorMessage('Please fix validation errors before saving');
       return;
@@ -180,10 +179,8 @@ export default function FrameworkEntry() {
     setSuccessMessage('');
 
     try {
-      await Promise.all([
-        api.l3Upsert({ companyId: targetCompanyId, period: full, category: 'PRODUCTIVITY', weightPct: prod }),
-        api.l3Upsert({ companyId: targetCompanyId, period: full, category: 'REVENUE_UPLIFT', weightPct: rev }),
-      ]);
+      await api.l3Upsert({ companyId: targetCompanyId, period: full, category: 'PRODUCTIVITY', weightPct: prod });
+      await api.l3Upsert({ companyId: targetCompanyId, period: full, category: 'REVENUE_UPLIFT', weightPct: rev });
       setSuccessMessage('L3 Benefit weights saved successfully!');
       setCurrentStep(4);
     } catch (error) {
@@ -192,6 +189,8 @@ export default function FrameworkEntry() {
       setIsLoading(false);
     }
   }
+
+//l4 compute and save
 
   async function computeAndSave() {
     // Check for validation errors
@@ -232,7 +231,7 @@ export default function FrameworkEntry() {
     }
   }
 
-  // helpers for numeric inputs
+
   const num = (v: string) => Number(v);
 
   // Boundary validation functions
