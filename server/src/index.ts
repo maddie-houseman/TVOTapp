@@ -67,35 +67,28 @@ app.get('/api/health', (_req, res) => {
     });
 });
 
-// Load and register API routes
-(async () => {
-    try {
-        const { default: authRouter } = await import('./routes/auth.js');
-        const { default: l1Router } = await import('./routes/l1.js');
-        const { default: l2Router } = await import('./routes/l2.js');
-        const { default: l3Router } = await import('./routes/l3.js');
-        const { default: l4Router } = await import('./routes/l4.js');
-        const { default: companyRouter } = await import('./routes/company.js');
-        
-        // Mount route handlers
-        app.use('/api', authRouter);
-        app.use('/api/l1', l1Router);
-        app.use('/api/l2', l2Router);
-        app.use('/api/l3', l3Router);
-        app.use('/api/l4', l4Router);
-        app.use('/api', companyRouter);
+// Import route handlers
+import authRouter from './routes/auth.js';
+import l1Router from './routes/l1.js';
+import l2Router from './routes/l2.js';
+import l3Router from './routes/l3.js';
+import l4Router from './routes/l4.js';
+import companyRouter from './routes/company.js';
 
-        // Start the server
-        const port = Number(process.env.PORT) || 8080;
-        app.listen(port, '0.0.0.0', () => {
-            console.log(` Server started successfully on port ${port}`);
-            console.log(` Environment: ${process.env.NODE_ENV || 'production'}`);
-        });
-    } catch (e) {
-        console.error('Router load failed:', e);
-        process.exit(1);
-    }
-})();
+// Mount route handlers
+app.use('/api', authRouter);
+app.use('/api/l1', l1Router);
+app.use('/api/l2', l2Router);
+app.use('/api/l3', l3Router);
+app.use('/api/l4', l4Router);
+app.use('/api', companyRouter);
+
+// Start the server
+const port = Number(process.env.PORT) || 8080;
+app.listen(port, '0.0.0.0', () => {
+    console.log(` Server started successfully on port ${port}`);
+    console.log(` Environment: ${process.env.NODE_ENV || 'production'}`);
+});
 
 // Initialize database connection in background
 setTimeout(async () => {
