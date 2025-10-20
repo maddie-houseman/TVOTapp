@@ -5,9 +5,11 @@ WORKDIR /app/server
 # Prisma on Alpine needs openssl; libc6-compat avoids some musl issues
 RUN apk add --no-cache openssl libc6-compat
 
-# Install deps
+# Install deps with cache and parallel installs
 COPY package*.json ./
-RUN npm ci --legacy-peer-deps --ignore-scripts
+RUN npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000 && \
+    npm install --legacy-peer-deps --ignore-scripts --prefer-offline
 
 # Copy sources
 COPY tsconfig.json ./
