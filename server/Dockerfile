@@ -1,5 +1,5 @@
 # ---------- build stage ----------
-FROM node:20-alpine AS build
+FROM node:18-alpine AS build
 WORKDIR /app/server
 
 # Prisma on Alpine needs openssl; libc6-compat avoids some musl issues
@@ -21,7 +21,7 @@ RUN npx prisma generate --schema=prisma/schema.prisma
 RUN npm run build
 
 # ---------- runtime stage ----------
-FROM node:20-alpine AS runtime
+FROM node:18-alpine AS runtime
 WORKDIR /app/server
 ENV NODE_ENV=production
 
