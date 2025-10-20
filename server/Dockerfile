@@ -1,15 +1,13 @@
 # ---------- build stage ----------
-FROM node:18-alpine AS build
+FROM node:20-alpine AS build
 WORKDIR /app/server
 
 # Prisma on Alpine needs openssl; libc6-compat avoids some musl issues
 RUN apk add --no-cache openssl libc6-compat
 
-# Install deps with cache and parallel installs
+# Install deps
 COPY package*.json ./
-RUN npm config set fetch-retry-mintimeout 20000 && \
-    npm config set fetch-retry-maxtimeout 120000 && \
-    npm install --legacy-peer-deps --ignore-scripts --prefer-offline
+RUN npm ci --legacy-peer-deps --ignore-scripts
 
 # Copy sources
 COPY tsconfig.json ./
@@ -23,7 +21,7 @@ RUN npx prisma generate --schema=prisma/schema.prisma
 RUN npm run build
 
 # ---------- runtime stage ----------
-FROM node:18-alpine AS runtime
+FROM node:20-alpine AS runtime
 WORKDIR /app/server
 ENV NODE_ENV=production
 
