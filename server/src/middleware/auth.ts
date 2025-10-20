@@ -18,10 +18,9 @@ export type JwtPayload = {
 
     export function auth(required = true) {
     return (req: Request, res: Response, next: NextFunction) => {
-        // Skip preflight
+
         if (req.method === 'OPTIONS') return next();
 
-        // Get token from cookie or header
         const tokenFromCookie = req.cookies?.session as string | undefined;
         const tokenFromHeader = req.headers.authorization?.startsWith('Bearer ')
         ? req.headers.authorization.slice(7)

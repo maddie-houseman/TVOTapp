@@ -15,7 +15,7 @@ export default function Login() {
     const navigate = useNavigate();
     const { login, signup } = useAuth();
 
-    // Password validation function
+// Password validation function
     function validatePassword(password: string): string | null {
         if (password.length < 8) {
             return 'Password must be at least 8 characters long';
@@ -30,7 +30,7 @@ export default function Login() {
         e.preventDefault();
         setErr('');
         
-        // Validate password if signing up
+// Validate password if signing up
         if (isSignup) {
             const passwordError = validatePassword(password);
             if (passwordError) {
@@ -39,7 +39,7 @@ export default function Login() {
             }
         }
         
-        // Validate admin password if admin role is selected
+// Validate admin password if admin role is selected
         if (isSignup && role === 'ADMIN' && adminPassword !== 'ADMINPASS') {
             setErr('Invalid admin password. Please enter ADMINPASS to create an admin account.');
             return;
@@ -62,7 +62,7 @@ export default function Login() {
         }
     }
 
-  return (
+    return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-md w-full space-y-8">
                 <div>

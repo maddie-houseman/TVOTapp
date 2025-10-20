@@ -6,14 +6,13 @@ import type { JwtPayload } from 'jsonwebtoken';
 
 const r = Router();
 
-/** What auth middleware puts on req.user */
+
 type AuthUser = JwtPayload & {
   userId: string;
   role: 'ADMIN' | 'EMPLOYEE' | 'USER' | string;
   companyId?: string;
 };
 
-/* ===== Zod schema ===== */
 const snapshotSchema = z.object({
   companyId: z.string().min(1),
   period: z.string().regex(/^\d{4}(-\d{2}(-\d{2})?)?$/, "Use 'YYYY-MM' or 'YYYY-MM-DD'"),
@@ -30,19 +29,19 @@ function toPeriod(bodyPeriod: string) {
   return bodyPeriod;
 }
 
-/** Calculate simple L4 ROI metrics based on actual form data */
+
 function calculateL4Metrics(l1Data: any[], l2Data: any[], l3Data: any[], assumptions: any) {
   console.log(`[L4-CALC] Starting ROI analysis with data: L1=${l1Data.length}, L2=${l2Data.length}, L3=${l3Data.length}`);
   
-  // === COST ANALYSIS ===
+
   const totalCosts = l1Data.reduce((sum, item) => sum + Number(item.budget || 0), 0);
   const totalEmployees = l1Data.reduce((sum, item) => sum + Number(item.employees || 0), 0);
   
-  // === BENEFIT ANALYSIS ===
+
   // Calculate benefits from L2 and L3 data
   let totalBenefits = 0;
   
-  // Calculate allocated costs per tower from L2 data
+  // Allocated costs per tower from L2 data
   const towerAllocations = l2Data.reduce((acc, item) => {
     const deptCost = l1Data.find(d => d.department === item.department);
     if (deptCost) {
@@ -52,12 +51,12 @@ function calculateL4Metrics(l1Data: any[], l2Data: any[], l3Data: any[], assumpt
     return acc;
   }, {});
   
-  // Check if we have the required data
+  // Check required data
   if (l1Data.length === 0 || l2Data.length === 0 || l3Data.length === 0) {
     throw new Error('Missing required data for ROI computation. Please complete L1, L2, and L3 data entry before computing ROI.');
   }
 
-  // Calculate benefits from L3 categories
+  // Calculate benefits from L3 
   l3Data.forEach(l3Item => {
     const category = l3Item.category;
     const weight = Number(l3Item.weightPct);
@@ -83,7 +82,7 @@ function calculateL4Metrics(l1Data: any[], l2Data: any[], l3Data: any[], assumpt
   console.log(`[L4-CALC] L3 Data:`, l3Data.map(item => ({ category: item.category, weight: Number(item.weightPct) })));
   console.log(`[L4-CALC] Assumptions:`, assumptions);
   
-  // === ROI CALCULATION ===
+  // ROI calc
   const netBenefit = totalBenefits - totalCosts;
   const roi = totalCosts > 0 ? ((totalBenefits - totalCosts) / totalCosts) * 100 : 0;
   
@@ -109,7 +108,7 @@ function calculateL4Metrics(l1Data: any[], l2Data: any[], l3Data: any[], assumpt
 }
 
 
-/** ===== POST /api/l4/snapshot ===== */
+
 const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res) => {
   try {
     const { companyId, period, assumptions } = req.body;
@@ -177,7 +176,7 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
       });
     }
 
-    // Save snapshot (handle duplicates by finding existing first)
+
     const existingSnapshot = await prisma.l4RoiSnapshot.findFirst({
       where: {
         companyId,
@@ -230,7 +229,7 @@ const postSnapshot: RequestHandler<unknown, any, SnapshotBody> = async (req, res
   }
 };
 
-/** ===== GET /api/l4/snapshots/:companyId ===== */
+
 const getSnapshots: RequestHandler<{ companyId: string }> = async (req, res) => {
   try {
     const { companyId } = req.params;
@@ -264,7 +263,7 @@ const getSnapshots: RequestHandler<{ companyId: string }> = async (req, res) => 
   }
 };
 
-/** ===== Routes ===== */
+
 r.post('/snapshot', postSnapshot);
 r.get('/snapshots/:companyId', getSnapshots);
 

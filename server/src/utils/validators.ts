@@ -1,9 +1,11 @@
 import { z } from 'zod';
 
+// Basic validation schemas for common fields
 export const emailSchema = z.string().email();
 export const passwordSchema = z.string().min(8);
 export const periodSchema = z.string().regex(/^\d{4}-\d{2}-01$/, 'Use YYYY-MM-01');
 
+// L1 Operational Input validation - captures department budgets and headcount
 export const l1Schema = z.object({
     companyId: z.string().cuid(),
     period: periodSchema,
@@ -13,6 +15,7 @@ export const l1Schema = z.object({
     baselineKpi: z.number().optional()
 });
 
+// L2 Allocation Weight validation - distributes L1 costs across technology towers
 export const l2Schema = z.object({
     companyId: z.string().cuid(),
     period: periodSchema,
@@ -21,6 +24,7 @@ export const l2Schema = z.object({
     weightPct: z.number().min(0).max(1)
 });
 
+// L3 Benefit Weight validation - defines value measurement priorities
 export const l3Schema = z.object({
     companyId: z.string().cuid(),
     period: periodSchema,

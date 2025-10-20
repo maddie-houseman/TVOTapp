@@ -1,5 +1,5 @@
 // Tower category label mapping - client-side only
-// Maps database values to user-friendly display labels
+// Maps database values to labels updated
 
 export type DatabaseTower = "APP_DEV" | "CLOUD" | "END_USER";
 
@@ -8,21 +8,21 @@ export type DisplayTower =
   | "Applications" 
   | "Operations";
 
-// Mapping from database values to display labels
+// Mapping from database values to overlay labels
 export const TOWER_LABELS: Record<DatabaseTower, DisplayTower> = {
   APP_DEV: "Applications",
   CLOUD: "Infrastructure", 
   END_USER: "Operations",
 };
 
-// Reverse mapping from display labels to database values
+// Mapping from display labels to database values
 export const DISPLAY_TO_TOWER: Record<DisplayTower, DatabaseTower> = {
   "Infrastructure": "CLOUD",
   "Applications": "APP_DEV",
   "Operations": "END_USER",
 };
 
-// Tower descriptions based on Technology Resource Towers framework
+// Tower descriptions 
 export const TOWER_DESCRIPTIONS: Record<DisplayTower, {
   description: string;
   includes: string[];

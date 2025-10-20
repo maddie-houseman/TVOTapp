@@ -8,7 +8,7 @@ import { Decimal } from '@prisma/client/runtime/library';
 
 const r = Router();
 
-// Handle GET requests to /api/l1 without parameters
+
 r.get('/', (req, res) => {
     res.status(400).json({ 
         error: 'L1 API requires companyId and period parameters',
@@ -23,7 +23,6 @@ r.get('/:companyId/:period', async (req, res) => {
     res.json(data);
 });
 
-// Handle POST requests to /api/l1
 r.post('/', auth(), async (req, res) => {
     const body = l1Schema.parse(req.body);
     

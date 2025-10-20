@@ -1,5 +1,5 @@
-// Department label mapping utility
-// Maps database enum values to user-friendly display labels
+// Department overlaying labels
+// Maps database dept to uodated ones
 
 export type DatabaseDepartment = 
   | "ENGINEERING"
@@ -37,7 +37,7 @@ export const DISPLAY_TO_DATABASE: Record<DisplayDepartment, DatabaseDepartment> 
   "Telecom": "OPERATIONS"
 };
 
-// Utility functions
+
 export function getDisplayLabel(databaseValue: DatabaseDepartment): DisplayDepartment {
   return DEPARTMENT_LABELS[databaseValue] || databaseValue as DisplayDepartment;
 }
@@ -51,7 +51,7 @@ export function getAllDisplayLabels(): DisplayDepartment[] {
   return Object.values(DEPARTMENT_LABELS);
 }
 
-// Get all database values
+// Get database values
 export function getAllDatabaseValues(): DatabaseDepartment[] {
   return Object.keys(DEPARTMENT_LABELS) as DatabaseDepartment[];
 }

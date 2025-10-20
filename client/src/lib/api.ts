@@ -3,12 +3,12 @@ export type Role = "ADMIN" | "EMPLOYEE";
 export type Me = { id: string; email: string; name: string; role: Role; companyId: string | null };
 
 export type Department =
-  | "ENGINEERING"
-  | "SALES"
-  | "FINANCE"
-  | "HR"
-  | "MARKETING"
-  | "OPERATIONS";
+    | "ENGINEERING"
+    | "SALES"
+    | "FINANCE"
+    | "HR"
+    | "MARKETING"
+    | "OPERATIONS";
 
 export type Tower = "APP_DEV" | "CLOUD" | "END_USER";
 
@@ -214,7 +214,7 @@ export const api = {
         return jsonFetch<L1Input[]>(`/api/l1/${companyId}/${period}`);
     },
 
-    // ---- L2 ----
+    // L2
     async l2Upsert(v: L2Input): Promise<L2Input> {
         return jsonFetch<L2Input>("/api/l2", { method: "POST", json: v });
     },
@@ -227,7 +227,7 @@ export const api = {
         return jsonFetch<L2Input[]>(`/api/l2/${companyId}/${period}`);
     },
 
-    // ---- L3 ----
+    // L3
     async l3Upsert(v: L3Input): Promise<L3Input> {
         return jsonFetch<L3Input>("/api/l3", { method: "POST", json: v });
     },

@@ -83,19 +83,19 @@ export default function Dashboard() {
 
       setIsLoading(true);
       try {
-        // Load L1 and L2 data from user's company
+        // Load L1 and L2 data
         const [l1, l2] = await Promise.all([
           api.l1Get(targetCompanyId, selectedPeriod),
           api.l2Get(targetCompanyId, selectedPeriod)
         ]);
 
-        // Load L4 snapshots from user's company
+        // Load L4 
         const l4Response = await api.snapshots(targetCompanyId);
         const l4 = l4Response.snapshots || [];
 
         setL1Data(l1);
         
-        // Deduplicate L2 data by tower name only (since we want to show each tower once)
+        // Deduplicate L2 data by tower name only (since only show each tower once)
         const uniqueL2Data = l2.filter((tower, index, self) => 
           index === self.findIndex(t => t.tower === tower.tower)
         );
@@ -138,7 +138,7 @@ export default function Dashboard() {
     return `${value.toFixed(1)}%`;
   };
 
-  // Show loading state
+  // Loading page
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -169,7 +169,7 @@ export default function Dashboard() {
               You can view data for any company in the system.
             </p>
             
-            {/* Company Selector */}
+            {/* Dmin company selection */}
             <div className="mt-8 max-w-md mx-auto">
               {loadingCompanies ? (
                 <div className="text-center">
@@ -201,7 +201,7 @@ export default function Dashboard() {
     );
   }
 
-  // Show no data message if no framework data exists
+  // Show no data messages if no framework data entered
   if (!hasData) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -244,7 +244,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div id="dashboard-root" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
+{/* Heading */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="mt-2 text-gray-600">
@@ -261,7 +261,7 @@ export default function Dashboard() {
             })}
           </p>
           
-          {/* Period Selector */}
+{/* Period Selector */}
           <div className="mt-4 flex items-center space-x-4">
             <select
               value={selectedYear}
@@ -297,7 +297,7 @@ export default function Dashboard() {
               <option value="12">December</option>
             </select>
 
-            {/* Company Selector for Admin Users */}
+{/* Company Selector for Admin*/}
             {user?.role === 'ADMIN' && (
               <>
                 <label className="text-sm font-medium text-gray-700">Company:</label>
@@ -320,7 +320,7 @@ export default function Dashboard() {
               </>
             )}
 
-            {/* Toggle Graphs Button (only show if we have enough data) */}
+{/* Toggle Graphs Button (only show if we have enough data) */}
             {historicalData.length >= 2 && (
               <button
                 type="button"
@@ -330,8 +330,7 @@ export default function Dashboard() {
                 {showGraphs ? 'Hide Graphs' : 'Show Graphs'}
               </button>
             )}
-
-            {/* Export PDF Button */}
+{/* Export PDF Button */}
             <button
               type="button"
               onClick={async () => {
@@ -365,7 +364,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Key Metrics */}
+{/* Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
@@ -432,9 +431,9 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Charts and Visualizations */}
+{/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* L1 - Technology Cost Foundation Analysis */}
+{/* L1 - Technology Analysis */}
           <div className="bg-white rounded-lg shadow p-6">
             <div className="mb-4">
               <h3 className="text-lg font-medium text-gray-900">L1 - Technology Cost Foundation Analysis</h3>
@@ -508,7 +507,7 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* L2 - Technology Resource Allocation Analysis */}
+{/* L2 - Data */}
           <div className="bg-white rounded-lg shadow p-6">
             <div className="mb-4">
               <h3 className="text-lg font-medium text-gray-900">L2 - Technology Resource Allocation</h3>
@@ -580,7 +579,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* L4 - ROI Analysis */}
+{/* L4 - ROI Analysis */}
         <div className="bg-white rounded-lg shadow p-6 mb-8">
           <div className="mb-4">
             <h3 className="text-lg font-medium text-gray-900">L4 - ROI Analysis</h3>
@@ -588,7 +587,7 @@ export default function Dashboard() {
           
           {currentSnapshot && currentSnapshot.totalCost > 0 && currentSnapshot.totalBenefit > 0 && l1Data.length > 0 && l2Data.length > 0 ? (
             <div className="space-y-6">
-              {/* Core ROI Metrics */}
+{/* ROI Metrics */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <h4 className="text-sm font-medium text-blue-900 mb-2">Return on Investment</h4>
@@ -609,7 +608,7 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Simple Breakdown */}
+
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h4 className="text-md font-medium text-gray-700 mb-3">Investment Summary</h4>
                 <div className="space-y-2">
@@ -632,7 +631,7 @@ export default function Dashboard() {
         </div>
 
 
-        {/* Revenue/Return Projection Graphs */}
+{/* Revenue/Return graphs */}
         {showGraphs && l1Data.length > 0 && l2Data.length > 0 && (
           <div className="bg-white rounded-lg shadow p-6 mb-8">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Revenue & Return Projections</h3>
@@ -641,7 +640,7 @@ export default function Dashboard() {
             </p>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Revenue Trend Line Chart */}
+{/* Revenue Graph*/}
               <div>
                 <h4 className="text-md font-medium text-gray-700 mb-4">Revenue Trend</h4>
                 <div className="h-64 relative border-l-2 border-b-2 border-gray-300">
@@ -659,7 +658,7 @@ export default function Dashboard() {
                       />
                     ))}
                     
-                    {/* Revenue line */}
+{/* Revenue line */}
                     {historicalData.length > 1 && (() => {
                       const maxRevenue = Math.max(...historicalData.map(s => s.totalBenefit));
                       const minRevenue = Math.min(...historicalData.map(s => s.totalBenefit));
@@ -701,7 +700,7 @@ export default function Dashboard() {
                     })()}
                   </svg>
                   
-                  {/* Y-axis labels */}
+{/* Y-axis labels */}
                   {historicalData.length > 1 && (() => {
                     const maxRevenue = Math.max(...historicalData.map(s => s.totalBenefit));
                     const minRevenue = Math.min(...historicalData.map(s => s.totalBenefit));
@@ -722,7 +721,7 @@ export default function Dashboard() {
                     );
                   })()}
                   
-                  {/* Month labels - improved spacing */}
+{/* x- axis labels */}
                   <div className="absolute bottom-0 left-0 right-0 flex justify-between px-4">
                     {historicalData.map((snapshot, index) => (
                       <div key={index} className="text-xs text-gray-600 flex-shrink-0" style={{ width: `${100 / historicalData.length}%`, textAlign: 'center' }}>
@@ -733,12 +732,12 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* ROI Trend Line Chart */}
+{/* ROI Trend graph*/}
               <div>
                 <h4 className="text-md font-medium text-gray-700 mb-4">ROI Trend</h4>
                 <div className="h-64 relative border-l-2 border-b-2 border-gray-300">
                   <svg className="w-full h-full" viewBox="0 0 400 200" preserveAspectRatio="none">
-                    {/* Grid lines */}
+{/* Grid lines */}
                     {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => (
                       <line
                         key={i}
@@ -751,7 +750,7 @@ export default function Dashboard() {
                       />
                     ))}
                     
-                    {/* Zero line */}
+{/* 0 line */}
                     <line
                       x1="0"
                       y1="100"
@@ -761,8 +760,7 @@ export default function Dashboard() {
                       strokeWidth="1"
                       strokeDasharray="5,5"
                     />
-                    
-                    {/* ROI line */}
+{/* ROI line */}
                     {historicalData.length > 1 && (() => {
                       const maxROI = Math.max(...historicalData.map(s => s.roiPct));
                       const minROI = Math.min(...historicalData.map(s => s.roiPct));
@@ -815,7 +813,7 @@ export default function Dashboard() {
                     })()}
                   </svg>
                   
-                  {/* Y-axis labels */}
+{/* Y-axis labels */}
                   {historicalData.length > 1 && (() => {
                     const maxROI = Math.max(...historicalData.map(s => s.roiPct));
                     const minROI = Math.min(...historicalData.map(s => s.roiPct));
@@ -836,7 +834,7 @@ export default function Dashboard() {
                     );
                   })()}
                   
-                  {/* Month labels - improved spacing */}
+{/* Month labels */}
                   <div className="absolute bottom-0 left-0 right-0 flex justify-between px-4">
                     {historicalData.map((snapshot, index) => (
                       <div key={index} className="text-xs text-gray-600 flex-shrink-0" style={{ width: `${100 / historicalData.length}%`, textAlign: 'center' }}>
@@ -848,7 +846,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Projection Summary */}
+{/* Projection data summary */}
             <div className="mt-6 p-4 bg-gray-50 rounded-lg">
               <h5 className="text-sm font-medium text-gray-700 mb-2">Projection Summary</h5>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
@@ -879,7 +877,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Authentication Notice */}
+{/* Authentication message */}
         {!isAuthenticated && (
           <div className="bg-gray-800 border border-gray-600 rounded-lg p-4">
             <div className="flex">

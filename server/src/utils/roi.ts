@@ -10,7 +10,7 @@ export type RoiInputs = {
         costAvoided?: number
     };
 };
-
+// compute cost function
 export function computeCost(l1: RoiInputs['l1'], l2: RoiInputs['l2']) {
     const towerCost: Record<string, number> = {};
     for (const { department, budget } of l1) {
@@ -24,7 +24,7 @@ export function computeCost(l1: RoiInputs['l1'], l2: RoiInputs['l2']) {
     const totalCost = Object.values(towerCost).reduce((a, b) => a + b, 0);
     return { totalCost, towerCost };
 }
-
+// compute beenfit function
 export function computeBenefit(l3: RoiInputs['l3'], assumptions: NonNullable<RoiInputs['benefitAssumptions']>) {
     const { revenueUplift = 0, productivityGainHours = 0, avgLoadedRate = 0, riskAvoidedValue = 0, costAvoided = 0 } = assumptions;
     const base: Record<string, number> = {

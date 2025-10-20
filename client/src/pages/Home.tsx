@@ -1,4 +1,3 @@
-// import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/useAuth';
 
@@ -38,7 +37,7 @@ export default function Home() {
 
   return (
     <div className="py-16 bg-gray-50 text-gray-900">
-      {/* Hero Section */}
+
       <div className="bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center">
@@ -71,7 +70,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Framework Overview */}
+{/* Framework overview */}
       <div className="py-16 bg-gray-50 text-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
@@ -112,7 +111,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Authentication Notice */}
+{/* Authentication message */}
       {!isAuthenticated && (
         <div className="p-4" style={{ backgroundColor: 'var(--light-blue)', borderLeft: '4px solid var(--primary-teal)' }}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -131,7 +130,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* Company Info */}
+{/* Company info */}
       <div className="py-12" style={{ backgroundColor: 'var(--light-grey)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-lg shadow p-6" style={{ border: '1px solid var(--light-blue)' }}>

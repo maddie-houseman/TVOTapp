@@ -1,15 +1,15 @@
 import { PrismaClient } from "@prisma/client";
 import { ENV } from './env.js';
 
-// Fix SSL issues by modifying the DATABASE_URL
+// logs for testing
 function fixDatabaseUrl(url: string): string {
-  console.log('🔍 Original DATABASE_URL:', url ? `${url.substring(0, 30)}...` : 'NOT SET');
+  console.log(' Original DATABASE_URL:', url ? `${url.substring(0, 30)}...` : 'NOT SET');
   
   // Always add SSL parameters if they're missing
   if (!url.includes('sslmode=')) {
     const separator = url.includes('?') ? '&' : '?';
     const fixedUrl = `${url}${separator}sslmode=disable&connect_timeout=10`;
-    console.log('🔧 Added SSL parameters (disabled):', `${fixedUrl.substring(0, 30)}...`);
+    console.log('Added SSL parameters (disabled):', `${fixedUrl.substring(0, 30)}...`);
     return fixedUrl;
   }
   
@@ -17,7 +17,7 @@ function fixDatabaseUrl(url: string): string {
   if (url.includes('railway') || url.includes('rlwy.net')) {
     const cleanUrl = url.split('?')[0];
     const fixedUrl = `${cleanUrl}?sslmode=require&connect_timeout=30&pool_timeout=30`;
-    console.log('🔧 Fixed Railway DATABASE_URL:', `${fixedUrl.substring(0, 30)}...`);
+    console.log('Fixed Railway DATABASE_URL:', `${fixedUrl.substring(0, 30)}...`);
     return fixedUrl;
   }
   
@@ -76,9 +76,8 @@ prisma.$on('warn', (e) => {
   console.warn(`[PRISMA-WARN] ${e.message}`);
 });
 
-// Optional: clean shutdown
+
 process.on("SIGINT", async () => {
     await prisma.$disconnect();
     process.exit(0);
 });
-// Connection pool configured for Railway deployment

@@ -4,7 +4,7 @@ import { prisma } from "../prisma.js";
 
 const router = Router();
 
-// API key guard
+
 function requireApiKey(req: Request, res: Response, next: () => void) {
   const required = process.env.API_KEY;
   if (!required) return res.status(403).json({ error: "API key not configured" });

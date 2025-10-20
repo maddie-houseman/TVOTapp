@@ -9,13 +9,13 @@ export default function Account() {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // Profile edit form state
+  // Profile able to be edited
   const [profileForm, setProfileForm] = useState({
     name: user?.name || '',
     email: user?.email || ''
   });
 
-  // Password change form state
+  // Password able to be changed state
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
@@ -54,7 +54,7 @@ export default function Account() {
       await api.updateProfile(profileForm.name, profileForm.email);
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
       setIsEditingProfile(false);
-      // Refresh the page to get updated user data
+      // Automatically refreshing the page to get updated user data
       window.location.reload();
     } catch (error) {
       setMessage({ 
@@ -122,7 +122,7 @@ export default function Account() {
           </div>
 
           <div className="p-6 space-y-8">
-            {/* User Information */}
+{/* user info */}
             <div>
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-medium text-gray-900">User Information</h3>
@@ -215,7 +215,7 @@ export default function Account() {
               )}
             </div>
 
-            {/* Company Information */}
+{/* company info */}
             <div>
               <h3 className="text-lg font-medium text-gray-900 mb-4">Company Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -251,7 +251,7 @@ export default function Account() {
               </div>
             </div>
 
-            {/* Password Change Section */}
+{/* password change form */}
             <div>
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-medium text-gray-900">Security</h3>
@@ -316,7 +316,7 @@ export default function Account() {
               )}
             </div>
 
-            {/* Messages */}
+{/* rendering of any messages eg. error and saves on forms */}
             {message && (
               <div className={`rounded-md p-4 ${
                 message.type === 'success' 

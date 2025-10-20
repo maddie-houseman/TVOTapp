@@ -355,7 +355,7 @@ export default function FrameworkEntry() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
+{/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">TBM Framework Entry</h1>
           <p className="mt-2 text-gray-600">
@@ -363,7 +363,7 @@ export default function FrameworkEntry() {
           </p>
         </div>
 
-        {/* Progress Steps */}
+
         <div className="mb-8">
           <div className="flex items-center justify-between">
             {[1, 2, 3, 4].map((step) => (
@@ -391,7 +391,7 @@ export default function FrameworkEntry() {
           </div>
         </div>
 
-        {/* Period Selection */}
+{/* Period selection */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Reporting Period</h3>
           <div className="max-w-xs">
@@ -407,7 +407,7 @@ export default function FrameworkEntry() {
           </div>
         </div>
 
-        {/* Company Selection for Admin Users Only */}
+{/* Company Selection for Admin Users Only */}
         {user.role === 'ADMIN' && (
           <div className="bg-white rounded-lg shadow p-6 mb-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Company Selection</h3>
@@ -433,7 +433,7 @@ export default function FrameworkEntry() {
         )}
 
 
-        {/* Company Info for Regular Users */}
+{/* Company Info for Regular Users */}
         {user.role !== 'ADMIN' && company && (
           <div className="bg-white rounded-lg shadow p-6 mb-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Company Information</h3>
@@ -444,10 +444,9 @@ export default function FrameworkEntry() {
             </div>
           </div>
         )}
-
-        {/* Step Content */}
+{/* Step Content */}
         <div className="bg-white rounded-lg shadow">
-          {/* L1 Step */}
+{/* L1*/}
           {currentStep === 1 && (
             <div className="p-6">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">L1 - Operational Inputs</h3>
@@ -526,7 +525,7 @@ export default function FrameworkEntry() {
             </div>
           )}
 
-          {/* L2 Step */}
+{/* L2 */}
           {currentStep === 2 && (
             <div className="p-6">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">L2 - Allocation Weights</h3>
@@ -633,7 +632,7 @@ export default function FrameworkEntry() {
             </div>
           )}
 
-          {/* L3 Step */}
+{/* L3*/}
           {currentStep === 3 && (
             <div className="p-6">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">L3 - Benefit Weights</h3>
@@ -716,7 +715,7 @@ export default function FrameworkEntry() {
             </div>
           )}
 
-          {/* L4 Step */}
+{/* L4*/}
           {currentStep === 4 && (
             <div className="p-6">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">L4 - ROI Assumptions</h3>
@@ -804,7 +803,6 @@ export default function FrameworkEntry() {
           )}
         </div>
 
-        {/* Messages */}
         {successMessage && (
           <div className="mt-6 bg-green-50 border border-green-200 rounded-md p-4">
             <div className="flex">

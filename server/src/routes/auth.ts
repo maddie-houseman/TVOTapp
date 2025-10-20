@@ -69,7 +69,7 @@ router.post('/auth/signup', async (req: Request, res: Response) => {
             console.log(`[SIGNUP] Found existing company: ${company.id} - ${company.name}`);
         } else {
             console.log(`[SIGNUP] Company not found, creating new one: "${companyName}"`);
-            // Create new company if it doesn't exist
+
             company = await prisma.company.create({
                 data: {
                 name: companyName,
@@ -106,7 +106,7 @@ router.post('/auth/signup', async (req: Request, res: Response) => {
     }
     });
 
-    // POST /api/auth/login
+
     router.post('/auth/login', async (req: Request, res: Response) => {
     try {
         const { email, password } = (req.body ?? {}) as { email?: string; password?: string };
@@ -129,7 +129,7 @@ router.post('/auth/signup', async (req: Request, res: Response) => {
     }
     });
 
-    // GET /api/auth/me
+
     router.get('/auth/me', async (req: Request, res: Response) => {
     try {
         const token = req.cookies?.session as string | undefined;
@@ -148,7 +148,7 @@ router.post('/auth/signup', async (req: Request, res: Response) => {
     }
     });
 
-    // GET /api/auth/company
+
     router.get('/auth/company', async (req: Request, res: Response) => {
     try {
         const token = req.cookies?.session as string | undefined;
@@ -174,7 +174,7 @@ router.post('/auth/signup', async (req: Request, res: Response) => {
     }
     });
 
-    // GET /api/auth/companies (admin only)
+
     router.get('/auth/companies', async (req: Request, res: Response) => {
     try {
         const token = req.cookies?.session as string | undefined;
@@ -199,13 +199,13 @@ router.post('/auth/signup', async (req: Request, res: Response) => {
     }
     });
 
-    // POST /api/auth/logout
+
     router.post('/auth/logout', (_req: Request, res: Response) => {
     res.clearCookie('session', { path: '/' });
     return res.json({ ok: true });
     });
 
-    // PUT /api/auth/profile
+
     router.put('/auth/profile', async (req: Request, res: Response) => {
     try {
         const token = req.cookies?.session as string | undefined;
@@ -245,7 +245,7 @@ router.post('/auth/signup', async (req: Request, res: Response) => {
     }
     });
 
-    // PUT /api/auth/password
+
     router.put('/auth/password', async (req: Request, res: Response) => {
     try {
         const token = req.cookies?.session as string | undefined;

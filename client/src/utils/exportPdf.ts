@@ -1,4 +1,4 @@
-// Export DOM element to PDF using html2canvas + jsPDF
+// Export DOM element to PDF
 
 type LoadedLibs = {
   html2canvas: (el: HTMLElement, opts?: Record<string, unknown>) => Promise<HTMLCanvasElement>;
@@ -42,11 +42,10 @@ async function loadFromCdn(): Promise<LoadedLibs> {
   }
 
   try {
-    // Load CDN libraries
+
     await load('https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js');
     await load('https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js');
 
-    // Initialize libraries
     await new Promise(resolve => setTimeout(resolve, 100));
 
     const html2canvas = (window as unknown as { html2canvas: LoadedLibs['html2canvas'] }).html2canvas;
@@ -74,12 +73,12 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
       throw new Error('exportElementToPdf: target element is required');
     }
 
-    // Preprocess CSS for PDF compatibility
+    // Preprocess CSS for compatibility with PDF
     const preprocessElement = (element: HTMLElement) => {
       const computedStyle = window.getComputedStyle(element);
       const style = element.style;
       
-      // Fix color compatibility
+// colours
       if (computedStyle.color && computedStyle.color.includes('oklch')) {
         style.color = '#000000';
       }
@@ -90,7 +89,7 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
         style.borderColor = '#000000';
       }
       
-      // Preserve chart colors
+
       if (element.classList.contains('bg-blue-500')) {
         style.backgroundColor = '#3b82f6';
       }
@@ -116,7 +115,7 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
         style.backgroundColor = '#0ea5e9';
       }
       
-      // Preserve graph styling
+// graph styling
       if (element.style.height && element.style.height.includes('px')) {
         style.height = element.style.height;
       }
@@ -125,7 +124,7 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
         style.alignItems = 'flex-end';
       }
       
-      // Preserve emoji sizing - ensure consistent emoji size
+
       if (element.tagName === 'SPAN' && element.textContent && /[\u{1F300}-\u{1F9FF}]/u.test(element.textContent)) {
         style.fontSize = '14px';
         style.lineHeight = '1';
@@ -135,7 +134,7 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
         style.textAlign = 'center';
       }
       
-      // Preserve text colors
+
       if (element.classList.contains('text-blue-600')) {
         style.color = '#2563eb';
       }
@@ -164,7 +163,7 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
         style.color = '#111827';
       }
       
-      // Preserve background colors for colored sections
+// Preserve background colors for colored sections
       if (element.classList.contains('bg-blue-50')) {
         style.backgroundColor = '#eff6ff';
       }
@@ -181,7 +180,6 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
         style.backgroundColor = '#f9fafb';
       }
       
-      // Process children
       Array.from(element.children).forEach(child => {
         if (child instanceof HTMLElement) {
           preprocessElement(child);
@@ -189,12 +187,12 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
       });
     };
 
-    // Preprocess element
+
     preprocessElement(target);
 
     const { html2canvas, jsPDF } = await loadFromCdn();
     
-    // Hide interactive elements
+    // Hide interactive parts
     const interactiveElements = target.querySelectorAll('button, input, select, textarea, a[href], [onclick], [onchange]');
     const originalStyles: string[] = [];
     
@@ -206,7 +204,8 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
     
     let canvas: HTMLCanvasElement;
     try {
-      // Render the original element directly
+
+
       canvas = await html2canvas(target, { 
         scale: 2, 
         backgroundColor: '#ffffff',
@@ -219,7 +218,7 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
         height: target.scrollHeight
       });
     } finally {
-      // Restore styles
+
       interactiveElements.forEach((element, index) => {
         const htmlElement = element as HTMLElement;
         htmlElement.style.display = originalStyles[index];
@@ -233,7 +232,7 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
     
 
     // Scale to fit page
-    const imgWidth = pageWidth - 40; // 20pt margins
+    const imgWidth = pageWidth - 40; 
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
     
 
@@ -241,7 +240,7 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
     let remaining = imgHeight;
     let sourceY = 0;
     const sliceHeightPx = Math.floor((canvas.width * (pageHeight - 40)) / imgWidth);
-    let pageCount = 1;
+  
 
     // Handle multi-page content
     while (remaining > 0) {
@@ -277,7 +276,6 @@ export async function exportElementToPdf(target: HTMLElement, fileName = 'export
       if (remaining > 0) {
         pdf.addPage();
         y = 20;
-        pageCount++;
       }
     }
 

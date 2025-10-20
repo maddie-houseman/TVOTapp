@@ -1,4 +1,3 @@
-// Authentication context
 import { createContext, useState, useEffect, type ReactNode } from 'react';
 import api from '../lib/api';
 
